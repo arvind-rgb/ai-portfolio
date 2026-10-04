@@ -1,5 +1,7 @@
 # AI Builder Portfolio — Arvind Ravichandran
 
+**[🌐 Watch the demos](https://arvind-rgb.github.io/ai-portfolio/)** · [LinkedIn](https://www.linkedin.com/in/arvindbhookle) · [arvind2648@gmail.com](mailto:arvind2648@gmail.com)
+
 I'm the founder of **Bhookle**, a home-cooked food marketplace in India. With no QA team, no growth team and no logistics team, I used **Claude Code** to build those teams as software. This repo collects four of those projects. Each folder has the code (with secrets and personal data removed), a README explaining the design, and a demo video recorded with sample data.
 
 | | Project | What it does | AI at work | Demo |
@@ -27,3 +29,7 @@ I'm the founder of **Bhookle**, a home-cooked food marketplace in India. With no
 ## A note on what's here
 
 Everything in this repo has been sanitized. There are no keys, tokens or customer data. Investors, riders, chefs and phone numbers in the demos are fictional, and business figures are masked where noted. ShipHop.AI's production courier adapters are kept private.
+
+## Contact
+
+**Arvind Ravichandran** · [linkedin.com/in/arvindbhookle](https://www.linkedin.com/in/arvindbhookle) · [arvind2648@gmail.com](mailto:arvind2648@gmail.com)
