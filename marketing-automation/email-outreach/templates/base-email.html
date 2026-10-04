@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <title>{{subject}}</title>
+  <style>
+    /* === Bhookle Email Base Template ===
+       Design system: cream canvas (#FFF8EC), orange (#FF6B00), mulberry (#3D0C11)
+       Logo: logo-full-orange.png — always centred, 56px tall, on cream. Never a text band.
+       Background: always #FFF8EC (cream). Never pure white.
+    */
+    body { margin: 0; padding: 0; background: #FFF8EC; font-family: Georgia, 'Times New Roman', serif; }
+    .wrapper { max-width: 600px; margin: 0 auto; background: #FFF8EC; }
+
+    /* No separate header band — logo is baked into hero.png via stamp_logo.py */
+
+    /* Hero image */
+    .hero img { width: 100%; display: block; }
+
+    /* Body */
+    .body-wrap { padding: 36px 40px; background: #FFF8EC; }
+    .greeting { font-size: 17px; color: #1A1A1A; line-height: 1.7; margin: 0 0 18px; }
+    p { font-size: 16px; color: #2D2D2D; line-height: 1.8; margin: 0 0 16px; }
+    .highlight { font-weight: bold; color: #FF6B00; }
+    .section-heading { font-size: 18px; font-weight: bold; color: #1A1A1A; margin: 24px 0 16px; }
+
+    /* Info / pillar box */
+    .info-box { background: #FFE0B2; border-left: 4px solid #FF6B00; border-radius: 8px; padding: 18px 22px; margin: 24px 0; }
+    .info-box p { margin: 4px 0; font-size: 15px; color: #3D0C11; }
+
+    /* Coupon box */
+    .coupon-box { background: #FF6B00; border-radius: 10px; padding: 24px 28px; text-align: center; margin: 28px 0; }
+    .coupon-box p { color: #ffffff; margin: 0; font-family: Arial, sans-serif; }
+    .coupon-code { font-size: 32px; font-weight: 900; letter-spacing: 4px; color: #ffffff; font-family: 'Courier New', monospace; display: block; margin: 8px 0; }
+    .coupon-desc { font-size: 15px; opacity: 0.92; }
+
+    /* CTA button */
+    .cta-wrap { text-align: center; margin: 28px 0; }
+    .cta-btn { display: inline-block; background: #FF6B00; color: #ffffff; font-family: Arial, sans-serif; font-size: 17px; font-weight: 700; text-decoration: none; padding: 16px 40px; border-radius: 12px; letter-spacing: 0.3px; }
+
+    /* Founder signature */
+    .founder-img { text-align: center; margin: 28px 0 16px; }
+    .founder-img img { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; border: 4px solid #FF6B00; }
+    .signature { margin: 8px 0; font-size: 16px; color: #2D2D2D; line-height: 1.7; text-align: center; }
+    .sig-name { font-weight: bold; font-size: 17px; color: #1A1A1A; }
+    .sig-title { color: #888; font-size: 14px; font-family: Arial, sans-serif; }
+    .ps { font-size: 14px; color: #666; font-style: italic; margin: 20px 0 0; line-height: 1.7; }
+
+    /* Footer */
+    .footer { background: #3D0C11; padding: 20px 32px; text-align: center; }
+    .footer p { font-family: Arial, sans-serif; font-size: 12px; color: #FFE0B2; margin: 4px 0; }
+
+    @media (max-width: 600px) {
+      .body-wrap { padding: 24px 20px; }
+      .coupon-code { font-size: 26px; }
+      .cta-btn { padding: 14px 28px; font-size: 16px; }
+      .founder-img img { width: 160px; height: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- ═══ HERO IMAGE — logo stamped in via stamp_logo.py, no separate header ═══ -->
+    <div class="hero">
+      <img src="hero.png" alt="{{hero_alt}}" />
+    </div>
+
+    <!-- ═══ BODY ═══ -->
+    <div class="body-wrap">
+      {{body_content}}
+    </div>
+
+    <!-- ═══ FOOTER — mulberry band ═══ -->
+    <div class="footer">
+      <p>You're receiving this because you signed up for Bhookle.</p>
+      <p>To unsubscribe, reply to this email with "Unsubscribe".</p>
+      <p style="margin-top:8px; color:#FF6B00;">© 2026 Bhookle — Amma in a Dabba</p>
+    </div>
+
+  </div>
+</body>
+</html>

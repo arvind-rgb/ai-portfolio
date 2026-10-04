@@ -1,0 +1,7 @@
+# setup-existing-user.yaml — reach the authenticated main app.
+# FIX: previously asserted "Home" (not a real visible string). Now delegates to
+# the canonical auth-login subflow which logs in via OTP <TEST_OTP> and lands on the
+# Landing screen (anchor: "Get It Today").
+appId: ${APP_ID}
+---
+- runFlow: auth-login.yaml

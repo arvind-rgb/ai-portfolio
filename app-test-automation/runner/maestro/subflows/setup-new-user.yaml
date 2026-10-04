@@ -1,0 +1,9 @@
+# setup-new-user.yaml — fresh-install state, app launched on GetStartedScreen.
+# "Get Started" is the verified visible CTA on GetStartedScreen.
+appId: ${APP_ID}
+---
+- clearState
+- launchApp
+- extendedWaitUntil:
+    visible: "Get Started"
+    timeout: 40000

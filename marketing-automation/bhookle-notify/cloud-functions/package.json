@@ -1,0 +1,13 @@
+{
+  "name": "bhookle-notify-functions",
+  "description": "On-the-dot lunch/dinner push notifications (Cloud Scheduler + FCM)",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.1"
+  },
+  "private": true
+}

@@ -1,0 +1,54 @@
+# Bhookle — one-off FIRST100 push blast to reg-but-not-ordered segment
+# Manual trigger only (workflow_dispatch). Defaults to DRY RUN — validates auth
+# and message against every token WITHOUT delivering. Set dry_run=false to send.
+# Token list: notifications/first100_tokens.txt (tokens only, no PII).
+
+name: FIRST100 Push Blast
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'true = validate only (no delivery), false = SEND to all tokens'
+        required: true
+        default: 'true'
+      limit:
+        description: 'Send to first N tokens only (0 = all). Use 5 for a canary.'
+        required: false
+        default: '0'
+      title:
+        description: 'Notification title'
+        required: true
+        default: 'Your first meal is still waiting 🍱'
+      body:
+        description: 'Notification body'
+        required: true
+        default: 'The amma next door is cooking today. Use code FIRST100 for ₹100 off your first order.'
+
+jobs:
+  blast:
+    name: FCM token blast
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests google-auth
+
+      - name: Send
+        env:
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+        run: |
+          args="--file notifications/first100_tokens.txt --title '${{ inputs.title }}' --body '${{ inputs.body }}'"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="$args --dry-run"; fi
+          if [ "${{ inputs.limit }}" != "0" ]; then args="$args --limit ${{ inputs.limit }}"; fi
+          eval python3 _skills/bhookle-notify/scripts/send_tokens.py $args

@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Bhookle — Test Case Dashboard</title>
+<style>
+  :root {
+    --purple: #341C3D;
+    --amber: #FFA70B;
+    --offwhite: #F5F5F5;
+    --grey: #AAAAAA;
+    --charcoal: #333333;
+    --green: #2E7D32;
+    --blue: #1565C0;
+    --red: #B71C1C;
+    --orange: #E65100;
+    --dormant: #757575;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; background: var(--offwhite); color: var(--charcoal);
+  }
+  header {
+    background: var(--purple); color: white;
+    padding: 14px 24px; display: flex; gap: 20px; align-items: center;
+    position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 700; }
+  header .meta { font-size: 12px; color: #ccc; }
+  header .spacer { flex: 1; }
+  .save-btn {
+    background: var(--amber); color: var(--purple);
+    border: none; padding: 8px 18px; font-weight: 700; font-size: 14px;
+    border-radius: 6px; cursor: pointer;
+  }
+  .save-btn:disabled { background: #888; color: #ccc; cursor: not-allowed; }
+  .save-btn.dirty { background: var(--amber); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,167,11,.6); } 50% { box-shadow: 0 0 0 8px rgba(255,167,11,0); } }
+
+  .lock-pill { background: var(--green); color: white; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+  .lock-pill.unlocked { background: #aa6c00; }
+
+  .tabs {
+    background: white; border-bottom: 1px solid #e0e0e0;
+    padding: 0 24px; display: flex; gap: 4px;
+  }
+  .tab {
+    padding: 10px 18px; cursor: pointer; border: none; background: transparent;
+    color: #666; font-weight: 600; border-bottom: 3px solid transparent;
+  }
+  .tab.active { color: var(--purple); border-bottom-color: var(--amber); }
+  .tab .count { background: var(--offwhite); padding: 1px 8px; margin-left: 6px; border-radius: 10px; font-size: 11px; }
+
+  main { padding: 20px 24px; max-width: 1600px; }
+
+  /* Dashboard summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card { background: white; padding: 14px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+  .card .value { font-size: 28px; font-weight: 700; color: var(--purple); margin-top: 2px; }
+  .card .breakdown { font-size: 11px; color: #666; margin-top: 6px; }
+
+  /* Filters */
+  .filters { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .filters select, .filters input {
+    padding: 6px 10px; border: 1px solid #ccc; border-radius: 5px; background: white; font-size: 13px;
+  }
+  .filters .bulk-btn {
+    padding: 5px 12px; border: 1px solid var(--purple); background: white; color: var(--purple);
+    border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;
+  }
+  .filters .bulk-btn:hover { background: var(--purple); color: white; }
+
+  /* Selection / bulk-action toolbar */
+  .selbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--purple); color: white;
+    padding: 8px 14px; border-radius: 8px; margin-bottom: 12px;
+  }
+  .selbar .selbar-allwrap { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .selbar input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--amber); }
+  .selbar .sel-count { font-size: 13px; color: var(--amber); font-weight: 700; min-width: 84px; }
+  .selbar .selbar-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .selbar .bulk-btn { background: white; border: 1px solid white; color: var(--purple); }
+  .selbar .bulk-btn:hover { background: var(--amber); border-color: var(--amber); color: var(--purple); }
+  .selbar .bulk-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .selbar .bulk-btn.act-approve { background: var(--green); border-color: var(--green); color: white; }
+  .selbar .bulk-btn.act-reject { background: var(--red); border-color: var(--red); color: white; }
+  .selbar .bulk-btn.act-clear { background: transparent; color: #ddd; border-color: #777; }
+  th.col-sel, td.col-sel { width: 34px; text-align: center; padding-left: 6px; padding-right: 6px; }
+  td.col-sel input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--amber); }
+  tr.row-selected { background: #FFF6E0 !important; }
+
+  /* TC table */
+  .tc-table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+  table.tc-list { width: 100%; border-collapse: collapse; background: white; }
+  table.tc-list th {
+    background: var(--purple); color: white; text-align: left; padding: 10px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+  }
+  table.tc-list thead tr th:first-child { border-top-left-radius: 8px; }
+  table.tc-list thead tr th:last-child { border-top-right-radius: 8px; }
+  table.tc-list td {
+    padding: 10px; vertical-align: top; border-bottom: 1px solid #eee; font-size: 13px;
+  }
+  table.tc-list tr:hover { background: #fafafa; }
+  table.tc-list tr.expanded { background: #fffbf0; }
+  td.tc-id { font-family: ui-monospace, monospace; font-size: 12px; white-space: nowrap; color: var(--purple); font-weight: 600; }
+  td.title { font-weight: 500; min-width: 280px; max-width: 460px; }
+  td.title .tc-desc {
+    display: block; margin-top: 4px; font-weight: 400;
+    font-size: 12px; color: #555; line-height: 1.4;
+  }
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 11px;
+    font-weight: 600; color: white; margin-right: 4px;
+  }
+  .b-P0 { background: var(--red); }
+  .b-P1 { background: var(--orange); }
+  .b-P2 { background: #1976D2; }
+  .b-P3 { background: #757575; }
+  /* type: core vs extra */
+  .b-core { background: #2E7D32; }
+  .b-extra { background: #8C8C8C; }
+  /* category (test nature) */
+  .b-smoke { background: #00695C; }
+  .b-functional { background: #1565C0; }
+  .b-edge { background: #6A1B9A; }
+  .b-negative { background: #B71C1C; }
+  .b-data-variation { background: #AD1457; }
+  .b-journey { background: var(--purple); }
+  .b-screen { background: #455A64; white-space: normal; max-width: 150px; line-height: 1.5; }
+
+  /* Status dropdown styled per value */
+  select.status {
+    padding: 5px 8px; border-radius: 4px; border: 1px solid #ccc;
+    font-size: 12px; font-weight: 600; cursor: pointer; min-width: 160px;
+  }
+  select.status.s-Approved { background: #E8F5E9; color: var(--green); border-color: var(--green); }
+  select.status.s-Rejected { background: #FFEBEE; color: var(--red); border-color: var(--red); }
+  select.status.s-Needs { background: #FFF3E0; color: var(--orange); border-color: var(--orange); }
+  select.status.s-Pending { background: #F5F5F5; color: #666; }
+  select.status.s-Skip { background: #ECEFF1; color: var(--dormant); border-color: var(--dormant); border-style: dashed; }
+  select.status.s-Removed { background: #424242; color: #fff; border-color: #424242; text-decoration: line-through; }
+
+  textarea.comments {
+    width: 100%; min-width: 180px; padding: 5px 7px;
+    border: 1px solid #ddd; border-radius: 4px; font-size: 12px;
+    resize: vertical; min-height: 32px; font-family: inherit;
+    background: #FFFBF0;
+  }
+  textarea.comments:focus { outline: 2px solid var(--amber); background: white; }
+
+  /* Expanded row details */
+  .details { background: #fffbf0; padding: 14px 18px; border-left: 4px solid var(--amber); }
+  .details h4 { margin: 0 0 4px 0; color: var(--purple); font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .details pre { background: white; padding: 10px; border-radius: 4px; font-size: 12px; white-space: pre-wrap; margin: 0 0 12px 0; border: 1px solid #eee; }
+  .details .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .details .meta-row { font-size: 12px; color: #555; margin-bottom: 8px; }
+  .details .meta-row b { color: var(--purple); }
+
+  /* Coverage matrix */
+  .coverage-grid { background: white; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .coverage-grid table { width: 100%; border-collapse: collapse; }
+  .coverage-grid th, .coverage-grid td { border: 1px solid #eee; padding: 8px 10px; text-align: left; font-size: 12px; vertical-align: top; }
+  .coverage-grid th { background: var(--purple); color: white; }
+  .coverage-grid td.gap { background: #FFEBEE; color: var(--red); font-weight: 600; }
+  .coverage-grid .tc-chip { display: inline-block; background: var(--offwhite); padding: 2px 6px; border-radius: 3px; margin: 1px 3px 1px 0; font-family: ui-monospace, monospace; font-size: 11px; }
+
+  .empty-state { background: white; padding: 40px; text-align: center; border-radius: 8px; color: #888; }
+  .instructions { background: #FFF6E5; border: 1px solid var(--amber); padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+  .instructions b { color: var(--purple); }
+
+  /* Run results + bugs tabs (mostly placeholders until skill #3 fills) */
+  .run-row { background: white; padding: 10px 14px; border-bottom: 1px solid #eee; font-size: 13px; }
+  .run-row.PASS { border-left: 4px solid var(--green); }
+  .run-row.FAIL { border-left: 4px solid var(--red); }
+  .run-row.SKIPPED { border-left: 4px solid #999; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍱 Bhookle Test Catalog</h1>
+  <span class="meta" id="meta">loading…</span>
+  <span class="spacer"></span>
+  <span id="lock-state" class="lock-pill unlocked">🔓 not locked</span>
+  <button id="save-btn" class="save-btn" disabled>Save changes</button>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="cases">Test Cases <span class="count" id="count-cases">0</span></button>
+  <button class="tab" data-tab="dashboard">Dashboard</button>
+  <button class="tab" data-tab="coverage">Coverage Matrix</button>
+  <button class="tab" data-tab="runs">Run Results <span class="count" id="count-runs">0</span></button>
+  <button class="tab" data-tab="bugs">Bugs Found <span class="count" id="count-bugs">0</span></button>
+</div>
+
+<main>
+  <!-- DASHBOARD TAB -->
+  <section id="tab-dashboard" hidden>
+    <div class="instructions">
+      <b>How to use:</b> Open the <b>Test Cases</b> tab. Set each row's <b>Status</b> and add free-text <b>Comments</b>.
+      Save with the button top-right (or ⌘+S). Re-invoke <code>/test-case-generator refine</code> to revise the rejected/needs-refinement rows
+      — approved rows are preserved verbatim. Once all rows are <b>Approved</b> or <b>Skip-Until-Flag-On</b>,
+      hit <b>Lock catalog</b> below and <code>/run-auto-test</code> can execute them.
+    </div>
+    <div class="cards" id="dash-cards"></div>
+    <div class="card" style="margin-top: 16px;">
+      <div class="label">Lock state</div>
+      <p style="font-size: 13px; color: #555;">
+        <span id="dash-lock-state">checking…</span>
+      </p>
+      <button class="bulk-btn" id="lock-btn" style="border-color: var(--green); color: var(--green);">🔒 Lock catalog</button>
+      <button class="bulk-btn" id="unlock-btn" style="border-color: var(--red); color: var(--red);">🔓 Unlock</button>
+    </div>
+  </section>
+
+  <!-- TEST CASES TAB -->
+  <section id="tab-cases">
+    <div class="filters">
+      <label>Screen: <select id="f-screen"><option value="">all</option></select></label>
+      <label>Priority: <select id="f-priority"><option value="">all</option></select></label>
+      <label>Type: <select id="f-type"><option value="">all</option></select></label>
+      <label>Category: <select id="f-category"><option value="">all</option></select></label>
+      <label>Status: <select id="f-status"><option value="">all</option></select></label>
+      <label>Journey: <select id="f-journey"><option value="">all</option></select></label>
+      <input type="search" id="f-search" placeholder="Search title / tags / screen…" style="flex: 1; min-width: 180px;">
+    </div>
+
+    <!-- Selection / bulk-action toolbar -->
+    <div class="selbar">
+      <label class="selbar-allwrap"><input type="checkbox" id="select-all"> <span>Select all filtered</span></label>
+      <span id="sel-count" class="sel-count">0 selected</span>
+      <span class="selbar-actions">
+        <button class="bulk-btn act-approve" data-selact="Approved">✓ Approve selected</button>
+        <button class="bulk-btn act-reject" data-selact="Rejected">✗ Reject</button>
+        <button class="bulk-btn" data-selact="Needs Refinement">Needs Refinement</button>
+        <button class="bulk-btn" data-selact="Skip-Until-Flag-On">Skip-Until-Flag-On</button>
+        <button class="bulk-btn" data-selact="Pending Review">Reset to Pending</button>
+        <button class="bulk-btn act-clear" id="clear-sel">Clear selection</button>
+      </span>
+    </div>
+
+    <div class="tc-table-wrap">
+      <table class="tc-list">
+        <thead>
+          <tr>
+            <th class="col-sel"><input type="checkbox" id="select-all-head" title="Select all filtered"></th>
+            <th>TC ID</th>
+            <th>Screen</th>
+            <th>Title</th>
+            <th>Pri</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Comments</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tc-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- COVERAGE TAB -->
+  <section id="tab-coverage" hidden>
+    <div class="coverage-grid">
+      <h3 style="margin-top:0; color: var(--purple);">Coverage Matrix — Screen × Category</h3>
+      <p style="color:#666; font-size: 12px;">Each row is a screen; columns are test categories. Red cells = no coverage of that category for that screen. Click any TC chip to jump to it.</p>
+      <table id="cov-table"></table>
+    </div>
+  </section>
+
+  <!-- RUN RESULTS TAB -->
+  <section id="tab-runs" hidden>
+    <p style="color:#666;">Populated by <code>/run-auto-test</code>.</p>
+    <div id="runs-list" class="empty-state">No runs yet.</div>
+  </section>
+
+  <!-- BUGS TAB -->
+  <section id="tab-bugs" hidden>
+    <p style="color:#666;">Populated by <code>/run-auto-test</code> from FAILed test cases.</p>
+    <div id="bugs-list" class="empty-state">No bugs logged yet.</div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+const STATUS_OPTIONS = [
+  "Pending Review", "Approved", "Rejected", "Needs Refinement",
+  "Skip-Until-Flag-On", "Removed"
+];
+const APPROVED_OK = new Set(["Approved", "Skip-Until-Flag-On"]);
+
+const state = {
+  catalog: null,
+  dirty: false,
+  expanded: new Set(),
+  selected: new Set(),
+  filter: { screen: "", journey: "", status: "", priority: "", type: "", category: "", search: "" },
+};
+
+const el = (id) => document.getElementById(id);
+const q = (sel, root=document) => root.querySelector(sel);
+const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+async function loadCatalog() {
+  const r = await fetch("/catalog.json");
+  if (!r.ok) {
+    document.body.innerHTML = `<main><div class="empty-state">Failed to load catalog (HTTP ${r.status}).<br>Re-run /test-case-generator.</div></main>`;
+    throw new Error("no catalog");
+  }
+  state.catalog = await r.json();
+}
+
+function setDirty(d) {
+  state.dirty = d;
+  const btn = el("save-btn");
+  btn.disabled = !d;
+  btn.classList.toggle("dirty", d);
+  btn.textContent = d ? "Save changes •" : "Saved";
+}
+
+async function saveCatalog() {
+  if (!state.dirty) return;
+  const r = await fetch("/api/save", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(state.catalog),
+  });
+  if (!r.ok) { alert("Save failed: " + (await r.text())); return; }
+  const j = await r.json();
+  setDirty(false);
+  refreshStatus(j.summary);
+}
+
+async function refreshStatus(summary) {
+  if (!summary) {
+    const r = await fetch("/api/status");
+    summary = await r.json();
+  }
+  const lockPill = el("lock-state");
+  if (summary.locked) {
+    lockPill.textContent = "🔒 locked"; lockPill.classList.remove("unlocked");
+  } else {
+    lockPill.textContent = "🔓 not locked"; lockPill.classList.add("unlocked");
+  }
+  const lockBtnHint = summary.all_approved
+    ? "All rows are Approved or Skip-Until-Flag-On — safe to lock."
+    : "Not all rows are Approved/Skip-Until-Flag-On. Resolve them before locking.";
+  el("dash-lock-state").textContent = (summary.locked ? "🔒 LOCKED. " : "🔓 Unlocked. ") + lockBtnHint;
+}
+
+function renderMeta() {
+  const m = state.catalog.meta || {};
+  const tcs = state.catalog.test_cases || [];
+  el("meta").textContent = `${tcs.length} TCs · score ${m.critique_score || "?"}/100 · flow v${m.flow_version || "?"} · commit ${m.app_commit || "-"}`;
+}
+
+function renderDashboard() {
+  const tcs = state.catalog.test_cases;
+  const by = (key) => tcs.reduce((a, t) => (a[t[key] || "?"] = (a[t[key] || "?"] || 0) + 1, a), {});
+  const status = by("status"), priority = by("priority"), type = by("type"),
+        journey = by("journey"), screen = by("screen"), category = by("category");
+  const cards = el("dash-cards");
+  const card = (label, val, breakdown) =>
+    `<div class="card"><div class="label">${label}</div><div class="value">${val}</div>${breakdown ? `<div class="breakdown">${breakdown}</div>` : ""}</div>`;
+
+  const sb = (m) => Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k, v]) => `${k}: <b>${v}</b>`).join(" · ");
+  cards.innerHTML = [
+    card("Total", tcs.length),
+    card("Screens covered", Object.keys(screen).length),
+    card("Self-critique", (state.catalog.meta?.critique_score || "?") + "/100"),
+    card("By Priority", "", sb(priority)),
+    card("By Type", "", sb(type)),
+    card("By Category", "", sb(category)),
+    card("By Status", "", sb(status)),
+    card("Journeys", Object.keys(journey).length, sb(journey)),
+  ].join("");
+}
+
+function badge(cls, txt) { return `<span class="badge b-${cls}">${txt}</span>`; }
+function fmtJourney(j) { return j.replace(/^[A-Z]\.\s/, ""); }
+
+function rowMatchesFilter(t) {
+  const f = state.filter;
+  if (f.screen && t.screen !== f.screen) return false;
+  if (f.journey && t.journey !== f.journey) return false;
+  if (f.status && (t.status || "Pending Review") !== f.status) return false;
+  if (f.priority && t.priority !== f.priority) return false;
+  if (f.type && t.type !== f.type) return false;
+  if (f.category && t.category !== f.category) return false;
+  if (f.search) {
+    const s = f.search.toLowerCase();
+    const hay = `${t.tc_id} ${t.title} ${t.description||""} ${t.tags||""} ${t.journey} ${t.screen}`.toLowerCase();
+    if (!hay.includes(s)) return false;
+  }
+  return true;
+}
+
+function renderTCs() {
+  const body = el("tc-body");
+  body.innerHTML = "";
+  const tcs = state.catalog.test_cases;
+  let shown = 0;
+  for (const t of tcs) {
+    if (!rowMatchesFilter(t)) continue;
+    shown++;
+    const status = t.status || "Pending Review";
+    const statusClass = "s-" + (status.startsWith("Pending") ? "Pending" :
+                                status.startsWith("Needs") ? "Needs" :
+                                status.startsWith("Skip") ? "Skip" :
+                                status);
+    const tr = document.createElement("tr");
+    tr.dataset.tcId = t.tc_id;
+    if (state.expanded.has(t.tc_id)) tr.classList.add("expanded");
+    if (state.selected.has(t.tc_id)) tr.classList.add("row-selected");
+    tr.innerHTML = `
+      <td class="col-sel"><input type="checkbox" class="row-select" data-tc="${t.tc_id}" ${state.selected.has(t.tc_id) ? "checked" : ""}></td>
+      <td class="tc-id">${t.tc_id}</td>
+      <td>${badge("screen", t.screen)}</td>
+      <td class="title">${escapeHtml(t.title)}${t.description ? `<span class="tc-desc">${escapeHtml(t.description)}</span>` : ""}</td>
+      <td>${badge(t.priority, t.priority)}</td>
+      <td>${badge(t.type, t.type)}</td>
+      <td>
+        <select class="status ${statusClass}" data-tc="${t.tc_id}">
+          ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===status?"selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
+      <td><textarea class="comments" data-tc="${t.tc_id}" placeholder="optional…">${t.comments || ""}</textarea></td>
+      <td><button class="bulk-btn" data-expand="${t.tc_id}">${state.expanded.has(t.tc_id) ? "▲" : "▼"}</button></td>
+    `;
+    body.appendChild(tr);
+
+    if (state.expanded.has(t.tc_id)) {
+      const det = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.innerHTML = `
+        <div class="details">
+          <div class="meta-row">
+            <b>Screen:</b> ${t.screen}
+            &nbsp;·&nbsp; <b>Journey:</b> ${fmtJourney(t.journey)}
+            &nbsp;·&nbsp; <b>Category:</b> ${t.category || "-"}
+            &nbsp;·&nbsp; <b>Platform:</b> ${t.platform}
+            &nbsp;·&nbsp; <b>Verified from:</b> ${t.verified_from || "-"}
+            &nbsp;·&nbsp; <b>Tags:</b> ${t.tags || "-"}
+            &nbsp;·&nbsp; <b>Maestro:</b> <code>${t.maestro_yaml || "-"}</code>
+          </div>
+          <div class="grid">
+            <div>
+              <h4>Preconditions</h4>
+              <pre>${escapeHtml(t.preconditions || "-")}</pre>
+              <h4>Steps</h4>
+              <pre>${escapeHtml(t.steps || "-")}</pre>
+            </div>
+            <div>
+              <h4>Expected Result</h4>
+              <pre>${escapeHtml(t.expected || "-")}</pre>
+              <h4>Test data</h4>
+              <pre>${escapeHtml(t.data || "-")}</pre>
+              ${t.last_run_result ? `<h4>Last run</h4><pre>${t.last_run_result} @ ${t.last_run_ts}\n${t.failure_reason || ""}</pre>` : ""}
+            </div>
+          </div>
+        </div>`;
+      det.appendChild(td);
+      body.appendChild(det);
+    }
+  }
+  el("count-cases").textContent = shown;
+  updateSelectionUI();
+}
+
+// All TCs currently passing the filter (the "filtered" set the select-all acts on)
+function visibleTCs() {
+  return state.catalog.test_cases.filter(rowMatchesFilter);
+}
+
+// Keep the selection count, the select-all checkboxes, and action-button enablement in sync
+function updateSelectionUI() {
+  const n = state.selected.size;
+  const cnt = el("sel-count");
+  if (cnt) cnt.textContent = `${n} selected`;
+
+  const vis = visibleTCs();
+  const visSelected = vis.filter(t => state.selected.has(t.tc_id)).length;
+  const allChecked = vis.length > 0 && visSelected === vis.length;
+  const someChecked = visSelected > 0 && !allChecked;
+  ["select-all", "select-all-head"].forEach(id => {
+    const cb = el(id);
+    if (cb) { cb.checked = allChecked; cb.indeterminate = someChecked; }
+  });
+
+  // Action buttons (except Clear) only enabled when something is selected
+  document.querySelectorAll("[data-selact]").forEach(b => { b.disabled = n === 0; });
+  const clear = el("clear-sel");
+  if (clear) clear.disabled = n === 0;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderCoverage() {
+  const tcs = state.catalog.test_cases;
+  const screens = [...new Set(tcs.map(t => t.screen))].sort();
+  const cats = ["smoke", "functional", "negative", "edge", "data-variation"];
+  const by = {};
+  for (const t of tcs) {
+    const k = t.screen + "|" + t.category;
+    (by[k] = by[k] || []).push(t);
+  }
+  let html = "<thead><tr><th>Screen</th>" + cats.map(c => `<th>${c}</th>`).join("") + "<th>total</th></tr></thead><tbody>";
+  for (const s of screens) {
+    const rowTotal = tcs.filter(t => t.screen === s).length;
+    html += `<tr><td><b>${s}</b></td>`;
+    for (const c of cats) {
+      const list = by[s + "|" + c] || [];
+      html += list.length
+        ? `<td>${list.map(x => `<span class="tc-chip" data-jump="${x.tc_id}">${x.tc_id}</span>`).join("")}</td>`
+        : `<td class="gap">—</td>`;
+    }
+    html += `<td><b>${rowTotal}</b></td></tr>`;
+  }
+  html += "</tbody>";
+  el("cov-table").innerHTML = html;
+}
+
+function renderRuns() {
+  const rows = state.catalog.run_results || [];
+  el("count-runs").textContent = rows.length;
+  if (!rows.length) { el("runs-list").innerHTML = "No runs yet."; return; }
+  el("runs-list").innerHTML = "";
+  for (const r of rows) {
+    const d = document.createElement("div");
+    d.className = "run-row " + (r.status || "");
+    d.textContent = `${r.tc_id} · ${r.platform} · ${r.status} · ${r.duration_s}s · ${r.timestamp}`;
+    el("runs-list").appendChild(d);
+  }
+}
+
+function renderBugs() {
+  const rows = state.catalog.bugs || [];
+  el("count-bugs").textContent = rows.length;
+  if (!rows.length) { el("bugs-list").innerHTML = "No bugs logged yet."; return; }
+  el("bugs-list").innerHTML = "";
+  for (const b of rows) {
+    const d = document.createElement("div");
+    d.className = "run-row";
+    d.innerHTML = `<b>${b.bug_id || ""}</b> (${b.severity || "?"}) — ${b.summary || ""} <span style="color:#888">from ${b.tc_id || "?"}</span>`;
+    el("bugs-list").appendChild(d);
+  }
+}
+
+function populateFilters() {
+  const tcs = state.catalog.test_cases;
+  const fill = (id, items) => {
+    const sel = el(id);
+    sel.innerHTML = `<option value="">all</option>` + items.map(v => `<option value="${v}">${v}</option>`).join("");
+  };
+  fill("f-screen", [...new Set(tcs.map(t => t.screen))].sort());
+  fill("f-journey", [...new Set(tcs.map(t => t.journey))].sort());
+  fill("f-status", STATUS_OPTIONS);
+  fill("f-priority", ["P0", "P1", "P2", "P3"]);
+  fill("f-type", ["core", "extra"]);
+  fill("f-category", ["smoke", "functional", "negative", "edge", "data-variation"]);
+}
+
+function bindEvents() {
+  // Tabs
+  qa(".tab").forEach(t => t.onclick = () => {
+    qa(".tab").forEach(x => x.classList.toggle("active", x === t));
+    qa("main > section").forEach(s => s.hidden = (s.id !== "tab-" + t.dataset.tab));
+    if (t.dataset.tab === "dashboard") renderDashboard();
+    if (t.dataset.tab === "coverage") renderCoverage();
+    if (t.dataset.tab === "runs") renderRuns();
+    if (t.dataset.tab === "bugs") renderBugs();
+  });
+
+  // Save
+  el("save-btn").onclick = saveCatalog;
+  // ⌘S / Ctrl-S
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      saveCatalog();
+    }
+  });
+
+  // Filters
+  ["screen","journey","status","priority","type","category"].forEach(k => {
+    el("f-"+k).onchange = (e) => { state.filter[k] = e.target.value; renderTCs(); };
+  });
+  el("f-search").oninput = (e) => { state.filter.search = e.target.value; renderTCs(); };
+
+  // Select-all (toggles every currently-filtered row). Both the toolbar and header checkbox share this.
+  const toggleSelectAll = (checked) => {
+    const vis = visibleTCs();
+    if (checked) vis.forEach(t => state.selected.add(t.tc_id));
+    else vis.forEach(t => state.selected.delete(t.tc_id));
+    renderTCs();
+  };
+  ["select-all", "select-all-head"].forEach(id => {
+    const cb = el(id);
+    if (cb) cb.onclick = (e) => toggleSelectAll(e.target.checked);
+  });
+
+  // Per-row checkbox (delegated; no full re-render so focus/scroll are preserved)
+  el("tc-body").addEventListener("change", (e) => {
+    if (!e.target.classList.contains("row-select")) return;
+    const id = e.target.dataset.tc;
+    if (e.target.checked) state.selected.add(id); else state.selected.delete(id);
+    const tr = e.target.closest("tr");
+    if (tr) tr.classList.toggle("row-selected", e.target.checked);
+    updateSelectionUI();
+  });
+
+  // Bulk action on the SELECTED rows (works across filters — selection is explicit)
+  qa("[data-selact]").forEach(b => b.onclick = () => {
+    if (!state.selected.size) return;
+    const tgt = b.dataset.selact;
+    let n = 0;
+    for (const t of state.catalog.test_cases) {
+      if (state.selected.has(t.tc_id) && (t.status || "Pending Review") !== tgt) {
+        t.status = tgt; n++;
+      }
+    }
+    if (n) { setDirty(true); }
+    renderTCs();
+    console.log(`bulk: ${n}/${state.selected.size} selected → ${tgt}`);
+  });
+
+  // Clear selection
+  el("clear-sel").onclick = () => { state.selected.clear(); renderTCs(); };
+
+  // Lock/unlock
+  el("lock-btn").onclick = async () => {
+    if (state.dirty) { alert("Save first."); return; }
+    const r = await fetch("/api/lock", { method: "POST" });
+    refreshStatus();
+  };
+  el("unlock-btn").onclick = async () => {
+    const r = await fetch("/api/unlock", { method: "POST" });
+    refreshStatus();
+  };
+
+  // Per-row events (delegated)
+  el("tc-body").addEventListener("change", (e) => {
+    if (e.target.classList.contains("status")) {
+      const tc = state.catalog.test_cases.find(x => x.tc_id === e.target.dataset.tc);
+      if (tc && tc.status !== e.target.value) { tc.status = e.target.value; setDirty(true); renderTCs(); }
+    }
+  });
+  el("tc-body").addEventListener("input", (e) => {
+    if (e.target.classList.contains("comments")) {
+      const tc = state.catalog.test_cases.find(x => x.tc_id === e.target.dataset.tc);
+      if (tc && tc.comments !== e.target.value) { tc.comments = e.target.value; setDirty(true); }
+    }
+  });
+  el("tc-body").addEventListener("click", (e) => {
+    if (e.target.dataset && e.target.dataset.expand) {
+      const id = e.target.dataset.expand;
+      if (state.expanded.has(id)) state.expanded.delete(id);
+      else state.expanded.add(id);
+      renderTCs();
+    }
+  });
+
+  // Coverage chip jump
+  el("cov-table").addEventListener("click", (e) => {
+    if (e.target.dataset && e.target.dataset.jump) {
+      qa(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === "cases"));
+      qa("main > section").forEach(s => s.hidden = (s.id !== "tab-cases"));
+      Object.keys(state.filter).forEach(k => state.filter[k] = "");
+      ["screen","journey","status","priority","type","category"].forEach(k => { const s = el("f-"+k); if (s) s.value = ""; });
+      state.filter.search = e.target.dataset.jump;
+      el("f-search").value = e.target.dataset.jump;
+      state.expanded.add(e.target.dataset.jump);
+      renderTCs();
+    }
+  });
+
+  // Warn on unsaved-changes nav
+  window.addEventListener("beforeunload", (e) => {
+    if (state.dirty) { e.preventDefault(); e.returnValue = ""; }
+  });
+}
+
+async function init() {
+  await loadCatalog();
+  renderMeta();
+  populateFilters();
+  renderTCs();
+  renderDashboard();
+  renderRuns();
+  renderBugs();
+  bindEvents();
+  refreshStatus();
+  setDirty(false);
+}
+
+init().catch(err => console.error(err));
+</script>
+
+</body>
+</html>

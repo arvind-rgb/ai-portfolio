@@ -1,0 +1,2323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BugBhook — This AI has a massive appetite for bugs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #341C3D;
+    --amber: #FFA70B;
+    --offwhite: #F5F5F5;
+    --grey: #AAAAAA;
+    --charcoal: #333333;
+    --green: #2E7D32;
+    --blue: #1565C0;
+    --red: #B71C1C;
+    --orange: #E65100;
+    --dormant: #757575;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; background: var(--offwhite); color: var(--charcoal);
+  }
+  header {
+    background: var(--purple); color: white;
+    padding: 14px 24px; display: flex; gap: 16px; align-items: center;
+    flex-wrap: wrap; row-gap: 10px;
+    position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  header .spacer { flex: 1; }
+
+  /* ── BugBhook brand block ─────────────────────────────── */
+  .bb-brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .bb-titles { display: flex; flex-direction: column; gap: 2px; }
+  .bb-title {
+    font-family: "Press Start 2P", ui-monospace, monospace;
+    font-size: 15px; line-height: 1; letter-spacing: 1.5px;
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255,215,0,.35), 2px 2px 0 #2A152F;
+  }
+  .bb-tagline {
+    font-size: 11px; color: #E8DAEC; opacity: .85;
+    font-style: italic;
+  }
+
+  /* ── Pac-Man animation strip (transparent — sits flush in the header) ── */
+  .pac-strip {
+    position: relative;
+    width: 220px; height: 36px;
+    flex-shrink: 0;
+  }
+  .pac-strip .dot {
+    /* Square pellets, à la classic Pac-Man dots */
+    position: absolute; top: 50%;
+    width: 7px; height: 7px;
+    background: #FFFBE5;
+    border-radius: 1px;
+    margin-top: -3.5px;
+    box-shadow: 0 0 5px rgba(255,251,229,.7);
+  }
+  .pac-strip .dot.d1 { left: 70px;  animation: bb-eat-1 3s linear infinite; }
+  .pac-strip .dot.d2 { left: 100px; animation: bb-eat-2 3s linear infinite; }
+  .pac-strip .dot.d3 { left: 130px; animation: bb-eat-3 3s linear infinite; }
+  .pac-strip .dot.d4 { left: 160px; animation: bb-eat-4 3s linear infinite; }
+  .pac-strip .dot.d5 { left: 190px; animation: bb-eat-5 3s linear infinite; }
+  /* Each dot disappears exactly when Pac-Man's mouth reaches it, then snaps
+     back at cycle end. Recomputed for the 36px body across a 220px strip. */
+  @keyframes bb-eat-1 { 0%, 22% { opacity: 1 } 23%, 100% { opacity: 0 } }
+  @keyframes bb-eat-2 { 0%, 36% { opacity: 1 } 37%, 100% { opacity: 0 } }
+  @keyframes bb-eat-3 { 0%, 50% { opacity: 1 } 51%, 100% { opacity: 0 } }
+  @keyframes bb-eat-4 { 0%, 64% { opacity: 1 } 65%, 100% { opacity: 0 } }
+  @keyframes bb-eat-5 { 0%, 78% { opacity: 1 } 79%, 100% { opacity: 0 } }
+  .pacman {
+    position: absolute; top: 50%;
+    width: 36px; height: 36px;
+    margin-top: -18px;
+    filter: drop-shadow(0 0 8px rgba(255,215,0,.55));
+    animation: bb-move 3s linear infinite;
+  }
+  @keyframes bb-move {
+    0%   { left: 0; }
+    100% { left: 184px; }
+  }
+  .save-btn {
+    background: var(--amber); color: var(--purple);
+    border: none; padding: 8px 18px; font-weight: 700; font-size: 14px;
+    border-radius: 6px; cursor: pointer;
+  }
+  .save-btn:disabled { background: #888; color: #ccc; cursor: not-allowed; }
+  .save-btn.dirty { background: var(--amber); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,167,11,.6); } 50% { box-shadow: 0 0 0 8px rgba(255,167,11,0); } }
+
+  .lock-pill { background: var(--green); color: white; padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+  .lock-pill.unlocked { background: #aa6c00; }
+
+  .tabs {
+    background: white; border-bottom: 1px solid #e0e0e0;
+    padding: 0 24px; display: flex; gap: 4px;
+  }
+  .tab {
+    padding: 10px 18px; cursor: pointer; border: none; background: transparent;
+    color: #666; font-weight: 600; border-bottom: 3px solid transparent;
+  }
+  .tab.active { color: var(--purple); border-bottom-color: var(--amber); }
+  .tab .count { background: var(--offwhite); padding: 1px 8px; margin-left: 6px; border-radius: 10px; font-size: 11px; }
+
+  main { padding: 20px 24px; max-width: 1600px; }
+
+  /* Dashboard summary cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .card { background: white; padding: 14px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+  .card .value { font-size: 28px; font-weight: 700; color: var(--purple); margin-top: 2px; }
+  .card .breakdown { font-size: 11px; color: #666; margin-top: 6px; }
+
+  /* Filters */
+  .filters { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .filters select, .filters input {
+    padding: 6px 10px; border: 1px solid #ccc; border-radius: 5px; background: white; font-size: 13px;
+  }
+  .filters .bulk-btn {
+    padding: 5px 12px; border: 1px solid var(--purple); background: white; color: var(--purple);
+    border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600;
+  }
+  .filters .bulk-btn:hover { background: var(--purple); color: white; }
+
+  /* Selection / bulk-action toolbar */
+  .selbar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--purple); color: white;
+    padding: 8px 14px; border-radius: 8px; margin-bottom: 12px;
+  }
+  .selbar .selbar-allwrap { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .selbar input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--amber); }
+  .selbar .sel-count { font-size: 13px; color: var(--amber); font-weight: 700; min-width: 84px; }
+  .selbar .selbar-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .selbar .bulk-btn { background: white; border: 1px solid white; color: var(--purple); }
+  .selbar .bulk-btn:hover { background: var(--amber); border-color: var(--amber); color: var(--purple); }
+  .selbar .bulk-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .selbar .bulk-btn.act-approve { background: var(--green); border-color: var(--green); color: white; }
+  .selbar .bulk-btn.act-reject { background: var(--red); border-color: var(--red); color: white; }
+  .selbar .bulk-btn.act-clear { background: transparent; color: #ddd; border-color: #777; }
+  th.col-sel, td.col-sel { width: 34px; text-align: center; padding-left: 6px; padding-right: 6px; }
+  td.col-sel input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--amber); }
+  tr.row-selected { background: #FFF6E0 !important; }
+
+  /* TC table */
+  .tc-table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+  table.tc-list { width: 100%; border-collapse: collapse; background: white; }
+  table.tc-list th {
+    background: var(--purple); color: white; text-align: left; padding: 10px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+  }
+  table.tc-list thead tr th:first-child { border-top-left-radius: 8px; }
+  table.tc-list thead tr th:last-child { border-top-right-radius: 8px; }
+  table.tc-list td {
+    padding: 10px; vertical-align: top; border-bottom: 1px solid #eee; font-size: 13px;
+  }
+  table.tc-list tr:hover { background: #fafafa; }
+  table.tc-list tr.expanded { background: #fffbf0; }
+  td.tc-id { font-family: ui-monospace, monospace; font-size: 12px; white-space: nowrap; color: var(--purple); font-weight: 600; }
+  td.title { font-weight: 500; min-width: 280px; max-width: 460px; }
+  td.title .tc-desc {
+    display: block; margin-top: 4px; font-weight: 400;
+    font-size: 12px; color: #555; line-height: 1.4;
+  }
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 11px;
+    font-weight: 600; color: white; margin-right: 4px;
+  }
+  .b-P0 { background: var(--red); }
+  .b-P1 { background: var(--orange); }
+  .b-P2 { background: #1976D2; }
+  .b-P3 { background: #757575; }
+  /* type: core vs extra */
+  .b-core { background: #2E7D32; }
+  .b-extra { background: #8C8C8C; }
+  /* category (test nature) */
+  .b-smoke { background: #00695C; }
+  .b-functional { background: #1565C0; }
+  .b-edge { background: #6A1B9A; }
+  .b-negative { background: #B71C1C; }
+  .b-data-variation { background: #AD1457; }
+  .b-journey { background: var(--purple); }
+  .b-screen { background: #455A64; white-space: normal; max-width: 150px; line-height: 1.5; }
+
+  /* Status dropdown styled per value */
+  select.status {
+    padding: 5px 8px; border-radius: 4px; border: 1px solid #ccc;
+    font-size: 12px; font-weight: 600; cursor: pointer; min-width: 160px;
+  }
+  select.status.s-Approved { background: #E8F5E9; color: var(--green); border-color: var(--green); }
+  select.status.s-Rejected { background: #FFEBEE; color: var(--red); border-color: var(--red); }
+  select.status.s-Needs { background: #FFF3E0; color: var(--orange); border-color: var(--orange); }
+  select.status.s-Pending { background: #F5F5F5; color: #666; }
+  select.status.s-Skip { background: #ECEFF1; color: var(--dormant); border-color: var(--dormant); border-style: dashed; }
+  select.status.s-Removed { background: #424242; color: #fff; border-color: #424242; text-decoration: line-through; }
+
+  textarea.comments {
+    width: 100%; min-width: 180px; padding: 5px 7px;
+    border: 1px solid #ddd; border-radius: 4px; font-size: 12px;
+    resize: vertical; min-height: 32px; font-family: inherit;
+    background: #FFFBF0;
+  }
+  textarea.comments:focus { outline: 2px solid var(--amber); background: white; }
+
+  /* Expanded row details */
+  .details { background: #fffbf0; padding: 14px 18px; border-left: 4px solid var(--amber); }
+  .details h4 { margin: 0 0 4px 0; color: var(--purple); font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .details pre { background: white; padding: 10px; border-radius: 4px; font-size: 12px; white-space: pre-wrap; margin: 0 0 12px 0; border: 1px solid #eee; }
+  .details .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .details .meta-row { font-size: 12px; color: #555; margin-bottom: 8px; }
+  .details .meta-row b { color: var(--purple); }
+
+  /* Coverage matrix */
+  .coverage-grid { background: white; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .coverage-grid table { width: 100%; border-collapse: collapse; }
+  .coverage-grid th, .coverage-grid td { border: 1px solid #eee; padding: 8px 10px; text-align: left; font-size: 12px; vertical-align: top; }
+  .coverage-grid th { background: var(--purple); color: white; }
+  .coverage-grid td.gap { background: #FFEBEE; color: var(--red); font-weight: 600; }
+  .coverage-grid .tc-chip { display: inline-block; background: var(--offwhite); padding: 2px 6px; border-radius: 3px; margin: 1px 3px 1px 0; font-family: ui-monospace, monospace; font-size: 11px; }
+
+  .empty-state { background: white; padding: 40px; text-align: center; border-radius: 8px; color: #888; }
+  .instructions { background: #FFF6E5; border: 1px solid var(--amber); padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+  .instructions b { color: var(--purple); }
+
+  /* Run results + bugs tabs (mostly placeholders until skill #3 fills) */
+  .run-row { background: white; padding: 10px 14px; border-bottom: 1px solid #eee; font-size: 13px; }
+  .run-row.PASS { border-left: 4px solid var(--green); }
+  .run-row.FAIL { border-left: 4px solid var(--red); }
+  .run-row.SKIPPED { border-left: 4px solid #999; }
+
+  /* ─── App Analyzer tab ─────────────────────────────────── */
+  .analyzer-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    background: white; padding: 18px 22px; border-radius: 8px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  /* Summary card at the top of the Analyzer tab */
+  .summary-card {
+    background: white; padding: 22px 26px; border-radius: 8px;
+    margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .summary-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 10px;
+  }
+  .summary-title { display: flex; align-items: center; gap: 12px; }
+  .summary-title h3 {
+    margin: 0; color: var(--purple); font-size: 18px; font-weight: 700;
+  }
+  .confidence-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 14px;
+    font-size: 12px; font-weight: 700;
+    background: var(--green); color: white;
+  }
+  .confidence-badge.med { background: var(--orange); }
+  .confidence-badge.low { background: var(--red); }
+  .summary-stats {
+    display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #555;
+  }
+  .summary-stats .stat b { color: var(--purple); font-weight: 700; }
+  .summary-body {
+    margin: 0 0 16px; color: #333; font-size: 14px; line-height: 1.6;
+  }
+  .features-head {
+    margin: 12px 0 8px; color: var(--purple); font-size: 13px;
+    text-transform: uppercase; letter-spacing: .5px; font-weight: 700;
+  }
+  .features-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+  }
+  .feature-pill {
+    background: var(--offwhite); padding: 8px 10px; border-radius: 6px;
+    border-left: 3px solid var(--amber); font-size: 12px;
+  }
+  .feature-pill b { color: var(--purple); display: block; margin-bottom: 2px; font-size: 12.5px; }
+  .feature-pill span { color: #555; }
+  .confidence-detail {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid #eee;
+    font-size: 12px;
+  }
+  .confidence-detail summary {
+    cursor: pointer; color: var(--purple); font-weight: 600; font-size: 12px;
+    user-select: none;
+  }
+  .confidence-detail summary:hover { text-decoration: underline; }
+  .confidence-basis {
+    margin: 10px 0 6px; color: #444; font-size: 12px; line-height: 1.55;
+  }
+  #corrections-list { margin: 0; padding-left: 18px; color: #555; font-size: 12px; line-height: 1.55; }
+  #corrections-list li { margin-bottom: 3px; }
+
+  /* Collapsible sections */
+  .analyzer-section {
+    background: white; border-radius: 8px;
+    margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .sec-collapsible { padding: 0; }
+  .sec-collapsible > summary {
+    cursor: pointer; padding: 14px 22px; list-style: none;
+    display: flex; align-items: center; gap: 12px;
+    color: var(--purple); font-size: 16px; font-weight: 700;
+    user-select: none; border-radius: 8px;
+  }
+  .sec-collapsible > summary:hover { background: #faf6ee; }
+  .sec-collapsible > summary::-webkit-details-marker { display: none; }
+  .sec-collapsible > summary::before {
+    content: "▶"; font-size: 11px; color: var(--amber); transition: transform .15s;
+    width: 12px; display: inline-block;
+  }
+  .sec-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .sec-collapsible .sec-letter {
+    background: var(--purple); color: white; font-size: 11px; font-weight: 800;
+    width: 22px; height: 22px; line-height: 22px; text-align: center;
+    border-radius: 50%; letter-spacing: 0;
+  }
+  .sec-collapsible .sec-title { flex: 1; }
+  .sec-collapsible .sec-action {
+    font-size: 11px; padding: 4px 10px;
+  }
+  .sec-collapsible .sec-hint {
+    margin: 0 22px 14px; color: #666; font-size: 12px;
+  }
+  .sec-collapsible .md-render,
+  .sec-collapsible iframe {
+    margin: 0 22px 22px; width: calc(100% - 44px);
+  }
+  .analyzer-meta-foot {
+    margin: 8px 0 0; color: #888; font-size: 11px; text-align: right;
+  }
+  .md-render {
+    font-size: 13px; line-height: 1.6; color: var(--charcoal);
+    max-height: 70vh; overflow-y: auto; padding-right: 8px;
+  }
+  .md-render h1, .md-render h2, .md-render h3, .md-render h4 {
+    color: var(--purple); margin-top: 18px; margin-bottom: 6px;
+  }
+  .md-render h1 { font-size: 18px; border-bottom: 2px solid var(--amber); padding-bottom: 4px; }
+  .md-render h2 { font-size: 15px; }
+  .md-render h3 { font-size: 14px; }
+  .md-render h4 { font-size: 13px; }
+  .md-render code {
+    background: var(--offwhite); padding: 1px 5px; border-radius: 3px;
+    font-family: ui-monospace, monospace; font-size: 12px; color: #B71C1C;
+  }
+  .md-render pre {
+    background: #1e1e2e; color: #e0e0f0; padding: 12px; border-radius: 6px;
+    overflow-x: auto; font-size: 12px; line-height: 1.45;
+  }
+  .md-render pre code { background: transparent; color: inherit; padding: 0; }
+  .md-render table {
+    border-collapse: collapse; margin: 10px 0; font-size: 12px; width: 100%;
+  }
+  .md-render th, .md-render td {
+    border: 1px solid #ddd; padding: 6px 9px; text-align: left; vertical-align: top;
+  }
+  .md-render th { background: var(--purple); color: white; }
+  .md-render tr:nth-child(even) td { background: #fafafa; }
+  .md-render a { color: var(--blue); }
+  .md-render blockquote {
+    border-left: 3px solid var(--amber); margin: 10px 0; padding: 4px 12px;
+    background: #FFFBEF; color: #555;
+  }
+  .md-render ul, .md-render ol { padding-left: 22px; }
+  .journey-frame {
+    width: 100%; height: 85vh; border: 1px solid #ddd; border-radius: 6px;
+    background: white;
+  }
+  #analyzer-corrections ul {
+    margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.55; color: #444;
+  }
+  #analyzer-corrections li { margin-bottom: 4px; }
+
+  /* ─── Run Tests tab (Skill 3 shell) ────────────────────── */
+  .run-stub-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .card.upload-card {
+    background: white; padding: 16px; border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .card.upload-card .label {
+    font-size: 11px; text-transform: uppercase; color: var(--purple);
+    font-weight: 700; letter-spacing: .5px; margin-bottom: 10px;
+  }
+  .card.upload-card input[type=file] { font-size: 12px; width: 100%; }
+  .card.upload-card button[disabled] { opacity: .55; cursor: not-allowed; }
+  .stub-hint { font-size: 11px; color: #888; margin: 8px 0 0; line-height: 1.4; }
+
+  .upload-progress {
+    background: #eee; border-radius: 3px; height: 6px; margin-top: 10px;
+    overflow: hidden; display: none;
+  }
+  .upload-progress.active { display: block; }
+  .upload-progress > div {
+    background: var(--amber); height: 100%; transition: width .15s ease-out;
+  }
+  .upload-status {
+    font-size: 11px; color: #555; margin-top: 8px; line-height: 1.45;
+  }
+  .upload-status.ok { color: var(--green); font-weight: 600; }
+  .upload-status.err { color: var(--red); }
+
+  .primary-btn {
+    background: var(--amber); color: var(--purple); border: 1px solid var(--amber);
+    font-weight: 700;
+  }
+  .primary-btn:not([disabled]):hover { filter: brightness(0.95); }
+
+  /* Live run status */
+  .run-status-pill {
+    display: inline-block; padding: 2px 10px; border-radius: 10px;
+    font-size: 12px; font-weight: 700; margin-left: 8px;
+    background: #999; color: white; vertical-align: middle;
+  }
+  .run-status-pill.queued  { background: #999; }
+  .run-status-pill.running { background: var(--blue); animation: pulse 1.4s ease-in-out infinite; }
+  .run-status-pill.done    { background: var(--green); }
+  .run-status-pill.failed  { background: var(--red); }
+
+  .shard-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px; margin: 12px 0;
+  }
+  .shard-tile {
+    background: white; padding: 10px 12px; border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    border-left: 4px solid #ccc; font-size: 12px;
+  }
+  .shard-tile.queued  { border-left-color: #999; }
+  .shard-tile.running { border-left-color: var(--blue); }
+  .shard-tile.done    { border-left-color: var(--green); }
+  .shard-tile.failed  { border-left-color: var(--red); }
+  .shard-tile .platform {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    font-size: 10px; font-weight: 700; color: white; margin-right: 6px;
+    background: var(--purple);
+  }
+  .shard-tile .counts { color: #555; margin-top: 4px; }
+  .shard-tile .counts .ok { color: var(--green); font-weight: 700; }
+  .shard-tile .counts .fail { color: var(--red); font-weight: 700; }
+  .overall-progress { margin: 14px 0; }
+  .overall-bar {
+    background: #eee; height: 14px; border-radius: 7px; overflow: hidden;
+  }
+  #overall-bar-fill {
+    background: linear-gradient(90deg, var(--amber), #FFB733);
+    height: 100%; width: 0%; transition: width .3s ease-out;
+  }
+  .overall-text { font-size: 12px; color: #555; margin-top: 4px; }
+
+  .results-counts { font-size: 13px; color: #555; font-weight: 400; margin-left: 8px; }
+  .results-counts .ok   { color: var(--green); font-weight: 700; }
+  .results-counts .fail { color: var(--red); font-weight: 700; }
+  .results-counts .skip { color: #999; }
+
+  table.results { width: 100%; border-collapse: collapse; background: white; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,.06); border-radius: 8px; overflow: hidden; }
+  table.results thead th { background: var(--purple); color: white; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+  table.results td { padding: 7px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+  table.results td.tc-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); font-weight: 700; white-space: nowrap; }
+  table.results .res-pill {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    font-size: 11px; font-weight: 700; color: white;
+  }
+  .res-pill.PASS    { background: var(--green); }
+  .res-pill.FAIL    { background: var(--red); }
+  .res-pill.SKIPPED { background: #999; }
+  .res-pill.none    { background: #ddd; color: #888; }
+
+  .bug-cluster {
+    background: white; border-radius: 8px; padding: 14px 18px;
+    margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .bug-cluster h4 {
+    margin: 0 0 10px; color: var(--purple); font-size: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .bug-cluster .bug-row {
+    display: flex; gap: 12px; padding: 7px 0; border-top: 1px solid #f0f0f0;
+    font-size: 12px; align-items: flex-start;
+  }
+  .bug-cluster .bug-row:first-of-type { border-top: 0; }
+  .sev-pill {
+    display: inline-block; padding: 1px 8px; border-radius: 3px;
+    font-size: 10px; font-weight: 700; color: white; min-width: 56px; text-align: center;
+  }
+  .sev-pill.blocker { background: var(--red); }
+  .sev-pill.high    { background: var(--orange); }
+  .sev-pill.medium  { background: var(--blue); }
+  .sev-pill.low     { background: #999; }
+  .platform-diff { font-size: 10px; background: var(--amber); color: var(--purple); padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+
+  table.runs { width: 100%; border-collapse: collapse; background: white; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,.06); border-radius: 8px; overflow: hidden; }
+  table.runs thead th { background: var(--purple); color: white; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+  table.runs td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+  table.runs tr.clickable { cursor: pointer; }
+  table.runs tr.clickable:hover { background: #fafafa; }
+
+  /* ─── Analyze App modal ────────────────────────────────── */
+  #analyze-modal { position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 8000; display: none; align-items: center; justify-content: center; }
+  #analyze-modal.show { display: flex; }
+  #analyze-modal .modal-card {
+    background: white; border-radius: 8px; width: min(560px, 94vw);
+    padding: 22px 26px;
+  }
+  #analyze-modal h2 { margin: 0 0 12px; color: var(--purple); font-size: 18px; }
+  #analyze-modal pre.copyable {
+    background: #1e1e2e; color: #d8d8f0; padding: 10px 12px;
+    border-radius: 4px; font-size: 12px; margin: 4px 0 0;
+    white-space: pre-wrap; user-select: all;
+  }
+  #analyze-modal .actions {
+    display: flex; justify-content: flex-end; margin-top: 14px;
+  }
+  #analyze-modal .actions {
+    display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;
+  }
+  #analyze-modal .actions button {
+    padding: 9px 18px; border-radius: 4px; font-weight: 600; font-size: 13px;
+    cursor: pointer; border: 1px solid transparent;
+  }
+  #analyze-modal .actions .cancel {
+    background: white; color: #555; border-color: #ccc;
+  }
+  #analyze-modal .actions .submit {
+    background: var(--amber); color: var(--purple);
+  }
+
+  /* Choice cards inside the Analyze App modal */
+  #analyze-modal .choice-card {
+    border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  #analyze-modal .choice-card label {
+    display: flex; align-items: baseline; gap: 8px; font-size: 14px;
+    cursor: pointer;
+  }
+  #analyze-modal .choice-card .hint {
+    color: #666; font-weight: 400; font-size: 12px; margin-left: 4px;
+  }
+  #analyze-modal .uploads-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 8px 0 10px; padding: 10px 12px; background: var(--offwhite);
+    border-radius: 6px;
+  }
+  #analyze-modal .upload-status { font-size: 12px; color: #555; }
+  #analyze-modal .uploads-list {
+    max-height: 220px; overflow-y: auto; border: 1px solid #eee;
+    border-radius: 6px;
+  }
+  #analyze-modal .upload-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px;
+  }
+  #analyze-modal .upload-row:last-child { border-bottom: 0; }
+  #analyze-modal .upload-row .meta {
+    color: #666; font-size: 11px; margin-left: 6px;
+  }
+  #analyze-modal .upload-row .del {
+    background: transparent; color: var(--red); border: 0; cursor: pointer;
+    font-size: 14px; padding: 0 6px;
+  }
+  #analyze-modal .uploads-list.empty {
+    color: #888; padding: 12px; font-size: 12px; font-style: italic;
+  }
+  /* Auth overlay (shown until signed-in + allowlisted) */
+  #auth-overlay {
+    position: fixed; inset: 0; background: var(--purple); color: white;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; font-family: system-ui, sans-serif; padding: 24px; text-align: center;
+  }
+  #auth-overlay h2 { margin: 0 0 16px; font-size: 22px; }
+  #auth-overlay p { color: #ddd; margin: 6px 0 20px; max-width: 460px; }
+  #auth-overlay button {
+    background: var(--amber); color: var(--purple); border: 0;
+    padding: 12px 22px; border-radius: 6px; font-weight: 700; font-size: 15px;
+    cursor: pointer;
+  }
+  #auth-overlay .err { color: #FFD1D1; margin-top: 14px; font-size: 13px; min-height: 1em; }
+  body.authed #auth-overlay { display: none; }
+  #user-pill {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.12);
+    color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-right: 8px;
+  }
+  #user-pill button {
+    background: transparent; color: white; border: 1px solid rgba(255,255,255,.4);
+    border-radius: 4px; font-size: 11px; padding: 2px 6px; cursor: pointer;
+  }
+  .add-tc-btn {
+    background: var(--amber); color: var(--purple); border: 1px solid var(--amber);
+    padding: 8px 14px; border-radius: 4px; font-size: 13px; font-weight: 700;
+    cursor: pointer;
+  }
+  .add-tc-btn:hover { filter: brightness(0.95); }
+  .ledger-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    background: white; padding: 18px 22px; border-radius: 8px;
+    margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+
+  /* Add-TC modal */
+  #tc-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 8000;
+    display: none; align-items: center; justify-content: center;
+  }
+  #tc-modal.show { display: flex; }
+  #tc-modal .modal-card {
+    background: white; border-radius: 8px; width: min(720px, 94vw);
+    max-height: 90vh; overflow: auto; padding: 22px 26px;
+  }
+  #tc-modal h2 { margin: 0 0 14px; color: var(--purple); font-size: 18px; }
+  #tc-modal .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  #tc-modal label { display: block; font-size: 12px; color: #555; font-weight: 600; margin-bottom: 3px; }
+  #tc-modal input, #tc-modal select, #tc-modal textarea {
+    width: 100%; padding: 7px 9px; border: 1px solid #ccc; border-radius: 4px;
+    font-size: 13px; font-family: inherit; box-sizing: border-box;
+  }
+  #tc-modal textarea { min-height: 70px; resize: vertical; }
+  #tc-modal .full { grid-column: span 2; }
+  #tc-modal .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+  #tc-modal .actions button {
+    padding: 9px 18px; border-radius: 4px; font-weight: 600; font-size: 13px;
+    cursor: pointer; border: 1px solid transparent;
+  }
+  #tc-modal .actions .cancel { background: white; color: #555; border-color: #ccc; }
+  #tc-modal .actions .submit { background: var(--amber); color: var(--purple); }
+  #tc-modal .err { color: var(--red); font-size: 12px; margin-top: 8px; min-height: 1em; }
+</style>
+
+<!-- Firebase Auth (compat build — single page, no bundler). -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<!-- Markdown renderer for the App Analyzer tab (Skill 1 output). -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="/config.js"></script>
+</head>
+<body>
+
+<!-- Auth gate. Hidden once signed-in + allowlisted. -->
+<div id="auth-overlay">
+  <h2 style="font-family: 'Press Start 2P', monospace; color: #FFD700; font-size: 22px; letter-spacing: 2px;">BugBhook</h2>
+  <p style="font-style: italic; color: #FFD700; margin-top: -8px;">This AI has a massive appetite, and its only diet is bugs.</p>
+  <p style="margin-top: 14px;">Sign in with an allow-listed Google account to view the catalog.</p>
+  <button id="signin-btn">Sign in with Google</button>
+  <div class="err" id="auth-err"></div>
+</div>
+
+<header class="bb-header">
+  <div class="bb-brand">
+    <div class="pac-strip" aria-hidden="true">
+      <span class="dot d1"></span>
+      <span class="dot d2"></span>
+      <span class="dot d3"></span>
+      <span class="dot d4"></span>
+      <span class="dot d5"></span>
+      <svg class="pacman" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body: filled wedge using a true circular arc. SMIL animates the
+             mouth between wide-open (y=4→36, ~70° wedge) and partially closed
+             (y=15→25, ~30° wedge) so the mouth NEVER fully closes — matches
+             the classic always-open Pac-Man silhouette in the reference. -->
+        <path fill="#FFD700">
+          <animate attributeName="d" dur="0.36s" repeatCount="indefinite"
+            calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"
+            values="
+              M 20 20 L 40 4  A 20 20 0 1 1 40 36 Z;
+              M 20 20 L 40 15 A 20 20 0 1 1 40 25 Z;
+              M 20 20 L 40 4  A 20 20 0 1 1 40 36 Z
+            "/>
+        </path>
+        <!-- Eye -->
+        <circle cx="14.5" cy="10" r="2.6" fill="#2A152F"/>
+      </svg>
+    </div>
+    <div class="bb-titles">
+      <div class="bb-title">BugBhook</div>
+      <div class="bb-tagline">This AI has a massive appetite, and its only diet is bugs.</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <span id="user-pill" hidden><span id="user-email">—</span><button id="signout-btn">Sign out</button></span>
+  <span id="lock-state" class="lock-pill unlocked">🔓 not locked</span>
+  <button id="save-btn" class="save-btn" disabled>Save changes</button>
+</header>
+
+<!-- Add-TC modal -->
+<div id="tc-modal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <h2>Add a new test case</h2>
+    <form id="tc-form">
+      <div class="form-grid">
+        <div>
+          <label for="m-screen">Screen *</label>
+          <input type="text" id="m-screen" list="screen-options" required placeholder="e.g. CartScreen">
+          <datalist id="screen-options"></datalist>
+        </div>
+        <div>
+          <label for="m-journey">Journey</label>
+          <input type="text" id="m-journey" placeholder="e.g. C. Returning User">
+        </div>
+
+        <div class="full">
+          <label for="m-title">Title *</label>
+          <input type="text" id="m-title" required placeholder="Short label for the test">
+        </div>
+
+        <div class="full">
+          <label for="m-description">Description (one-sentence)</label>
+          <input type="text" id="m-description" placeholder="What this verifies, in a single readable sentence.">
+        </div>
+
+        <div>
+          <label for="m-priority">Priority</label>
+          <select id="m-priority">
+            <option>P0</option><option>P1</option><option selected>P2</option><option>P3</option>
+          </select>
+        </div>
+        <div>
+          <label for="m-type">Type</label>
+          <select id="m-type">
+            <option value="core">core</option><option value="extra" selected>extra</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="m-category">Category</label>
+          <select id="m-category">
+            <option value="smoke">smoke</option>
+            <option value="functional" selected>functional</option>
+            <option value="negative">negative</option>
+            <option value="edge">edge</option>
+            <option value="data-variation">data-variation</option>
+          </select>
+        </div>
+        <div>
+          <label for="m-platform">Platform</label>
+          <select id="m-platform">
+            <option selected>Both</option><option>iOS</option><option>Android</option>
+          </select>
+        </div>
+
+        <div class="full">
+          <label for="m-preconditions">Preconditions</label>
+          <textarea id="m-preconditions" placeholder="Any state needed before the test runs."></textarea>
+        </div>
+        <div class="full">
+          <label for="m-steps">Steps</label>
+          <textarea id="m-steps" placeholder="1. …&#10;2. …"></textarea>
+        </div>
+        <div class="full">
+          <label for="m-expected">Expected</label>
+          <textarea id="m-expected" placeholder="What should happen."></textarea>
+        </div>
+
+        <div class="full">
+          <label for="m-data">Test data</label>
+          <input type="text" id="m-data" placeholder="phone=…, OTP=…, coupon=…">
+        </div>
+        <div class="full">
+          <label for="m-tags">Tags</label>
+          <input type="text" id="m-tags" placeholder="comma-separated">
+        </div>
+      </div>
+      <div class="err" id="tc-form-err"></div>
+      <div class="actions">
+        <button type="button" class="cancel" id="tc-cancel">Cancel</button>
+        <button type="submit" class="submit">Add test case</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="analyzer">🔍 App Analyzer</button>
+  <button class="tab" data-tab="ledger">📋 Test Case Ledger <span class="count" id="count-cases">0</span></button>
+  <button class="tab" data-tab="run-tests">🚀 Run Tests <span class="count" id="count-runs">0</span></button>
+</div>
+
+<main>
+  <!-- APP ANALYZER TAB (Skill 1 — test-scan-app) -->
+  <section id="tab-analyzer">
+    <div class="analyzer-header">
+      <div>
+        <h2 style="margin:0 0 4px; color: var(--purple);">App Analyzer</h2>
+        <p style="margin:0; color:#666; font-size: 13px;">What <code>test-scan-app</code> learned about the Bhookle consumer app.</p>
+      </div>
+      <button id="analyze-app-btn" class="add-tc-btn" style="background: var(--purple); color: white;">🔄 Analyze App</button>
+    </div>
+
+    <div id="analyzer-empty" class="empty-state" hidden>No analysis on file yet. Click <b>Analyze App</b> to run <code>test-scan-app</code> locally and upload its output.</div>
+
+    <div id="analyzer-content" hidden>
+      <!-- Summary card: what the app does + confidence -->
+      <div class="summary-card">
+        <div class="summary-head">
+          <div class="summary-title">
+            <h3>About the App</h3>
+            <span id="confidence-badge" class="confidence-badge">— / 100</span>
+          </div>
+          <div id="summary-stats" class="summary-stats"></div>
+        </div>
+        <p id="summary-body" class="summary-body">Loading…</p>
+
+        <h4 class="features-head">Key features &amp; capabilities</h4>
+        <div id="features-grid" class="features-grid"></div>
+
+        <details id="confidence-detail" class="confidence-detail">
+          <summary>What the AI corrected · why this score</summary>
+          <p id="confidence-basis" class="confidence-basis"></p>
+          <ul id="corrections-list"></ul>
+        </details>
+      </div>
+
+      <!-- Section A: Visual Journey Map (collapsible, expanded by default) -->
+      <details class="analyzer-section sec-collapsible" open>
+        <summary>
+          <span class="sec-letter">A</span>
+          <span class="sec-title">🗺️ Visual Journey Map</span>
+          <button id="journey-popout-btn" class="bulk-btn sec-action" type="button">↗ Open in new tab</button>
+        </summary>
+        <p class="sec-hint">Mermaid-rendered flow diagrams of every journey. Right-click any diagram → "Save image as" to export.</p>
+        <iframe id="journey-frame" class="journey-frame" sandbox="allow-scripts allow-popups"></iframe>
+      </details>
+
+      <!-- Section B: User Journey text (collapsed by default) -->
+      <details class="analyzer-section sec-collapsible">
+        <summary>
+          <span class="sec-letter">B</span>
+          <span class="sec-title">🧭 User Journeys</span>
+        </summary>
+        <p class="sec-hint">End-to-end journeys with file:line citations — new user, returning user, subscribe, support.</p>
+        <div class="md-render" id="user-flow-render"></div>
+      </details>
+
+      <!-- Section C: Screen Flow text (collapsed by default) -->
+      <details class="analyzer-section sec-collapsible">
+        <summary>
+          <span class="sec-letter">C</span>
+          <span class="sec-title">📍 Screen Flow Map</span>
+        </summary>
+        <p class="sec-hint">Per-screen contracts: boot routing, navigation, props in/out, network calls.</p>
+        <div class="md-render" id="screen-flow-render"></div>
+      </details>
+
+      <p id="analyzer-meta" class="analyzer-meta-foot"></p>
+    </div>
+  </section>
+
+  <!-- TEST CASE LEDGER TAB (Skill 2 — test-case-generator) -->
+  <section id="tab-ledger" hidden>
+    <div class="ledger-header">
+      <div>
+        <h2 style="margin:0 0 4px; color: var(--purple);">Test Case Ledger</h2>
+        <p style="margin:0; color:#666; font-size:13px;">All approved + pending test cases for the Bhookle consumer app. Edit Status / Comments inline; ⌘+S to save.</p>
+      </div>
+      <button id="add-tc-btn" class="add-tc-btn" style="background: var(--amber); color: var(--purple); border-color: var(--amber);">+ New Test Case</button>
+    </div>
+
+    <div class="cards" id="dash-cards" style="margin-bottom: 16px;"></div>
+
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="label">Lock state</div>
+      <p style="font-size: 13px; color: #555; margin: 4px 0 10px;">
+        <span id="dash-lock-state">checking…</span>
+      </p>
+      <button class="bulk-btn" id="lock-btn" style="border-color: var(--green); color: var(--green);">🔒 Lock catalog</button>
+      <button class="bulk-btn" id="unlock-btn" style="border-color: var(--red); color: var(--red);">🔓 Unlock</button>
+    </div>
+
+    <div id="tab-cases">
+    <div class="filters">
+      <label>Screen: <select id="f-screen"><option value="">all</option></select></label>
+      <label>Priority: <select id="f-priority"><option value="">all</option></select></label>
+      <label>Type: <select id="f-type"><option value="">all</option></select></label>
+      <label>Category: <select id="f-category"><option value="">all</option></select></label>
+      <label>Status: <select id="f-status"><option value="">all</option></select></label>
+      <label>Journey: <select id="f-journey"><option value="">all</option></select></label>
+      <input type="search" id="f-search" placeholder="Search title / tags / screen…" style="flex: 1; min-width: 180px;">
+    </div>
+
+    <!-- Selection / bulk-action toolbar -->
+    <div class="selbar">
+      <label class="selbar-allwrap"><input type="checkbox" id="select-all"> <span>Select all filtered</span></label>
+      <span id="sel-count" class="sel-count">0 selected</span>
+      <span class="selbar-actions">
+        <button class="bulk-btn act-approve" data-selact="Approved">✓ Approve selected</button>
+        <button class="bulk-btn act-reject" data-selact="Rejected">✗ Reject</button>
+        <button class="bulk-btn" data-selact="Needs Refinement">Needs Refinement</button>
+        <button class="bulk-btn" data-selact="Skip-Until-Flag-On">Skip-Until-Flag-On</button>
+        <button class="bulk-btn" data-selact="Pending Review">Reset to Pending</button>
+        <button class="bulk-btn act-clear" id="clear-sel">Clear selection</button>
+      </span>
+    </div>
+
+    <div class="tc-table-wrap">
+      <table class="tc-list">
+        <thead>
+          <tr>
+            <th class="col-sel"><input type="checkbox" id="select-all-head" title="Select all filtered"></th>
+            <th>TC ID</th>
+            <th>Screen</th>
+            <th>Title</th>
+            <th>Pri</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Comments</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tc-body"></tbody>
+      </table>
+    </div>
+
+    <div class="coverage-grid" style="margin-top: 24px;">
+      <h3 style="margin-top:0; color: var(--purple);">Coverage Matrix — Screen × Category</h3>
+      <p style="color:#666; font-size: 12px;">Each row is a screen; columns are test categories. Red cells = no coverage of that category for that screen. Click any TC chip to jump to it.</p>
+      <table id="cov-table"></table>
+    </div>
+    </div>
+  </section>
+
+  <!-- RUN TESTS TAB (Skill 3 — run-auto-test, LIVE) -->
+  <section id="tab-run-tests" hidden>
+    <div class="analyzer-header">
+      <div>
+        <h2 style="margin:0 0 4px; color: var(--purple);">Run Tests</h2>
+        <p style="margin:0; color:#666; font-size: 13px;">Upload an APK + iOS build, queue a Maestro run across every Approved test case, watch live shard progress + the bug summary.</p>
+      </div>
+    </div>
+
+    <!-- Upload + trigger row -->
+    <div class="run-stub-grid">
+      <div class="card upload-card" id="card-apk">
+        <div class="label">1. Android APK</div>
+        <input type="file" id="run-apk" accept=".apk">
+        <div class="upload-progress" id="apk-progress"></div>
+        <div class="upload-status" id="apk-status">No build uploaded yet.</div>
+      </div>
+      <div class="card upload-card" id="card-app">
+        <div class="label">2. iOS build (.app.tar.gz)</div>
+        <input type="file" id="run-app" accept=".tar.gz,.zip,application/gzip">
+        <div class="upload-progress" id="app-progress"></div>
+        <div class="upload-status" id="app-status">No build uploaded yet.</div>
+        <p class="stub-hint" style="margin-top:6px;">The iOS <code>.app</code> is a directory — tar it first: <code>tar -czf Bhookle.app.tar.gz Bhookle.app</code></p>
+      </div>
+      <div class="card upload-card">
+        <div class="label">3. Trigger run</div>
+        <input type="text" id="run-label" placeholder="Label (e.g. v3.14 SIT)" style="width:100%; padding:6px; font-size:12px; margin-bottom:8px;">
+        <button class="bulk-btn primary-btn" id="run-trigger-btn" disabled>🚀 Run all approved tests</button>
+        <p class="stub-hint" id="trigger-hint">Upload at least one build to enable.</p>
+      </div>
+    </div>
+
+    <!-- App Well-Being score (overall test grade for the whole testing) -->
+    <div id="wellbeing-wrap" style="margin-top:24px;"></div>
+
+    <!-- Build run summary (auto-loaded: latest graded run per platform) -->
+    <div id="run-summary-wrap" style="margin-top:14px;"></div>
+    <div id="fail-breakdown-wrap"></div>
+
+    <!-- Test-automation nav gaps — strategy (root-cause clustering + retry plan) -->
+    <div id="nav-strategy-wrap"></div>
+
+    <!-- Live shard grid (only visible during active run) -->
+    <div id="active-run-panel" hidden>
+      <h3 style="margin-top: 28px; color: var(--purple);">
+        Live status — run <span id="active-run-id">—</span>
+        <span class="run-status-pill" id="active-run-status">queued</span>
+      </h3>
+      <div class="shard-grid" id="shard-grid"></div>
+      <div class="overall-progress">
+        <div class="overall-bar"><div id="overall-bar-fill"></div></div>
+        <div class="overall-text" id="overall-text">0 / 0 TCs completed</div>
+      </div>
+    </div>
+
+    <!-- Test case grading (all TCs, both platforms) -->
+    <h3 style="margin-top: 28px; color: var(--purple);">
+      Test case grading <span id="results-counts" class="results-counts"></span>
+    </h3>
+    <div class="grade-filterbar" id="grade-filterbar" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:8px 0;">
+      <input type="text" id="grade-filter" placeholder="filter by TC id or screen…" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;width:240px;">
+      <label style="font-size:13px;"><input type="checkbox" id="grade-failonly"> Failures only</label>
+      <label style="font-size:13px;"><input type="checkbox" id="grade-iosfail"> iOS fails</label>
+      <label style="font-size:13px;"><input type="checkbox" id="grade-andfail"> Android fails</label>
+      <span id="grade-count" style="color:#888;font-size:12px;"></span>
+    </div>
+    <div id="results-table-wrap"><div class="empty-state" id="results-empty">Loading grade…</div></div>
+
+    <!-- Developer bugs (triage) -->
+    <h3 style="margin-top: 28px; color: var(--purple);">
+      Developer bugs <span id="bugs-counts" class="results-counts"></span>
+    </h3>
+    <p style="margin:0 0 8px;color:#888;font-size:12px;">Only developer-relevant candidates surface here (the rest of the failures are our test-automation nav gaps + CI flakes — see the breakdown above). <b>Reject</b> ⇒ remembered by signature &amp; auto-suppressed next run.</p>
+    <div id="bugs-list-wrap"><div class="empty-state" id="bugs-empty">Loading bugs…</div></div>
+
+    <!-- Run history -->
+    <h3 style="margin-top: 28px; color: var(--purple);">Run history</h3>
+    <div id="runs-history-wrap"><div class="empty-state" id="history-empty">No prior runs.</div></div>
+  </section>
+</main>
+
+<!-- Analyze App modal -->
+<div id="analyze-modal" class="tc-modal-shell">
+  <div class="modal-card" style="max-width: 640px;">
+    <h2>Re-analyze the app</h2>
+
+    <div id="analyze-step-choice">
+      <p style="font-size: 13px; color: #444; margin: 0 0 14px;">
+        Choose what should feed the next scan. <code>test-scan-app</code> always reads the live <code>bhookleApp-v2</code> code; uploaded PDFs and screenshots act as supplementary context.
+      </p>
+
+      <div class="choice-card">
+        <label>
+          <input type="radio" name="analyze-mode" value="reuse" checked>
+          <b>Continue with previous data</b>
+          <span class="hint" id="last-scan-hint">— uses the existing scan + any docs already uploaded.</span>
+        </label>
+      </div>
+
+      <div class="choice-card">
+        <label>
+          <input type="radio" name="analyze-mode" value="new">
+          <b>Upload new reference documents</b>
+          <span class="hint">— attach PDFs / screenshots for the next run (≤5 MB each).</span>
+        </label>
+      </div>
+
+      <div id="uploads-panel" hidden>
+        <div class="uploads-row">
+          <input type="file" id="upload-files" multiple accept=".pdf,image/png,image/jpeg,image/webp">
+          <button type="button" class="bulk-btn" id="upload-go" disabled>Upload selected</button>
+          <span id="upload-status" class="upload-status"></span>
+        </div>
+        <div id="uploads-list" class="uploads-list"></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="cancel" id="analyze-close">Cancel</button>
+        <button type="button" class="submit" id="analyze-next">Next → show commands</button>
+      </div>
+    </div>
+
+    <div id="analyze-step-commands" hidden>
+      <p style="font-size: 13px; color: #444; margin: 0 0 12px;">
+        Run these two commands on your laptop. The scan reads <code>bhookleApp-v2</code> directly and pushes new flow files to the cloud catalog.
+      </p>
+      <ol style="font-size: 13px; color: #333; line-height: 1.6;">
+        <li>Invoke the skill:
+          <pre class="copyable">/test-scan-app</pre>
+        </li>
+        <li>Upload the new flow files:
+          <pre class="copyable">cd BhookleQaBackend
+node scripts/upload-analysis.js</pre>
+        </li>
+      </ol>
+      <p style="font-size: 12px; color: #888;">Then refresh this page — the App Analyzer tab will show the new scan.</p>
+      <div class="actions">
+        <button type="button" class="cancel" id="analyze-done">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const STATUS_OPTIONS = [
+  "Pending Review", "Approved", "Rejected", "Needs Refinement",
+  "Skip-Until-Flag-On", "Removed"
+];
+const APPROVED_OK = new Set(["Approved", "Skip-Until-Flag-On"]);
+
+const state = {
+  catalog: null,
+  dirty: false,
+  expanded: new Set(),
+  selected: new Set(),
+  filter: { screen: "", journey: "", status: "", priority: "", type: "", category: "", search: "" },
+  authUser: null,
+  idToken: null,
+};
+
+const CFG = window.QA_DASHBOARD_CONFIG || {};
+const API = (CFG.API_BASE || "").replace(/\/+$/, "");
+
+const el = (id) => document.getElementById(id);
+const q = (sel, root=document) => root.querySelector(sel);
+const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+async function authedFetch(path, opts = {}) {
+  if (!state.idToken) throw new Error("not authed");
+  const headers = Object.assign(
+    {},
+    opts.headers || {},
+    { Authorization: "Bearer " + state.idToken }
+  );
+  if (opts.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+  return fetch(API + path, Object.assign({}, opts, { headers }));
+}
+
+async function loadCatalog() {
+  const r = await authedFetch("/api/catalog");
+  if (!r.ok) {
+    document.body.innerHTML = `<main><div class="empty-state">Failed to load catalog (HTTP ${r.status}).<br>${await r.text()}</div></main>`;
+    throw new Error("no catalog");
+  }
+  state.catalog = await r.json();
+}
+
+function setDirty(d) {
+  state.dirty = d;
+  const btn = el("save-btn");
+  btn.disabled = !d;
+  btn.classList.toggle("dirty", d);
+  btn.textContent = d ? "Save changes •" : "Saved";
+}
+
+async function saveCatalog() {
+  if (!state.dirty) return;
+  // Send only the editable fields the BE accepts — keeps payload small and
+  // makes server-side preservation of run_results/bugs explicit.
+  const minimal = state.catalog.test_cases.map(t => ({
+    tc_id: t.tc_id, status: t.status, comments: t.comments
+  }));
+  const r = await authedFetch("/api/catalog/save", {
+    method: "POST",
+    body: JSON.stringify({ test_cases: minimal }),
+  });
+  if (!r.ok) { alert("Save failed: " + (await r.text())); return; }
+  const j = await r.json();
+  setDirty(false);
+  refreshStatus(j.summary);
+}
+
+async function refreshStatus(summary) {
+  if (!summary) {
+    const r = await authedFetch("/api/catalog/status");
+    summary = await r.json();
+  }
+  const lockPill = el("lock-state");
+  if (summary.locked) {
+    lockPill.textContent = "🔒 locked"; lockPill.classList.remove("unlocked");
+  } else {
+    lockPill.textContent = "🔓 not locked"; lockPill.classList.add("unlocked");
+  }
+  const lockBtnHint = summary.all_approved
+    ? "All rows are Approved or Skip-Until-Flag-On — safe to lock."
+    : "Not all rows are Approved/Skip-Until-Flag-On. Resolve them before locking.";
+  el("dash-lock-state").textContent = (summary.locked ? "🔒 LOCKED. " : "🔓 Unlocked. ") + lockBtnHint;
+}
+
+function renderMeta() {
+  // Header meta strip was removed in the BugBhook rebrand — this is a no-op now
+  // but kept (and guarded) so the initAfterAuth sequence stays stable. The
+  // counts/score/commit info has moved into the App Analyzer summary card.
+  const m = el("meta");
+  if (!m) return;
+  const tcs = state.catalog.test_cases || [];
+  const cm = state.catalog.meta || {};
+  m.textContent = `${tcs.length} TCs · score ${cm.critique_score || "?"}/100 · commit ${cm.app_commit || "-"}`;
+}
+
+// ─── App Analyzer modal helpers ───────────────────────────
+function openAnalyzeModal() {
+  // Reset to step 1
+  el("analyze-step-choice").hidden = false;
+  el("analyze-step-commands").hidden = true;
+  el("uploads-panel").hidden = true;
+  qa("input[name='analyze-mode']").forEach(r => { r.checked = r.value === "reuse"; });
+  el("upload-files").value = "";
+  el("upload-go").disabled = true;
+  el("upload-status").textContent = "";
+
+  // Last-scan hint
+  if (state.analysis) {
+    const a = state.analysis;
+    const when = a.uploaded_at ? new Date(a.uploaded_at).toLocaleString() : "?";
+    el("last-scan-hint").textContent = `— last scan: commit ${a.app_commit || "?"}, uploaded ${when}.`;
+  }
+  refreshUploadsList();
+  el("analyze-modal").classList.add("show");
+}
+function closeAnalyzeModal() {
+  el("analyze-modal").classList.remove("show");
+}
+
+async function refreshUploadsList() {
+  const wrap = el("uploads-list");
+  try {
+    const r = await authedFetch("/api/analysis/inputs");
+    if (!r.ok) {
+      wrap.className = "uploads-list empty";
+      wrap.textContent = "Failed to load uploads.";
+      return;
+    }
+    const rows = await r.json();
+    if (!rows.length) {
+      wrap.className = "uploads-list empty";
+      wrap.textContent = "No reference documents uploaded yet.";
+      return;
+    }
+    wrap.className = "uploads-list";
+    wrap.innerHTML = rows.map(r => {
+      const kb = (r.size_bytes / 1024).toFixed(1);
+      const when = new Date(r.uploaded_at).toLocaleString();
+      const icon = r.kind === "pdf" ? "📄" : r.kind === "screenshot" ? "🖼️" : "📎";
+      return `
+        <div class="upload-row">
+          <span>${icon} <b>${escapeHtml(r.filename)}</b>
+            <span class="meta">${r.kind} · ${kb} KB · ${when}</span>
+          </span>
+          <button class="del" data-id="${r.id}" title="Delete">✕</button>
+        </div>`;
+    }).join("");
+  } catch (e) {
+    wrap.className = "uploads-list empty";
+    wrap.textContent = "Error: " + e.message;
+  }
+}
+
+async function uploadSelected() {
+  const files = Array.from(el("upload-files").files || []);
+  if (!files.length) return;
+  el("upload-go").disabled = true;
+  let done = 0, failed = 0;
+  for (const f of files) {
+    el("upload-status").textContent = `Uploading ${done + 1} / ${files.length}…`;
+    try {
+      const base64 = await fileToBase64(f);
+      const kind = f.type === "application/pdf" ? "pdf"
+                 : f.type.startsWith("image/") ? "screenshot"
+                 : "other";
+      const r = await authedFetch("/api/analysis/inputs", {
+        method: "POST",
+        body: JSON.stringify({
+          filename: f.name,
+          mime_type: f.type || "application/octet-stream",
+          kind,
+          base64,
+        }),
+      });
+      if (r.ok) done++;
+      else { failed++; console.warn("upload failed:", await r.text()); }
+    } catch (e) {
+      failed++;
+      console.warn("upload exception:", e);
+    }
+  }
+  el("upload-status").textContent = failed
+    ? `${done} uploaded, ${failed} failed`
+    : `${done} uploaded ✓`;
+  el("upload-files").value = "";
+  refreshUploadsList();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const idx = dataUrl.indexOf(",");
+      resolve(idx >= 0 ? dataUrl.slice(idx + 1) : dataUrl);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ─── App Analyzer (Skill 1) ────────────────────────────────
+async function loadAnalysis() {
+  try {
+    const r = await authedFetch("/api/analysis");
+    if (!r.ok) { state.analysis = null; return; }
+    const j = await r.json();
+    state.analysis = j.analysis || null;
+  } catch (e) {
+    console.warn("loadAnalysis failed:", e);
+    state.analysis = null;
+  }
+}
+
+function renderAnalyzer() {
+  const a = state.analysis;
+  if (!a) {
+    el("analyzer-empty").hidden = false;
+    el("analyzer-content").hidden = true;
+    return;
+  }
+  el("analyzer-empty").hidden = true;
+  el("analyzer-content").hidden = false;
+
+  const meta = a.meta || {};
+
+  // ── Summary card ──────────────────────────────────────────
+  el("summary-body").textContent =
+    meta.app_summary || "No AI summary yet for this scan. Re-run with the latest test-scan-app to populate.";
+
+  const features = Array.isArray(meta.key_features) ? meta.key_features : [];
+  el("features-grid").innerHTML = features.length
+    ? features.map(f =>
+        typeof f === "string"
+          ? `<div class="feature-pill"><b>${escapeHtml(f)}</b></div>`
+          : `<div class="feature-pill"><b>${escapeHtml(f.name || "")}</b><span>${escapeHtml(f.detail || "")}</span></div>`
+      ).join("")
+    : "<div style='color:#999;font-size:12px;grid-column:1/-1;'>(no features extracted yet)</div>";
+
+  // Confidence badge
+  const score = Number.isFinite(meta.confidence_score) ? meta.confidence_score : null;
+  const badge = el("confidence-badge");
+  if (score === null) {
+    badge.textContent = "— / 100";
+    badge.className = "confidence-badge low";
+  } else {
+    badge.textContent = `${score} / 100 confidence`;
+    badge.className = "confidence-badge " + (score >= 85 ? "" : score >= 65 ? "med" : "low");
+  }
+
+  el("confidence-basis").textContent = meta.confidence_basis || "";
+
+  // Corrections list (now inside the confidence <details>)
+  const corrections = meta.v3_corrections_vs_v2 || [];
+  el("corrections-list").innerHTML = corrections.length
+    ? corrections.map(c => `<li>${escapeHtml(c)}</li>`).join("")
+    : "";
+
+  // Compact stats row
+  const stats = [
+    a.screens_count ? `<span class="stat">📍 <b>${a.screens_count}</b> screens</span>` : "",
+    a.journeys_count ? `<span class="stat">🧭 <b>${a.journeys_count}</b> journeys</span>` : "",
+    features.length ? `<span class="stat">⭐ <b>${features.length}</b> features</span>` : "",
+  ].filter(Boolean).join("");
+  el("summary-stats").innerHTML = stats;
+
+  // ── Markdown sections ─────────────────────────────────────
+  const renderMd = (md) => {
+    if (!md) return "<p style='color:#999;'>(empty)</p>";
+    try { return marked.parse(md, { breaks: false, gfm: true }); }
+    catch (e) { return `<pre>${md.replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))}</pre>`; }
+  };
+  el("screen-flow-render").innerHTML = renderMd(a.screen_flow_md);
+  el("user-flow-render").innerHTML = renderMd(a.user_flow_md);
+
+  // Strip relative file:// links — they don't resolve in a hosted page
+  qa("#screen-flow-render a, #user-flow-render a").forEach(link => {
+    const href = link.getAttribute("href") || "";
+    if (href.startsWith("../") || href.startsWith("./")) {
+      link.removeAttribute("href");
+      link.style.textDecoration = "none";
+      link.style.color = "var(--charcoal)";
+      link.title = "Source-file link (only resolves on the dev machine)";
+    } else {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
+  });
+
+  // ── Visual journey iframe ────────────────────────────────
+  el("journey-frame").srcdoc = a.journey_flow_html || "";
+
+  // ── Footer meta (commit, scanned/uploaded timestamps) ────
+  const footParts = [
+    a.app_commit ? `commit <code>${a.app_commit}</code>` : "",
+    a.scan_version ? `scan v${a.scan_version}` : "",
+    a.uploaded_at ? `uploaded ${new Date(a.uploaded_at).toLocaleString()}` : "",
+  ].filter(Boolean);
+  el("analyzer-meta").innerHTML = footParts.join(" · ");
+}
+
+function renderDashboard() {
+  const tcs = state.catalog.test_cases;
+  const by = (key) => tcs.reduce((a, t) => (a[t[key] || "?"] = (a[t[key] || "?"] || 0) + 1, a), {});
+  const status = by("status"), priority = by("priority"), type = by("type"),
+        journey = by("journey"), screen = by("screen"), category = by("category");
+  const cards = el("dash-cards");
+  const card = (label, val, breakdown) =>
+    `<div class="card"><div class="label">${label}</div><div class="value">${val}</div>${breakdown ? `<div class="breakdown">${breakdown}</div>` : ""}</div>`;
+
+  const sb = (m) => Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k, v]) => `${k}: <b>${v}</b>`).join(" · ");
+  cards.innerHTML = [
+    card("Total", tcs.length),
+    card("Screens covered", Object.keys(screen).length),
+    card("Self-critique", (state.catalog.meta?.critique_score || "?") + "/100"),
+    card("By Priority", "", sb(priority)),
+    card("By Type", "", sb(type)),
+    card("By Category", "", sb(category)),
+    card("By Status", "", sb(status)),
+    card("Journeys", Object.keys(journey).length, sb(journey)),
+  ].join("");
+}
+
+function badge(cls, txt) { return `<span class="badge b-${cls}">${txt}</span>`; }
+function fmtJourney(j) { return j.replace(/^[A-Z]\.\s/, ""); }
+
+function rowMatchesFilter(t) {
+  const f = state.filter;
+  if (f.screen && t.screen !== f.screen) return false;
+  if (f.journey && t.journey !== f.journey) return false;
+  if (f.status && (t.status || "Pending Review") !== f.status) return false;
+  if (f.priority && t.priority !== f.priority) return false;
+  if (f.type && t.type !== f.type) return false;
+  if (f.category && t.category !== f.category) return false;
+  if (f.search) {
+    const s = f.search.toLowerCase();
+    const hay = `${t.tc_id} ${t.title} ${t.description||""} ${t.tags||""} ${t.journey} ${t.screen}`.toLowerCase();
+    if (!hay.includes(s)) return false;
+  }
+  return true;
+}
+
+function renderTCs() {
+  const body = el("tc-body");
+  body.innerHTML = "";
+  const tcs = state.catalog.test_cases;
+  let shown = 0;
+  for (const t of tcs) {
+    if (!rowMatchesFilter(t)) continue;
+    shown++;
+    const status = t.status || "Pending Review";
+    const statusClass = "s-" + (status.startsWith("Pending") ? "Pending" :
+                                status.startsWith("Needs") ? "Needs" :
+                                status.startsWith("Skip") ? "Skip" :
+                                status);
+    const tr = document.createElement("tr");
+    tr.dataset.tcId = t.tc_id;
+    if (state.expanded.has(t.tc_id)) tr.classList.add("expanded");
+    if (state.selected.has(t.tc_id)) tr.classList.add("row-selected");
+    tr.innerHTML = `
+      <td class="col-sel"><input type="checkbox" class="row-select" data-tc="${t.tc_id}" ${state.selected.has(t.tc_id) ? "checked" : ""}></td>
+      <td class="tc-id">${t.tc_id}</td>
+      <td>${badge("screen", t.screen)}</td>
+      <td class="title">${escapeHtml(t.title)}${t.description ? `<span class="tc-desc">${escapeHtml(t.description)}</span>` : ""}</td>
+      <td>${badge(t.priority, t.priority)}</td>
+      <td>${badge(t.type, t.type)}</td>
+      <td>
+        <select class="status ${statusClass}" data-tc="${t.tc_id}">
+          ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s===status?"selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
+      <td><textarea class="comments" data-tc="${t.tc_id}" placeholder="optional…">${t.comments || ""}</textarea></td>
+      <td><button class="bulk-btn" data-expand="${t.tc_id}">${state.expanded.has(t.tc_id) ? "▲" : "▼"}</button></td>
+    `;
+    body.appendChild(tr);
+
+    if (state.expanded.has(t.tc_id)) {
+      const det = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.innerHTML = `
+        <div class="details">
+          <div class="meta-row">
+            <b>Screen:</b> ${t.screen}
+            &nbsp;·&nbsp; <b>Journey:</b> ${fmtJourney(t.journey)}
+            &nbsp;·&nbsp; <b>Category:</b> ${t.category || "-"}
+            &nbsp;·&nbsp; <b>Platform:</b> ${t.platform}
+            &nbsp;·&nbsp; <b>Verified from:</b> ${t.verified_from || "-"}
+            &nbsp;·&nbsp; <b>Tags:</b> ${t.tags || "-"}
+            &nbsp;·&nbsp; <b>Maestro:</b> <code>${t.maestro_yaml || "-"}</code>
+          </div>
+          <div class="grid">
+            <div>
+              <h4>Preconditions</h4>
+              <pre>${escapeHtml(t.preconditions || "-")}</pre>
+              <h4>Steps</h4>
+              <pre>${escapeHtml(t.steps || "-")}</pre>
+            </div>
+            <div>
+              <h4>Expected Result</h4>
+              <pre>${escapeHtml(t.expected || "-")}</pre>
+              <h4>Test data</h4>
+              <pre>${escapeHtml(t.data || "-")}</pre>
+              ${t.last_run_result ? `<h4>Last run</h4><pre>${t.last_run_result} @ ${t.last_run_ts}\n${t.failure_reason || ""}</pre>` : ""}
+            </div>
+          </div>
+        </div>`;
+      det.appendChild(td);
+      body.appendChild(det);
+    }
+  }
+  el("count-cases").textContent = shown;
+  updateSelectionUI();
+}
+
+// All TCs currently passing the filter (the "filtered" set the select-all acts on)
+function visibleTCs() {
+  return state.catalog.test_cases.filter(rowMatchesFilter);
+}
+
+// Keep the selection count, the select-all checkboxes, and action-button enablement in sync
+function updateSelectionUI() {
+  const n = state.selected.size;
+  const cnt = el("sel-count");
+  if (cnt) cnt.textContent = `${n} selected`;
+
+  const vis = visibleTCs();
+  const visSelected = vis.filter(t => state.selected.has(t.tc_id)).length;
+  const allChecked = vis.length > 0 && visSelected === vis.length;
+  const someChecked = visSelected > 0 && !allChecked;
+  ["select-all", "select-all-head"].forEach(id => {
+    const cb = el(id);
+    if (cb) { cb.checked = allChecked; cb.indeterminate = someChecked; }
+  });
+
+  // Action buttons (except Clear) only enabled when something is selected
+  document.querySelectorAll("[data-selact]").forEach(b => { b.disabled = n === 0; });
+  const clear = el("clear-sel");
+  if (clear) clear.disabled = n === 0;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderCoverage() {
+  const tcs = state.catalog.test_cases;
+  const screens = [...new Set(tcs.map(t => t.screen))].sort();
+  const cats = ["smoke", "functional", "negative", "edge", "data-variation"];
+  const by = {};
+  for (const t of tcs) {
+    const k = t.screen + "|" + t.category;
+    (by[k] = by[k] || []).push(t);
+  }
+  let html = "<thead><tr><th>Screen</th>" + cats.map(c => `<th>${c}</th>`).join("") + "<th>total</th></tr></thead><tbody>";
+  for (const s of screens) {
+    const rowTotal = tcs.filter(t => t.screen === s).length;
+    html += `<tr><td><b>${s}</b></td>`;
+    for (const c of cats) {
+      const list = by[s + "|" + c] || [];
+      html += list.length
+        ? `<td>${list.map(x => `<span class="tc-chip" data-jump="${x.tc_id}">${x.tc_id}</span>`).join("")}</td>`
+        : `<td class="gap">—</td>`;
+    }
+    html += `<td><b>${rowTotal}</b></td></tr>`;
+  }
+  html += "</tbody>";
+  el("cov-table").innerHTML = html;
+}
+
+// ═════════════════════════════════════════════════════════════
+// ─── Skill 3: Run Tests tab — upload, trigger, poll, render ──
+// ═════════════════════════════════════════════════════════════
+
+const runState = {
+  android_build_id: null,
+  ios_build_id: null,
+  active_run_id: null,
+  active_poll_handle: null,
+};
+
+// ── Upload pipeline ─────────────────────────────────────────
+async function uploadBuild(platform, file) {
+  const statusEl = el(platform === "android" ? "apk-status" : "app-status");
+  const progEl   = el(platform === "android" ? "apk-progress" : "app-progress");
+  const progBar  = document.createElement("div"); progEl.innerHTML = ""; progEl.appendChild(progBar);
+  progEl.classList.add("active");
+  statusEl.className = "upload-status";
+  statusEl.textContent = `Uploading ${file.name}…`;
+
+  try {
+    // 1. sign-upload
+    const sign = await authedFetch("/api/builds/sign-upload", {
+      method: "POST",
+      body: JSON.stringify({ platform, filename: file.name, size_bytes: file.size }),
+    });
+    if (!sign.ok) throw new Error("sign-upload: " + (await sign.text()));
+    const { signed_url, storage_path } = await sign.json();
+
+    // 2. PUT to Storage with progress (use XHR — fetch doesn't expose upload progress).
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", signed_url);
+      xhr.setRequestHeader("Content-Type",
+        platform === "android" ? "application/vnd.android.package-archive" : "application/gzip");
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = (e.loaded / e.total) * 100;
+          progBar.style.width = pct.toFixed(1) + "%";
+          statusEl.textContent = `Uploading ${file.name}… ${pct.toFixed(0)}%`;
+        }
+      };
+      xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Storage PUT failed: " + xhr.status));
+      xhr.onerror = () => reject(new Error("Storage PUT network error"));
+      xhr.send(file);
+    });
+
+    // 3. record
+    progBar.style.width = "100%";
+    statusEl.textContent = "Recording…";
+    const rec = await authedFetch("/api/builds", {
+      method: "POST",
+      body: JSON.stringify({
+        platform, label: `via-dashboard-${new Date().toISOString().slice(0, 16)}`,
+        storage_path, size_bytes: file.size,
+      }),
+    });
+    if (!rec.ok) throw new Error("record: " + (await rec.text()));
+    const { id } = await rec.json();
+
+    if (platform === "android") runState.android_build_id = id;
+    else                         runState.ios_build_id = id;
+    const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+    statusEl.className = "upload-status ok";
+    statusEl.textContent = `✓ ${file.name} (${sizeMb} MB) — build id ${id}`;
+    setTimeout(() => { progEl.classList.remove("active"); }, 600);
+    refreshTriggerEnable();
+  } catch (e) {
+    statusEl.className = "upload-status err";
+    statusEl.textContent = "Upload failed: " + e.message;
+    progEl.classList.remove("active");
+  }
+}
+
+function refreshTriggerEnable() {
+  const has = runState.android_build_id || runState.ios_build_id;
+  el("run-trigger-btn").disabled = !has;
+  el("trigger-hint").textContent = has
+    ? "Ready. Click to run all Approved test cases on the selected platform(s)."
+    : "Upload at least one build to enable.";
+}
+
+// ── Trigger ────────────────────────────────────────────────
+async function triggerRun() {
+  const btn = el("run-trigger-btn");
+  btn.disabled = true; btn.textContent = "Triggering…";
+  try {
+    const r = await authedFetch("/api/runs/trigger", {
+      method: "POST",
+      body: JSON.stringify({
+        android_build_id: runState.android_build_id || null,
+        ios_build_id:     runState.ios_build_id || null,
+        label:            el("run-label").value || null,
+      }),
+    });
+    if (!r.ok) { alert("Trigger failed: " + (await r.text())); btn.disabled = false; btn.textContent = "🚀 Run all approved tests"; return; }
+    const j = await r.json();
+    runState.active_run_id = j.run_id;
+    startPolling(j.run_id);
+    btn.textContent = "🚀 Run all approved tests";
+    btn.disabled = false;
+  } catch (e) {
+    alert("Trigger failed: " + e.message);
+    btn.disabled = false; btn.textContent = "🚀 Run all approved tests";
+  }
+}
+
+// ── Polling + rendering ────────────────────────────────────
+function startPolling(runId) {
+  el("active-run-panel").hidden = false;
+  el("active-run-id").textContent = "#" + runId;
+  if (runState.active_poll_handle) clearInterval(runState.active_poll_handle);
+  pollRunOnce(runId);  // immediate first paint
+  runState.active_poll_handle = setInterval(() => pollRunOnce(runId), 5000);
+}
+
+async function pollRunOnce(runId) {
+  try {
+    const r = await authedFetch("/api/runs/" + runId);
+    if (!r.ok) return;
+    const data = await r.json();
+    renderActiveRun(data);
+    renderResultsTable(data.results || []);
+    renderBugSummary(data.bugs || []);
+    // Stop polling once the run terminates.
+    if (data.run.status === "done" || data.run.status === "failed") {
+      clearInterval(runState.active_poll_handle);
+      runState.active_poll_handle = null;
+      refreshRunHistory();
+      loadReport(); // refresh consolidated build-summary + grade after the run lands
+    }
+  } catch (e) {
+    console.warn("pollRunOnce:", e);
+  }
+}
+
+function renderActiveRun(data) {
+  const status = data.run.status || "queued";
+  const pill = el("active-run-status");
+  pill.textContent = status;
+  pill.className = "run-status-pill " + status;
+
+  // Shard tiles
+  const grid = el("shard-grid");
+  grid.innerHTML = data.shards.map(s => `
+    <div class="shard-tile ${s.status}">
+      <div><span class="platform">${s.platform.toUpperCase()}</span><b>shard ${s.shard_index}</b></div>
+      <div class="counts">
+        ${s.status === "queued" ? "queued — waiting for runner" : ""}
+        ${s.status === "running" ? "running on emulator/simulator…" : ""}
+        ${(s.status === "done" || s.status === "failed") ? `<span class="ok">${s.passed ?? 0} pass</span> · <span class="fail">${s.failed ?? 0} fail</span> · ${s.skipped ?? 0} skip` : ""}
+      </div>
+    </div>`).join("");
+
+  // Overall progress
+  const c = data.result_counts || { total: 0, pass: 0, fail: 0, skipped: 0 };
+  const total = Number(c.total) || 0;
+  const done  = (Number(c.pass) || 0) + (Number(c.fail) || 0) + (Number(c.skipped) || 0);
+  const pct = total > 0 ? (done / total) * 100 : 0;
+  el("overall-bar-fill").style.width = pct.toFixed(1) + "%";
+  el("overall-text").textContent = `${done} / ${total} TCs completed`;
+}
+
+function renderResultsTable(results) {
+  const wrap = el("results-table-wrap");
+  if (!results.length) { wrap.innerHTML = `<div class="empty-state">No results yet.</div>`; el("results-counts").innerHTML = ""; return; }
+
+  // Group by tc_id, with platform columns.
+  const by = {};
+  for (const r of results) {
+    if (!by[r.tc_id]) by[r.tc_id] = { tc_id: r.tc_id, title: r.title, screen: r.screen, priority: r.priority, android: null, ios: null };
+    by[r.tc_id][r.platform] = r;
+  }
+  const rows = Object.values(by).sort((a, b) => (a.screen || "").localeCompare(b.screen || "") || a.tc_id.localeCompare(b.tc_id));
+  let pass = 0, fail = 0, skip = 0;
+  for (const r of results) {
+    if (r.status === "PASS") pass++;
+    else if (r.status === "FAIL") fail++;
+    else if (r.status === "SKIPPED") skip++;
+  }
+  el("results-counts").innerHTML = `<span class="ok">${pass} pass</span> · <span class="fail">${fail} fail</span> · <span class="skip">${skip} skip</span>`;
+
+  const pill = (r) => r ? `<span class="res-pill ${r.status}">${r.status}</span>` : `<span class="res-pill none">—</span>`;
+  wrap.innerHTML = `
+    <table class="results">
+      <thead><tr><th>TC</th><th>Screen</th><th>Title</th><th>Pri</th><th>Android</th><th>iOS</th></tr></thead>
+      <tbody>${rows.map(r => `
+        <tr>
+          <td class="tc-id">${r.tc_id}</td>
+          <td>${escapeHtml(r.screen || "")}</td>
+          <td>${escapeHtml(r.title || "")}</td>
+          <td>${r.priority || ""}</td>
+          <td>${pill(r.android)}</td>
+          <td>${pill(r.ios)}</td>
+        </tr>`).join("")}</tbody>
+    </table>`;
+}
+
+function renderBugSummary(bugs) {
+  const wrap = el("bugs-list-wrap");
+  if (!bugs.length) { wrap.innerHTML = `<div class="empty-state">No bugs logged yet.</div>`; el("bugs-counts").innerHTML = ""; return; }
+
+  // Cluster by screen.
+  const byScreen = {};
+  for (const b of bugs) {
+    const k = b.screen || "(no screen)";
+    if (!byScreen[k]) byScreen[k] = [];
+    byScreen[k].push(b);
+  }
+  const sevCounts = { blocker: 0, high: 0, medium: 0, low: 0 };
+  for (const b of bugs) sevCounts[b.severity] = (sevCounts[b.severity] || 0) + 1;
+  el("bugs-counts").innerHTML =
+    `${bugs.length} bug${bugs.length > 1 ? "s" : ""} — ` +
+    `<span class="fail">${sevCounts.blocker} blocker</span> · ` +
+    `<span style="color:var(--orange);font-weight:700;">${sevCounts.high} high</span> · ` +
+    `${sevCounts.medium} medium · ${sevCounts.low} low`;
+
+  wrap.innerHTML = Object.keys(byScreen).sort().map(screen => `
+    <div class="bug-cluster">
+      <h4>${escapeHtml(screen)} <span style="color:#666; font-weight:400; font-size:12px;">${byScreen[screen].length} bug${byScreen[screen].length > 1 ? "s" : ""}</span></h4>
+      ${byScreen[screen].map(b => `
+        <div class="bug-row">
+          <span class="sev-pill ${b.severity}">${b.severity}</span>
+          <div style="flex:1;">
+            <div><b>${b.bug_id}</b> <code style="font-size:11px;">${b.tc_id}</code>
+              ${b.platform_diff_flag ? `<span class="platform-diff">platform-diff</span>` : ""}
+              <span style="color:#888;">×${b.occurrence_count || 1}</span>
+            </div>
+            <div style="color:#555; margin-top:3px;">${escapeHtml(b.summary || "")}</div>
+            ${b.screenshot_url ? `<a href="${b.screenshot_url}" target="_blank" style="font-size:11px;">📷 screenshot</a>` : ""}
+          </div>
+        </div>`).join("")}
+    </div>`).join("");
+}
+
+async function refreshRunHistory() {
+  try {
+    const r = await authedFetch("/api/runs");
+    if (!r.ok) return;
+    const rows = await r.json();
+    const wrap = el("runs-history-wrap");
+    if (!rows.length) { wrap.innerHTML = `<div class="empty-state">No prior runs.</div>`; return; }
+    wrap.innerHTML = `
+      <table class="runs">
+        <thead><tr><th>Run</th><th>Label</th><th>Status</th><th>Pass / Fail / Skip</th><th>Started</th><th>Finished</th></tr></thead>
+        <tbody>${rows.map(r => {
+          const s = r.summary || {};
+          return `<tr class="clickable" data-run-id="${r.id}">
+            <td>#${r.id}</td>
+            <td>${escapeHtml(r.label || "")}</td>
+            <td><span class="run-status-pill ${r.status}">${r.status}</span></td>
+            <td>${s.pass || "—"} / ${s.fail || "—"} / ${s.skipped || "—"}</td>
+            <td>${r.started_at ? new Date(r.started_at).toLocaleString() : "—"}</td>
+            <td>${r.finished_at ? new Date(r.finished_at).toLocaleString() : "—"}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table>`;
+    qa("table.runs tr.clickable").forEach(tr => {
+      tr.onclick = () => startPolling(parseInt(tr.dataset.runId, 10));
+    });
+  } catch (e) { console.warn("refreshRunHistory:", e); }
+}
+
+// Bind file inputs + trigger button. Called from bindEvents() but with safe lookups
+// so that if the elements aren't present (e.g. before tab is rendered) we skip.
+function bindRunTestsTab() {
+  const apk = el("run-apk"), app = el("run-app"), btn = el("run-trigger-btn");
+  if (!apk || !app || !btn) return;
+  apk.onchange = (e) => e.target.files[0] && uploadBuild("android", e.target.files[0]);
+  app.onchange = (e) => e.target.files[0] && uploadBuild("ios", e.target.files[0]);
+  btn.onclick = triggerRun;
+  // grade-table filters (report)
+  const gf = el("grade-filter"); if (gf) gf.oninput = renderGradeTable;
+  ["grade-failonly","grade-iosfail","grade-andfail"].forEach(id=>{ const e=el(id); if(e) e.onchange=renderGradeTable; });
+  refreshRunHistory();
+}
+
+// ── Consolidated report (build summary + 191-TC grade + bug triage) shown inside
+//    the Run Tests tab. Uses /api/bugs/{overview,grade} + /api/bugs + triage. ──
+const reportState = { grade: [], bugs: [] };
+
+function renderRuns() { loadReport(); }
+function renderBugs() { /* handled by renderTriageBugs */ }
+
+async function loadReport() {
+  try {
+    const [o, g, b, n] = await Promise.all([
+      authedFetch("/api/bugs/overview"),
+      authedFetch("/api/bugs/grade"),
+      authedFetch("/api/bugs"),
+      authedFetch("/api/bugs/nav-gaps"),
+    ]);
+    if (o.ok) { const ov = await o.json(); renderWellBeing(ov); renderRunSummary(ov); }
+    if (g.ok) { reportState.grade = (await g.json()).grade || []; renderGradeTable(); }
+    if (b.ok) { reportState.bugs = (await b.json()).bugs || []; renderTriageBugs(); }
+    if (n.ok) renderNavStrategy(await n.json());
+  } catch (e) { console.warn("loadReport:", e); }
+}
+
+function renderWellBeing(ov){
+  const w = ov.well_being || {};
+  const s = Number.isFinite(w.score) ? w.score : null;
+  if (s === null) { el("wellbeing-wrap").innerHTML = ""; return; }
+  const color = s >= 90 ? "#1f9d55" : s >= 80 ? "#5fa31f" : s >= 70 ? "#e08a00" : s >= 50 ? "#d6671f" : "#d64545";
+  const emoji = s >= 90 ? "✅" : s >= 80 ? "🟢" : s >= 70 ? "🟡" : s >= 50 ? "🟠" : "🔴";
+  el("wellbeing-wrap").innerHTML = `
+    <div class="card" style="background:linear-gradient(135deg,#fff,#f7f4fa);border-left:6px solid ${color};display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
+      <div style="font-size:54px;font-weight:800;color:${color};line-height:1;">${s}<span style="font-size:22px;color:#888;">/100</span></div>
+      <div style="flex:1;min-width:280px;">
+        <div style="font-size:18px;font-weight:700;color:var(--purple);">${emoji} App Well-Being — ${escapeHtml(w.verdict||"")}</div>
+        <div style="color:#555;font-size:13px;margin-top:6px;line-height:1.5;">${escapeHtml(w.basis||"")}</div>
+        <div style="color:#888;font-size:12px;margin-top:4px;">base ${w.base}% reachable-pass · −${w.penalty} dev-bug penalty</div>
+      </div>
+    </div>`;
+}
+
+function renderNavStrategy(d){
+  const wrap = el("nav-strategy-wrap"); if(!wrap) return;
+  if (!d.total) { wrap.innerHTML = ""; return; }
+  const totalEta = d.clusters.reduce((s,c)=>s+(c.eta_min||0),0);
+  const rows = d.clusters.map(c=>`<tr>
+    <td><b>${c.count}×</b></td>
+    <td>${escapeHtml(c.cause)}</td>
+    <td style="color:#555;">${escapeHtml(c.recommended_fix||"")}</td>
+    <td style="text-align:right;">${c.eta_min===0?'<span style="color:#1f9d55;">auto when prior fix lands</span>':'~'+c.eta_min+' min'}</td>
+  </tr>`).join("");
+  wrap.innerHTML = `<div class="card" style="margin-top:14px;border-left:6px solid #356ab3;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div><b style="color:var(--purple);">Test-automation nav gaps — strategy</b>
+        <div style="color:#666;font-size:12px;margin-top:2px;">${d.total} TCs blocked, but only <b>${d.clusters.length} root causes</b>. Fix the root, many TCs unblock.</div>
+      </div>
+      <div style="color:#356ab3;font-weight:700;">est. ~${totalEta} min of fixes → targeted re-run ≈ 5-8 min</div>
+    </div>
+    <table style="width:100%;margin-top:10px;font-size:13px;border-collapse:collapse;">
+      <thead><tr style="color:#888;text-align:left;"><th>Count</th><th>Root cause</th><th>Recommended fix</th><th style="text-align:right;">ETA</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="background:#eef3fa;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:12px;color:#356;line-height:1.5;">
+      <b>Optimization strategy:</b>
+      ① Fix the top root causes in <code>generate-flows.js</code> (one selector / wait change unblocks an entire cluster).
+      ② Re-bundle and trigger a <i>targeted</i> re-run of <b>only the ${d.total} blocked TCs</b> (not all 191) → ~5-8 min on Android, ~25 min on iOS.
+      ③ Re-classify. The Well-Being score recomputes automatically.
+      <br>This is fundamentally faster than "retry harder" — retries don't help because the selector simply doesn't exist on those screens; the fix is a one-line nav correction per root cause.
+    </div>
+  </div>`;
+}
+
+function fmtDur(s){ return !s ? "—" : (s>=3600 ? `${Math.floor(s/3600)}h ${Math.round(s%3600/60)}m` : `${Math.round(s/60)}m`); }
+
+function renderRunSummary(ov){
+  const pp = (ov.latest_run && ov.latest_run.per_platform) || {};
+  const total = ov.total_test_cases || reportState.grade.length;
+  const names = { android:"🤖 Android", ios:"🍎 iOS" };
+  const cards = ["android","ios"].map(p=>{
+    const d=pp[p];
+    if(!d) return `<div class="card" style="flex:1;min-width:280px;"><b>${names[p]}</b><div class="empty-state">not run</div></div>`;
+    return `<div class="card" style="flex:1;min-width:280px;border-top:4px solid var(--amber,#FFA70B);">
+      <b style="color:var(--purple);">${names[p]} — build #${d.build_id||'?'} · run #${d.run_id}</b>
+      <table style="width:100%;margin-top:8px;font-size:13px;">
+        <tr><td>Test cases run</td><td style="text-align:right;"><b>${d.ran} / ${total}</b></td></tr>
+        <tr><td>Passed</td><td style="text-align:right;"><b style="color:#1f9d55;">${d.pass}</b></td></tr>
+        <tr><td>Failed</td><td style="text-align:right;"><b style="color:#d64545;">${d.fail}</b></td></tr>
+        <tr><td>Time taken</td><td style="text-align:right;"><b>${fmtDur(d.duration_s)}</b></td></tr>
+        <tr><td>Shards employed</td><td style="text-align:right;"><b>${d.shards}</b></td></tr>
+      </table></div>`;
+  }).join("");
+  el("run-summary-wrap").innerHTML = `<h3 style="margin:0 0 10px;color:var(--purple);">Build run summary</h3><div style="display:flex;gap:14px;flex-wrap:wrap;">${cards}</div>`;
+  const fb = ov.fail_breakdown || {dev_candidates:0,test_automation_nav:0,flake_infra:0};
+  const c = ov.consolidated || {};
+  el("fail-breakdown-wrap").innerHTML = `<div class="card" style="background:#fff8ec;border:1px solid #ffe2b0;margin-top:14px;">
+    <b style="color:var(--purple);">Why many "fails" but few bugs?</b> A failed test ≠ an app bug — most failures are our automation not yet able to <i>navigate</i> to a screen, or one-off CI flakes.
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+      <span style="background:#ffe1e1;color:#b13;padding:5px 12px;border-radius:99px;font-weight:700;font-size:13px;">${fb.dev_candidates} developer bugs ↓</span>
+      <span style="background:#e6efff;color:#356;padding:5px 12px;border-radius:99px;font-weight:700;font-size:13px;">${fb.test_automation_nav} test-automation nav gaps (ours)</span>
+      <span style="background:#eee;color:#666;padding:5px 12px;border-radius:99px;font-weight:700;font-size:13px;">${fb.flake_infra} CI flakes / infra</span>
+    </div>
+    <div style="color:#888;font-size:12px;margin-top:8px;">Consolidated best-per-TC: Android ${(c.android&&c.android.pass)||0}✓/${(c.android&&c.android.fail)||0}✗ · iOS ${(c.ios&&c.ios.pass)||0}✓/${(c.ios&&c.ios.fail)||0}✗ (of ${(c.ios&&c.ios.graded)||0} iOS graded — macOS runners slow, iOS partial).</div>
+  </div>`;
+}
+
+function renderGradeTable(){
+  const grade = reportState.grade;
+  const f = (el("grade-filter") ? el("grade-filter").value : "").toLowerCase();
+  const failonly = el("grade-failonly") && el("grade-failonly").checked;
+  const iosf = el("grade-iosfail") && el("grade-iosfail").checked;
+  const andf = el("grade-andfail") && el("grade-andfail").checked;
+  let rows = grade.filter(t=>{
+    if(f && !t.tc_id.toLowerCase().includes(f) && !(t.screen||'').toLowerCase().includes(f)) return false;
+    if(failonly && t.ios!=='FAIL' && t.android!=='FAIL') return false;
+    if(iosf && t.ios!=='FAIL') return false;
+    if(andf && t.android!=='FAIL') return false;
+    return true;
+  });
+  rows.sort((a,b)=>(a.screen||'').localeCompare(b.screen||'')||a.tc_id.localeCompare(b.tc_id));
+  el("results-counts").innerHTML = `<span class="ok">${grade.filter(t=>t.android==='PASS').length} Android✓</span> · <span class="fail">${grade.filter(t=>t.android==='FAIL').length} Android✗</span> · ${grade.filter(t=>t.ios==='PASS').length} iOS✓`;
+  const gc = el("grade-count"); if(gc) gc.textContent = `${rows.length} of ${grade.length}`;
+  const pill=(v)=> v==='PASS'?'<span class="res-pill PASS">PASS</span>':v==='FAIL'?'<span class="res-pill FAIL">FAIL</span>':'<span class="res-pill none">—</span>';
+  const cell=(v,reason)=>`${pill(v)}${reason?`<div style="color:#d64545;font-size:11px;margin-top:2px;">${escapeHtml(reason)}</div>`:''}`;
+  el("results-table-wrap").innerHTML = `<table class="results"><thead><tr><th>TC</th><th>Screen</th><th>Pri</th><th>Android</th><th>iOS</th><th>Title</th></tr></thead><tbody>${
+    rows.map(t=>`<tr><td class="tc-id">${t.tc_id}</td><td>${escapeHtml(t.screen||'')}</td><td>${t.priority||''}</td><td>${cell(t.android,t.android_reason)}</td><td>${cell(t.ios,t.ios_reason)}</td><td style="color:#777;">${escapeHtml((t.title||'').slice(0,60))}</td></tr>`).join('') || `<tr><td colspan="6" class="empty-state">No matches</td></tr>`
+  }</tbody></table>`;
+}
+
+function renderTriageBugs(){
+  const bugs = reportState.bugs;
+  const wrap = el("bugs-list-wrap");
+  el("bugs-counts").innerHTML = `${bugs.filter(b=>b.triage_status!=='rejected').length} candidate${bugs.length!==1?'s':''}`;
+  if(!bugs.length){ wrap.innerHTML = `<div class="empty-state">No developer-relevant candidates 🎉 — all failures are test-automation / flake (see breakdown above).</div>`; return; }
+  wrap.innerHTML = bugs.map(b=>{
+    const ts=b.triage_status||'open';
+    const bord = ts==='accepted'?'#1f9d55':ts==='rejected'?'#bbb':'#e08a00';
+    return `<div class="card" data-bug="${b.id}" style="border-left:4px solid ${bord};margin-bottom:10px;${ts==='rejected'?'opacity:.6;':''}">
+      <div><b>${b.tc_id}</b> <span class="sev-pill ${b.severity}">${b.severity}</span> <span style="color:#888;font-size:12px;">· ${b.bug_class} · seen ${b.occurrence_count||1}×</span></div>
+      <div style="margin:6px 0;line-height:1.45;">${escapeHtml(b.dev_guidance||'')}</div>
+      <div style="background:#f5f5f5;border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.45;"><b style="color:var(--purple);">Recommended fix / check:</b> ${escapeHtml(b.recommended_fix||'')}</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
+        <button class="bulk-btn primary-btn" data-act="accepted">✓ Accept (genuine bug)</button>
+        <button class="bulk-btn" data-act="rejected">✗ Reject (not a bug)</button>
+        <input data-note placeholder="note (optional)" value="${escapeHtml(b.triage_note||'')}" style="flex:1;min-width:180px;padding:6px 9px;border:1px solid #ddd;border-radius:6px;">
+        <span style="font-weight:700;font-size:12px;color:${bord};">${ts}${b.triage_by?(' · '+escapeHtml(b.triage_by)):''}</span>
+      </div></div>`;
+  }).join('');
+  wrap.querySelectorAll('[data-bug]').forEach(card=>{
+    const id=card.dataset.bug, note=card.querySelector('[data-note]');
+    card.querySelectorAll('button[data-act]').forEach(btn=>btn.onclick=()=>triageBug(id, btn.dataset.act, note.value, card));
+  });
+}
+
+async function triageBug(id, status, note, card){
+  card.style.opacity=.5;
+  try{
+    const r = await authedFetch(`/api/bugs/${id}/triage`, { method:"PATCH", body: JSON.stringify({status, note}) });
+    if(!r.ok) throw new Error(await r.text());
+    const b = reportState.bugs.find(x=>String(x.id)===String(id));
+    if(b){ b.triage_status=status; b.triage_note=note; }
+    renderTriageBugs();
+  }catch(e){ alert("Triage failed: "+e.message); card.style.opacity=1; }
+}
+
+function populateFilters() {
+  const tcs = state.catalog.test_cases;
+  const fill = (id, items) => {
+    const sel = el(id);
+    sel.innerHTML = `<option value="">all</option>` + items.map(v => `<option value="${v}">${v}</option>`).join("");
+  };
+  fill("f-screen", [...new Set(tcs.map(t => t.screen))].sort());
+  fill("f-journey", [...new Set(tcs.map(t => t.journey))].sort());
+  fill("f-status", STATUS_OPTIONS);
+  fill("f-priority", ["P0", "P1", "P2", "P3"]);
+  fill("f-type", ["core", "extra"]);
+  fill("f-category", ["smoke", "functional", "negative", "edge", "data-variation"]);
+}
+
+function bindEvents() {
+  // Tabs (3-tab layout: analyzer, ledger, run-tests)
+  qa(".tab").forEach(t => t.onclick = () => {
+    qa(".tab").forEach(x => x.classList.toggle("active", x === t));
+    qa("main > section").forEach(s => s.hidden = (s.id !== "tab-" + t.dataset.tab));
+    if (t.dataset.tab === "analyzer") renderAnalyzer();
+    if (t.dataset.tab === "ledger") { renderDashboard(); renderCoverage(); renderTCs(); }
+    if (t.dataset.tab === "run-tests") renderRuns();
+  });
+
+  // Analyze App button + modal (two-step: choice → commands)
+  el("analyze-app-btn").onclick = openAnalyzeModal;
+  el("analyze-close").onclick = closeAnalyzeModal;
+  el("analyze-done").onclick = closeAnalyzeModal;
+  el("analyze-next").onclick = () => {
+    el("analyze-step-choice").hidden = true;
+    el("analyze-step-commands").hidden = false;
+  };
+  qa("input[name='analyze-mode']").forEach(r => {
+    r.addEventListener("change", () => {
+      el("uploads-panel").hidden = (r.checked && r.value !== "new") || document.querySelector("input[name='analyze-mode']:checked").value !== "new";
+    });
+  });
+  el("analyze-modal").addEventListener("click", (e) => {
+    if (e.target === el("analyze-modal")) closeAnalyzeModal();
+  });
+
+  // Uploads
+  el("upload-files").addEventListener("change", (e) => {
+    el("upload-go").disabled = e.target.files.length === 0;
+    el("upload-status").textContent = e.target.files.length
+      ? `${e.target.files.length} file(s) ready`
+      : "";
+  });
+  el("upload-go").onclick = uploadSelected;
+  el("uploads-list").addEventListener("click", async (e) => {
+    if (e.target.classList.contains("del")) {
+      const id = parseInt(e.target.dataset.id, 10);
+      if (!confirm("Delete this upload?")) return;
+      const r = await authedFetch("/api/analysis/inputs/" + id, { method: "DELETE" });
+      if (r.ok) refreshUploadsList();
+      else alert("Delete failed: " + (await r.text()));
+    }
+  });
+
+  // Journey "Open in new tab" popout — opens the raw HTML in a fresh window
+  el("journey-popout-btn").onclick = () => {
+    if (!state.analysis || !state.analysis.journey_flow_html) return;
+    const blob = new Blob([state.analysis.journey_flow_html], { type: "text/html" });
+    window.open(URL.createObjectURL(blob), "_blank", "noopener");
+  };
+
+  // Save
+  el("save-btn").onclick = saveCatalog;
+  // ⌘S / Ctrl-S
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      saveCatalog();
+    }
+  });
+
+  // Filters
+  ["screen","journey","status","priority","type","category"].forEach(k => {
+    el("f-"+k).onchange = (e) => { state.filter[k] = e.target.value; renderTCs(); };
+  });
+  el("f-search").oninput = (e) => { state.filter.search = e.target.value; renderTCs(); };
+
+  // Select-all (toggles every currently-filtered row). Both the toolbar and header checkbox share this.
+  const toggleSelectAll = (checked) => {
+    const vis = visibleTCs();
+    if (checked) vis.forEach(t => state.selected.add(t.tc_id));
+    else vis.forEach(t => state.selected.delete(t.tc_id));
+    renderTCs();
+  };
+  ["select-all", "select-all-head"].forEach(id => {
+    const cb = el(id);
+    if (cb) cb.onclick = (e) => toggleSelectAll(e.target.checked);
+  });
+
+  // Per-row checkbox (delegated; no full re-render so focus/scroll are preserved)
+  el("tc-body").addEventListener("change", (e) => {
+    if (!e.target.classList.contains("row-select")) return;
+    const id = e.target.dataset.tc;
+    if (e.target.checked) state.selected.add(id); else state.selected.delete(id);
+    const tr = e.target.closest("tr");
+    if (tr) tr.classList.toggle("row-selected", e.target.checked);
+    updateSelectionUI();
+  });
+
+  // Bulk action on the SELECTED rows (works across filters — selection is explicit)
+  qa("[data-selact]").forEach(b => b.onclick = () => {
+    if (!state.selected.size) return;
+    const tgt = b.dataset.selact;
+    let n = 0;
+    for (const t of state.catalog.test_cases) {
+      if (state.selected.has(t.tc_id) && (t.status || "Pending Review") !== tgt) {
+        t.status = tgt; n++;
+      }
+    }
+    if (n) { setDirty(true); }
+    renderTCs();
+    console.log(`bulk: ${n}/${state.selected.size} selected → ${tgt}`);
+  });
+
+  // Clear selection
+  el("clear-sel").onclick = () => { state.selected.clear(); renderTCs(); };
+
+  // Lock/unlock
+  el("lock-btn").onclick = async () => {
+    if (state.dirty) { alert("Save first."); return; }
+    const r = await authedFetch("/api/catalog/lock", { method: "POST" });
+    if (!r.ok) alert("Lock failed: " + (await r.text()));
+    refreshStatus();
+  };
+  el("unlock-btn").onclick = async () => {
+    await authedFetch("/api/catalog/unlock", { method: "POST" });
+    refreshStatus();
+  };
+
+  // Per-row events (delegated)
+  el("tc-body").addEventListener("change", (e) => {
+    if (e.target.classList.contains("status")) {
+      const tc = state.catalog.test_cases.find(x => x.tc_id === e.target.dataset.tc);
+      if (tc && tc.status !== e.target.value) { tc.status = e.target.value; setDirty(true); renderTCs(); }
+    }
+  });
+  el("tc-body").addEventListener("input", (e) => {
+    if (e.target.classList.contains("comments")) {
+      const tc = state.catalog.test_cases.find(x => x.tc_id === e.target.dataset.tc);
+      if (tc && tc.comments !== e.target.value) { tc.comments = e.target.value; setDirty(true); }
+    }
+  });
+  el("tc-body").addEventListener("click", (e) => {
+    if (e.target.dataset && e.target.dataset.expand) {
+      const id = e.target.dataset.expand;
+      if (state.expanded.has(id)) state.expanded.delete(id);
+      else state.expanded.add(id);
+      renderTCs();
+    }
+  });
+
+  // Coverage chip jump
+  el("cov-table").addEventListener("click", (e) => {
+    if (e.target.dataset && e.target.dataset.jump) {
+      qa(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === "ledger"));
+      qa("main > section").forEach(s => s.hidden = (s.id !== "tab-ledger"));
+      Object.keys(state.filter).forEach(k => state.filter[k] = "");
+      ["screen","journey","status","priority","type","category"].forEach(k => { const s = el("f-"+k); if (s) s.value = ""; });
+      state.filter.search = e.target.dataset.jump;
+      el("f-search").value = e.target.dataset.jump;
+      state.expanded.add(e.target.dataset.jump);
+      renderTCs();
+    }
+  });
+
+  // Warn on unsaved-changes nav
+  window.addEventListener("beforeunload", (e) => {
+    if (state.dirty) { e.preventDefault(); e.returnValue = ""; }
+  });
+}
+
+// ─── Add-TC modal ───────────────────────────────────────────
+function openAddTcModal() {
+  // Populate datalist of known screens from current catalog so the user
+  // can pick an existing one (the BE will use its prefix) or type new.
+  const screens = [...new Set(state.catalog.test_cases.map(t => t.screen).filter(Boolean))].sort();
+  el("screen-options").innerHTML = screens.map(s => `<option value="${s}">`).join("");
+  el("tc-form-err").textContent = "";
+  el("tc-form").reset();
+  el("m-priority").value = "P2";
+  el("m-type").value = "extra";
+  el("m-category").value = "functional";
+  el("m-platform").value = "Both";
+  el("tc-modal").classList.add("show");
+  el("m-screen").focus();
+}
+function closeAddTcModal() { el("tc-modal").classList.remove("show"); }
+
+async function submitNewTc(ev) {
+  ev.preventDefault();
+  const errEl = el("tc-form-err");
+  errEl.textContent = "";
+  const payload = {
+    screen: el("m-screen").value.trim(),
+    journey: el("m-journey").value.trim(),
+    title: el("m-title").value.trim(),
+    description: el("m-description").value.trim(),
+    priority: el("m-priority").value,
+    type: el("m-type").value,
+    category: el("m-category").value,
+    platform: el("m-platform").value,
+    preconditions: el("m-preconditions").value.trim(),
+    steps: el("m-steps").value.trim(),
+    expected: el("m-expected").value.trim(),
+    data: el("m-data").value.trim(),
+    tags: el("m-tags").value.trim(),
+  };
+  if (!payload.screen || !payload.title) {
+    errEl.textContent = "Screen and Title are required.";
+    return;
+  }
+  try {
+    const r = await authedFetch("/api/tcs", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) {
+      errEl.textContent = "Failed: " + (await r.text());
+      return;
+    }
+    const { tc } = await r.json();
+    state.catalog.test_cases.push(tc);
+    closeAddTcModal();
+    populateFilters();
+    renderTCs();
+    renderDashboard();
+    // Briefly highlight by filtering to the new TC.
+    state.filter.search = tc.tc_id;
+    el("f-search").value = tc.tc_id;
+    state.expanded.add(tc.tc_id);
+    renderTCs();
+  } catch (e) {
+    errEl.textContent = "Network error: " + e.message;
+  }
+}
+
+function bindAddTcModal() {
+  el("add-tc-btn").onclick = openAddTcModal;
+  el("tc-cancel").onclick = closeAddTcModal;
+  el("tc-modal").addEventListener("click", (e) => {
+    if (e.target === el("tc-modal")) closeAddTcModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && el("tc-modal").classList.contains("show")) closeAddTcModal();
+  });
+  el("tc-form").addEventListener("submit", submitNewTc);
+}
+
+// ─── Auth ───────────────────────────────────────────────────
+function showAuthErr(msg) {
+  el("auth-err").textContent = msg || "";
+}
+
+async function onSignedIn(user) {
+  try {
+    state.idToken = await user.getIdToken(/* forceRefresh */ false);
+    state.authUser = user;
+    el("user-email").textContent = user.email;
+    el("user-pill").hidden = false;
+    document.body.classList.add("authed");
+    showAuthErr("");
+    await initAfterAuth();
+    // Periodically refresh the ID token so it doesn't go stale.
+    setInterval(async () => {
+      try { state.idToken = await user.getIdToken(/* forceRefresh */ true); }
+      catch (e) { console.warn("token refresh failed", e); }
+    }, 30 * 60 * 1000);
+  } catch (e) {
+    showAuthErr("Could not initialise session: " + e.message);
+  }
+}
+
+function onSignedOut() {
+  state.idToken = null;
+  state.authUser = null;
+  state.catalog = null;
+  document.body.classList.remove("authed");
+  el("user-pill").hidden = true;
+}
+
+async function initAfterAuth() {
+  // Load both stores in parallel — Skill 1 output + Skill 2 catalog.
+  await Promise.all([loadCatalog(), loadAnalysis()]);
+  // Defensive: one broken renderer must NOT prevent bindings from attaching.
+  // Without this, a single throwing renderer leaves every button unclickable.
+  const safe = (label, fn) => { try { fn(); } catch (e) { console.error("[" + label + "] failed:", e); } };
+  safe("renderMeta",       renderMeta);
+  safe("populateFilters",  populateFilters);
+  safe("renderTCs",        renderTCs);
+  safe("renderDashboard",  renderDashboard);
+  safe("renderCoverage",   renderCoverage);
+  safe("renderAnalyzer",   renderAnalyzer);
+  safe("renderRuns",       renderRuns);
+  safe("renderBugs",       renderBugs);
+  bindEvents();
+  bindAddTcModal();
+  bindRunTestsTab();
+  refreshStatus();
+  setDirty(false);
+}
+
+function startAuth() {
+  if (!CFG.FIREBASE || !CFG.FIREBASE.apiKey || CFG.FIREBASE.apiKey === "REPLACE") {
+    showAuthErr("Dashboard not configured: edit /public/config.js with Firebase web config + API_BASE.");
+    el("signin-btn").disabled = true;
+    return;
+  }
+  firebase.initializeApp(CFG.FIREBASE);
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ hd: "bhookle.com" });
+
+  auth.onAuthStateChanged((user) => {
+    if (user) onSignedIn(user);
+    else onSignedOut();
+  });
+
+  el("signin-btn").onclick = async () => {
+    showAuthErr("");
+    try {
+      await auth.signInWithPopup(provider);
+    } catch (e) {
+      showAuthErr(e.message || "Sign-in failed.");
+    }
+  };
+
+  // Bound here because the pill is in <header>, outside the auth overlay.
+  el("signout-btn").onclick = () => auth.signOut();
+}
+
+startAuth();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+# smoke-ios.yaml — SINGLE-SESSION smoke for the testID build.
+# ONE cold launch + ONE auth, then walks every core page object in sequence.
+# Deliberately one flow (not 6) to keep machine load minimal during supervised
+# local iOS runs.
+#
+# Coverage (the fail-fast gate — all page objects + the critical cart path):
+#   auth-login      -> LGN-001 / OTP-001 / WEL-003 (auth E2E)
+#   landing         -> LAND-001
+#   open-first-chef -> CHEF-001
+#   add-first-dish  -> CART-001  ★ critical: dish-add -> cart-bar
+#   open-cart       -> CART-002  (stops before PhonePe)
+#
+# Run (supervised, single command):
+#   maestro --udid ${IOS_UDID} test --env-file config.yaml smoke-ios.yaml
+appId: ${APP_ID}
+---
+- runFlow: subflows/auth-login.yaml
+- takeScreenshot: smoke-01-landing
+- runFlow: subflows/landing.yaml
+- runFlow: subflows/open-first-chef.yaml
+- takeScreenshot: smoke-02-chefmenu
+- runFlow: subflows/add-first-dish.yaml
+- takeScreenshot: smoke-03-cartbar
+- runFlow: subflows/open-cart.yaml
+- takeScreenshot: smoke-04-cartscreen

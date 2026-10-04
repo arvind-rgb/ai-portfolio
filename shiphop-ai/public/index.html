@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShipHop.AI — Automated Last-Mile Delivery</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+<style>
+  :root{
+    --ground:#EFEAE0; --surface:#FBF8F2; --ink:#17150F; --ink-soft:#4E483C;
+    --muted:#8B8271;
+    --coral:#D3572B; --coral-deep:#AA4520; --coral-tint:#F6DFD3;
+    --olive:#6B7B3F; --olive-tint:#E7EAD8; --sun:#E8B33C; --sun-tint:#F8ECD2;
+    --bad:#B03A25;
+    --display:"Avenir Next","Avenir","Futura","Trebuchet MS",sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+    --bw:2px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--coral-tint)}
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea{font:inherit;color:inherit}
+  a{color:inherit}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--coral)}
+  :focus-visible{outline:3px solid var(--coral);outline-offset:2px;border-radius:4px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:40;background:var(--ground);border-bottom:var(--bw) solid var(--ink)}
+  .nav-in{display:flex;align-items:center;gap:24px;height:74px}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+  .bmark{width:42px;height:42px;flex:none;display:block}
+  .bword{font-family:var(--display);font-weight:800;font-size:23px;letter-spacing:-.01em;line-height:1;color:var(--ink)}
+  .bword .ai{color:var(--coral);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0}
+  .nav-links{display:flex;gap:22px;margin-left:auto;font-size:14px;font-weight:600;align-items:center;white-space:nowrap}
+  .nav-links a{text-decoration:none}
+  .nav-links a:hover{color:var(--coral)}
+  .nav-links a.active{color:var(--coral)}
+  .nav-signout{white-space:nowrap}
+  /* View toggle: default = Book · view-bookings = My Bookings · view-reports = Reports */
+  #tracker,#reportsView{display:none}
+  body.view-bookings #tracker{display:block}
+  body.view-reports #reportsView{display:block}
+  body.view-bookings header.hero, body.view-bookings .marquee, body.view-bookings #book, body.view-bookings #rates,
+  body.view-reports header.hero, body.view-reports .marquee, body.view-reports #book, body.view-reports #rates{display:none !important}
+  .nav-cta{background:var(--ink);color:var(--surface);padding:9px 18px;border-radius:10px;font-size:14px;font-weight:700;border:var(--bw) solid var(--ink);box-shadow:3px 3px 0 var(--coral);transition:transform .1s,box-shadow .1s}
+  .nav-cta:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--coral)}
+  .nav-cta:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--coral)}
+  @media(max-width:760px){.nav-links{display:none}}
+
+  /* hero bento */
+  .hero{padding:44px 0 8px}
+  .bento{display:grid;grid-template-columns:1.45fr .9fr;grid-template-rows:auto auto;gap:16px}
+  @media(max-width:860px){.bento{grid-template-columns:1fr}}
+  .tile{border:var(--bw) solid var(--ink);border-radius:18px;background:var(--surface);padding:30px;position:relative;overflow:hidden}
+  .tile-head{grid-row:span 2;display:flex;flex-direction:column;justify-content:center}
+  .tile-head h1{font-size:clamp(38px,5.2vw,62px);line-height:.98;margin:14px 0 18px}
+  .tile-head h1 .hl{color:var(--coral)}
+  .tile-head p{font-size:17px;color:var(--ink-soft);max-width:44ch;margin-bottom:24px}
+  .tile-head .cta-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .btn-hero{background:var(--coral);color:#fff;font-family:var(--display);font-weight:800;font-size:16px;padding:14px 28px;border-radius:12px;border:var(--bw) solid var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+  .btn-hero:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+  .btn-hero:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+  .cta-note{font-size:13px;color:var(--muted)}
+  .tile-art{background:var(--olive-tint);display:grid;place-items:center;padding:18px}
+  .tile-art svg{width:100%;max-width:340px;height:auto}
+  .tile-stats{background:var(--sun-tint);display:flex;align-items:center;justify-content:space-around;gap:10px;padding:22px}
+  .stat b{display:block;font-family:var(--display);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+  .stat span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+
+  /* marquee */
+  .marquee{border-top:var(--bw) solid var(--ink);border-bottom:var(--bw) solid var(--ink);background:var(--ink);color:var(--ground);margin:34px 0 0;overflow:hidden;white-space:nowrap}
+  .marquee-in{display:inline-block;padding:11px 0;font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;animation:mq 22s linear infinite}
+  .marquee-in em{font-style:normal;color:var(--sun);margin:0 14px}
+  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* booking */
+  .book{padding:52px 0 12px;scroll-margin-top:80px}
+  .panel{border:var(--bw) solid var(--ink);border-radius:20px;background:var(--surface);box-shadow:6px 6px 0 var(--ink);padding:30px 30px 32px}
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .panel-head h2{font-size:26px}
+  .panel-head .hint{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted)}
+  .field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;font-weight:600}
+  .field input,.field textarea{width:100%;background:var(--ground);border:var(--bw) solid var(--ink);border-radius:12px;padding:12px 14px;font-size:15px;transition:box-shadow .12s,background .12s}
+  .field input::placeholder,.field textarea::placeholder{color:#A79D89}
+  .field input:focus,.field textarea:focus{outline:none;background:var(--surface);box-shadow:3px 3px 0 var(--coral)}
+  .field.err input{border-color:var(--bad);box-shadow:3px 3px 0 var(--bad)}
+  .field .err-msg{display:none;font-size:12px;font-weight:600;color:var(--bad);margin-top:5px}
+  .field.err .err-msg{display:block}
+
+  .order-row{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:end;margin-bottom:20px}
+  .order-note{font-size:13px;color:var(--muted);padding-bottom:13px}
+  @media(max-width:700px){.order-row{grid-template-columns:1fr}.order-note{padding-bottom:0}}
+
+  .legs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:820px){.legs{grid-template-columns:1fr}}
+  .leg{border:var(--bw) solid var(--ink);border-radius:16px;padding:20px;display:grid;gap:14px}
+  .leg.pickup{background:var(--sun-tint)}
+  .leg.drop{background:var(--coral-tint)}
+  .leg-title{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:16px}
+  .leg-badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;background:var(--ink);color:var(--ground);padding:4px 9px;border-radius:7px}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:460px){.duo{grid-template-columns:1fr}}
+
+  .ac-wrap{position:relative}
+  .ac-list{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--surface);border:var(--bw) solid var(--ink);border-radius:12px;box-shadow:4px 4px 0 var(--ink);z-index:30;overflow:hidden;display:none}
+  .ac-list.open{display:block}
+  .ac-item{display:flex;gap:10px;align-items:flex-start;padding:10px 13px;font-size:14px;cursor:pointer}
+  .ac-item svg{flex:none;margin-top:2px;color:var(--muted)}
+  .ac-item:hover{background:var(--coral-tint)}
+  .ac-powered{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:7px 13px;border-top:1px solid #DDD5C4}
+
+  .instr-row{margin-top:18px}
+  .search-row{display:flex;align-items:center;gap:18px;margin-top:26px;flex-wrap:wrap}
+  .btn-search{background:var(--coral);color:#fff;font-family:var(--display);font-weight:800;font-size:17px;padding:16px 34px;border-radius:14px;border:var(--bw) solid var(--ink);box-shadow:5px 5px 0 var(--ink);display:inline-flex;align-items:center;gap:10px;transition:transform .1s,box-shadow .1s}
+  .btn-search:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--ink)}
+  .btn-search:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+  .search-note{font-size:13px;color:var(--muted)}
+
+  /* overlays */
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(239,234,224,.95);backdrop-filter:blur(6px);display:none;place-items:center;padding:24px}
+  .overlay.open{display:grid}
+  .ovl-card{width:min(600px,100%);border:var(--bw) solid var(--ink);border-radius:22px;background:var(--surface);box-shadow:8px 8px 0 var(--ink);padding:38px 34px;text-align:center}
+  .ovl-card h3{font-size:clamp(24px,3.4vw,30px);margin-bottom:8px}
+  .ovl-copy{font-size:16px;color:var(--ink-soft);min-height:26px;transition:opacity .3s}
+  .ovl-copy.fade{opacity:0}
+  .race{display:flex;justify-content:center;gap:12px;margin:30px 0 26px;flex-wrap:wrap}
+  .racer{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .racer .cmark{width:54px;height:54px;border-radius:15px;border:var(--bw) solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:17px;color:#fff;box-shadow:3px 3px 0 var(--ink);opacity:.3;transform:scale(.92);transition:opacity .3s,transform .3s}
+  .racer.lit .cmark{opacity:1;transform:scale(1);animation:hop .5s}
+  @keyframes hop{0%{transform:scale(.92) translateY(0)}50%{transform:scale(1.05) translateY(-8px)}100%{transform:scale(1) translateY(0)}}
+  .racer .cname{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .track-line{height:10px;border:var(--bw) solid var(--ink);border-radius:99px;background:var(--ground);overflow:hidden;position:relative;width:min(380px,86%);margin:0 auto}
+  .track-line i{position:absolute;inset:0;width:35%;background:repeating-linear-gradient(45deg,var(--coral),var(--coral) 8px,var(--sun) 8px,var(--sun) 16px);animation:zoom 1s ease-in-out infinite alternate}
+  @keyframes zoom{from{transform:translateX(-20%)}to{transform:translateX(240%)}}
+
+  .stamp-anim{width:130px;height:130px;margin:0 auto 22px}
+  .stamp-anim svg{width:100%;height:100%}
+  .wob{animation:wob 1.3s ease-in-out infinite}
+  @keyframes wob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+
+  /* rates */
+  .rates{padding:46px 0 8px;display:none;scroll-margin-top:80px}
+  .rates.show{display:block}
+  .rates-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+  .rates-head h2{font-size:30px}
+  .rates-head .kicker{margin-left:auto}
+  .rates-sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+  .rates-sub b{color:var(--ink)}
+  .rate-list{display:grid;gap:14px}
+  .rate-row{display:grid;grid-template-columns:56px 1.3fr 1fr auto auto auto;align-items:center;gap:18px;border:var(--bw) solid var(--ink);border-radius:16px;background:var(--surface);padding:16px 20px;opacity:0;transform:translateY(12px) rotate(.4deg);transition:opacity .35s,transform .35s,box-shadow .12s}
+  .rate-row.in{opacity:1;transform:none}
+  .rate-row:hover{box-shadow:5px 5px 0 var(--ink)}
+  .rate-row.winner{background:var(--sun-tint)}
+  .rate-row .cmark{width:46px;height:46px;border-radius:13px;border:var(--bw) solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:15px;color:#fff}
+  .r-name{font-family:var(--display);font-weight:800;font-size:18px}
+  .r-vehicle{font-size:12.5px;color:var(--muted)}
+  .r-meta{font-size:13.5px;color:var(--ink-soft)}
+  .r-meta b{display:block;color:var(--ink);font-weight:700}
+  .r-price{font-family:var(--display);font-weight:800;font-size:27px;font-variant-numeric:tabular-nums}
+  .r-badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:8px;border:var(--bw) solid var(--ink)}
+  .r-badge.cheap{background:var(--olive-tint);color:var(--olive)}
+  .r-badge.fast{background:var(--coral-tint);color:var(--coral)}
+  .r-badge.none{visibility:hidden}
+  .btn-book{background:var(--ink);color:var(--surface);font-family:var(--display);font-weight:800;font-size:14px;padding:11px 24px;border-radius:11px;border:var(--bw) solid var(--ink);box-shadow:3px 3px 0 var(--coral);transition:transform .1s,box-shadow .1s}
+  .btn-book:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--coral)}
+  .btn-book:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--coral)}
+  @media(max-width:900px){
+    .rate-row{grid-template-columns:46px 1fr auto;grid-template-areas:"mark name price" "mark meta price" "badge badge book"}
+    .rate-row .cmark{grid-area:mark}.r-id{grid-area:name}.r-m1{grid-area:meta}.r-m2{display:none}
+    .r-price{grid-area:price}.r-badge{grid-area:badge;justify-self:start}.btn-book{grid-area:book;justify-self:end}
+  }
+
+  /* tracker — ticket style */
+  .tracker{padding:48px 0 30px;display:none;scroll-margin-top:80px}
+  .tracker.show{display:block}
+  .tracker h2{font-size:30px;margin-bottom:4px}
+  .tracker .sub{font-size:14px;color:var(--muted);margin-bottom:22px}
+  .ticket{border:var(--bw) solid var(--ink);border-radius:18px;background:var(--surface);box-shadow:5px 5px 0 var(--ink);margin-bottom:18px;display:grid;grid-template-columns:1fr 230px;overflow:hidden;position:relative}
+  @media(max-width:760px){.ticket{grid-template-columns:1fr}}
+  .ticket::after{content:"";position:absolute;top:0;bottom:0;right:229px;border-right:var(--bw) dashed var(--ink)}
+  @media(max-width:760px){.ticket::after{display:none}}
+  .tk-main{padding:22px 24px}
+  .tk-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .tk-top .cmark{width:42px;height:42px;border-radius:12px;border:var(--bw) solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:14px;color:#fff}
+  .tk-courier{font-family:var(--display);font-weight:800;font-size:18px}
+  .tk-id{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .tk-pill{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:8px;border:var(--bw) solid var(--ink);background:var(--sun-tint)}
+  .tk-pill.dead{background:#F2DBD4;color:var(--bad)}
+  .tk-route{font-size:13.5px;color:var(--ink-soft);margin-bottom:18px}
+  .tk-route b{color:var(--ink)}
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);margin-bottom:6px}
+  .step{position:relative;text-align:center;padding-top:24px}
+  .step::before{content:"";position:absolute;top:7px;left:0;right:0;height:var(--bw);background:#D8CFBC}
+  .step:first-child::before{left:50%}
+  .step:last-child::before{right:50%}
+  .step i{position:absolute;top:0;left:50%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:var(--surface);border:var(--bw) solid #D8CFBC;z-index:1}
+  .step span{font-size:11px;color:var(--muted);font-weight:600}
+  .step.done::before{background:var(--coral)}
+  .step.done i{background:var(--coral);border-color:var(--ink)}
+  .step.done span{color:var(--ink)}
+  .step.now i{background:var(--sun);border-color:var(--ink);animation:tick 1.4s infinite}
+  .step.now span{color:var(--coral);font-weight:700}
+  @keyframes tick{0%,100%{box-shadow:0 0 0 3px rgba(211,87,43,.18)}50%{box-shadow:0 0 0 7px rgba(211,87,43,.06)}}
+  .tk-stub{padding:22px 20px;display:flex;flex-direction:column;gap:12px;background:var(--ground)}
+  @media(max-width:760px){.tk-stub{border-top:var(--bw) dashed var(--ink)}}
+  .tk-price{font-family:var(--display);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums}
+  .tk-price small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400}
+  .btn-track{background:var(--coral);color:#fff;text-align:center;font-family:var(--display);font-weight:800;font-size:14px;padding:11px 0;border-radius:11px;border:var(--bw) solid var(--ink);box-shadow:3px 3px 0 var(--ink);text-decoration:none;transition:transform .1s,box-shadow .1s}
+  .btn-track:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+  .btn-cancel{border:var(--bw) solid var(--ink);border-radius:11px;padding:10px 0;font-size:13.5px;font-weight:700;color:var(--ink-soft);background:var(--surface)}
+  .btn-cancel:hover{color:var(--bad);border-color:var(--bad)}
+  .btn-cancel.confirm{background:#F2DBD4;color:var(--bad);border-color:var(--bad)}
+  .tk-eta{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:center}
+
+  footer{border-top:var(--bw) solid var(--ink);margin-top:70px;padding:32px 0 42px;background:var(--surface)}
+  .foot{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+  .foot-right{margin-left:auto;display:flex;gap:20px;font-weight:600}
+  .foot-right a{text-decoration:none}
+  .foot-right a:hover{color:var(--coral)}
+
+  .shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    html{scroll-behavior:auto}
+  }
+</style>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="logo" href="/" aria-label="ShipHop.ai home">
+      <svg class="bmark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="42" height="42" rx="11" fill="#17150F"/>
+        <g transform="rotate(-13 16 15)"><rect x="13" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="14.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+        <g transform="rotate(13 26 15)"><rect x="23" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="24.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+        <circle cx="21" cy="27" r="9" fill="#FBF8F2"/>
+        <circle cx="17.8" cy="26" r="1.25" fill="#17150F"/><circle cx="24.2" cy="26" r="1.25" fill="#17150F"/>
+        <circle cx="21" cy="29.3" r="1.5" fill="#D3572B"/>
+        <path d="M21 30.8v1.4" stroke="#17150F" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+      <span class="bword">ShipHop<span class="ai">.ai</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#" data-view="book" onclick="shView('book');return false;">Book</a>
+      <a href="#" data-view="bookings" onclick="shView('bookings');return false;">My Bookings</a>
+      <a href="#" data-view="reports" onclick="shView('reports');return false;">Reports</a>
+      <a href="/connections">Connections</a>
+      <a href="/admin">Admin</a>
+      <a href="#" class="nav-signout" onclick="shSignOut();return false;">Sign&nbsp;out</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap bento">
+    <div class="tile tile-head">
+      <span class="kicker">AI + Automation · every step</span>
+      <h1>Make couriers <span class="hl">compete</span> for your parcel.</h1>
+      <p>One search. Six delivery networks. ShipHop.AI finds the sharpest rate, books it, and babysits the parcel to the doorstep.</p>
+      <div class="cta-row">
+        <button class="btn-hero" onclick="document.getElementById('book').scrollIntoView()">Get rates now</button>
+        <span class="cta-note">Free to compare · no signup for a quote</span>
+      </div>
+    </div>
+    <div class="tile tile-art" aria-hidden="true">
+      <svg viewBox="0 0 340 240" xmlns="http://www.w3.org/2000/svg">
+        <path id="route3" d="M40 200 C 100 110, 200 230, 300 90" fill="none" stroke="#17150F" stroke-width="3" stroke-dasharray="9 9" stroke-linecap="round">
+          <animate attributeName="stroke-dashoffset" from="120" to="0" dur="4.5s" repeatCount="indefinite"/>
+        </path>
+        <g transform="translate(40,200)">
+          <rect x="-14" y="-14" width="28" height="28" rx="8" fill="#E8B33C" stroke="#17150F" stroke-width="2.5"/>
+          <circle r="4" fill="#17150F"/>
+        </g>
+        <g transform="translate(300,90)">
+          <rect x="-14" y="-14" width="28" height="28" rx="14" fill="#D3572B" stroke="#17150F" stroke-width="2.5"/>
+          <circle r="4" fill="#FBF8F2"/>
+        </g>
+        <g>
+          <g transform="translate(0,-4)">
+            <rect x="-15" y="-13" width="30" height="20" rx="6" fill="#FBF8F2" stroke="#17150F" stroke-width="2.5"/>
+            <rect x="-8" y="-8" width="16" height="10" rx="2" fill="#D3572B"/>
+            <circle cx="-9" cy="10" r="5.5" fill="#17150F"/><circle cx="9" cy="10" r="5.5" fill="#17150F"/>
+            <circle cx="-9" cy="10" r="2" fill="#FBF8F2"/><circle cx="9" cy="10" r="2" fill="#FBF8F2"/>
+          </g>
+          <animateMotion dur="4.5s" repeatCount="indefinite" rotate="auto"><mpath href="#route3"/></animateMotion>
+        </g>
+        <g fill="#D3572B">
+          <path d="M90 60 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4z"><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/></path>
+          <path d="M240 190 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="1s" repeatCount="indefinite"/></path>
+        </g>
+      </svg>
+    </div>
+    <div class="tile tile-stats">
+      <div class="stat"><b>6</b><span>couriers</span></div>
+      <div class="stat"><b>~5s</b><span>to best rate</span></div>
+      <div class="stat"><b>0</b><span>apps to juggle</span></div>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true">
+    <span class="marquee-in" id="mq">Porter<em>◆</em>Rapido<em>◆</em>Uber<em>◆</em>Shadowfax<em>◆</em>Shiprocket<em>◆</em>Delhivery<em>◆</em>one search, best rate<em>◆</em></span>
+  </div>
+</header>
+
+<section class="book wrap" id="book">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Point A → Point B. We do the rest.</h2>
+      <span class="hint">one search = six quotes</span>
+    </div>
+
+    <div class="order-row">
+      <div class="field">
+        <label for="orderNo">Order number</label>
+        <input id="orderNo" placeholder="e.g. ORD-88231" autocomplete="off">
+      </div>
+      <div class="order-note">Optional — link this delivery to an order in your own system.</div>
+    </div>
+
+    <div class="legs">
+      <div class="leg pickup">
+        <div class="leg-title">Pickup <span class="leg-badge">From</span></div>
+        <div class="field ac-wrap">
+          <label for="puAddr">Pickup address</label>
+          <input id="puAddr" placeholder="Search an address…" autocomplete="off">
+          <div class="ac-list" id="puAc"></div>
+          <div class="err-msg">Pickup address, please!</div>
+        </div>
+        <div class="duo">
+          <div class="field"><label for="puName">Contact name</label><input id="puName" placeholder="Who hands it over?"></div>
+          <div class="field"><label for="puPhone">Phone</label><input id="puPhone" type="tel" placeholder="+91 98XXX XXXXX"></div>
+        </div>
+      </div>
+      <div class="leg drop">
+        <div class="leg-title">Delivery <span class="leg-badge">To</span></div>
+        <div class="field ac-wrap">
+          <label for="dlAddr">Delivery address</label>
+          <input id="dlAddr" placeholder="Search an address…" autocomplete="off">
+          <div class="ac-list" id="dlAc"></div>
+          <div class="err-msg">Delivery address, please!</div>
+        </div>
+        <div class="duo">
+          <div class="field"><label for="dlName">Contact name</label><input id="dlName" placeholder="Who receives it?"></div>
+          <div class="field"><label for="dlPhone">Phone</label><input id="dlPhone" type="tel" placeholder="+91 98XXX XXXXX"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field instr-row">
+      <label for="instr">Delivery instructions</label>
+      <textarea id="instr" rows="2" placeholder="Gate code, landmark, “call on arrival” — anything the rider should know."></textarea>
+    </div>
+
+    <div class="search-row">
+      <button class="btn-search" id="btnSearch">Search all couriers ⚡</button>
+      <span class="search-note">Rates typically land in ~5 seconds</span>
+    </div>
+  </div>
+</section>
+
+<div id="rates-anchor"></div>
+<section class="rates wrap" id="rates">
+  <div class="rates-head">
+    <h2>The rate race results</h2>
+    <span class="kicker" id="ratesStamp"></span>
+  </div>
+  <p class="rates-sub" id="ratesRoute"></p>
+  <div class="rate-list" id="rateList"></div>
+</section>
+
+<div id="tracker-anchor"></div>
+<style>
+  #tracker .tk-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 20px}
+  #tracker .tkf{display:flex;flex-direction:column;gap:5px}
+  #tracker .tkf label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  #tracker .tkf input,#tracker .tkf select{background:var(--surface);border:var(--bw) solid var(--ink);border-radius:10px;padding:9px 12px;font-size:14px}
+  #tracker .tkf-btn{border:var(--bw) solid var(--ink);border-radius:10px;padding:9px 16px;font-family:var(--display);font-weight:800;font-size:13.5px;background:var(--coral);color:#fff;box-shadow:2px 2px 0 var(--ink)}
+  #tracker .tkf-btn.ghost{background:var(--surface);color:var(--ink-soft);box-shadow:none}
+  #tracker .tkf-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+  #tracker .tk-empty{border:var(--bw) dashed var(--ink);border-radius:16px;background:var(--surface);padding:34px;text-align:center;color:var(--muted);font-size:15px}
+  #tracker .tk-pager{display:flex;align-items:center;justify-content:center;gap:16px;margin:22px 0 6px}
+  #tracker .tk-pager button{border:var(--bw) solid var(--ink);border-radius:10px;padding:8px 15px;font-weight:700;font-size:13.5px;background:var(--surface)}
+  #tracker .tk-pager button:disabled{opacity:.4;cursor:default}
+  #tracker .tk-pager #pgInfo{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  #tracker .btn-refresh{font-family:var(--display);font-weight:800;font-size:12.5px;padding:8px 13px;border-radius:10px;border:var(--bw) solid var(--ink);background:var(--sun-tint);color:var(--ink);margin-bottom:6px}
+  #tracker .btn-refresh:disabled{opacity:.6}
+  /* Rider + OTP block */
+  #tracker .tk-rider{margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--ink-soft);display:flex;flex-direction:column;gap:8px}
+  #tracker .tk-rider .rd-id{font-size:14.5px;color:var(--ink)}
+  #tracker .tk-rider .rd-id .rd-veh{font-family:var(--mono);font-size:12px;color:var(--ink-soft);background:var(--sun-tint);padding:2px 7px;border-radius:6px}
+  #tracker .tk-rider .rd-call{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:13.5px;color:var(--ink);text-decoration:none;border:1.5px solid var(--ink);border-radius:9px;padding:6px 11px;background:#fff}
+  #tracker .tk-rider .rd-call:active{transform:translate(1px,1px)}
+  #tracker .tk-rider .rd-otps{display:flex;gap:9px;flex-wrap:wrap}
+  #tracker .tk-rider .otp{display:inline-flex;flex-direction:column;line-height:1.15;border:1.5px solid var(--ink);border-radius:9px;padding:5px 11px;background:var(--sun-tint)}
+  #tracker .tk-rider .otp i{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  #tracker .tk-rider .otp b{font-family:var(--mono);font-size:17px;font-weight:800;letter-spacing:.12em;color:var(--ink)}
+  #tracker .tk-rider.locating{flex-direction:row;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-style:italic}
+  #tracker .tk-rider.locating .dot{width:9px;height:9px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 0 rgba(240,175,50,.6);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,175,50,.55)}70%{box-shadow:0 0 0 8px rgba(240,175,50,0)}100%{box-shadow:0 0 0 0 rgba(240,175,50,0)}}
+  /* Reports band */
+  #reportsBand{border:var(--bw) solid var(--ink);border-radius:18px;background:var(--surface);box-shadow:5px 5px 0 var(--ink);padding:22px 24px;margin:18px 0 26px}
+  #reportsBand .rpt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  #reportsBand .rpt-head h3{font-family:var(--display);font-size:20px;margin:0}
+  #reportsBand .rpt-head .rpt-range{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  /* Reports filter bar: dates + Apply/Clear left, Export right, all bottom-aligned */
+  #reportsView .rpt-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:18px 0 22px}
+  #reportsView .rpt-dates{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  #reportsView .rpt-dates .tkf{display:flex;flex-direction:column;gap:5px}
+  #reportsView .rpt-dates .tkf label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  #reportsView .rpt-dates input[type=date]{height:44px;min-width:158px;background:var(--surface);border:var(--bw) solid var(--ink);border-radius:10px;padding:0 12px;font-size:14px}
+  #reportsView .rpt-dates .tkf-btn{height:44px;display:inline-flex;align-items:center;border:var(--bw) solid var(--ink);border-radius:10px;padding:0 18px;font-family:var(--display);font-weight:800;font-size:13.5px;background:var(--coral);color:#fff;box-shadow:2px 2px 0 var(--ink)}
+  #reportsView .rpt-dates .tkf-btn.ghost{background:var(--surface);color:var(--ink-soft);box-shadow:none}
+  #reportsView .rpt-dates .tkf-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+  #rptExport{height:44px;display:inline-flex;align-items:center;gap:6px;border:var(--bw) solid var(--ink);border-radius:11px;padding:0 20px;font-family:var(--display);font-weight:800;font-size:14px;background:var(--ink);color:var(--surface);box-shadow:3px 3px 0 var(--coral);cursor:pointer}
+  #rptExport:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--coral)}
+  #rptExport:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--coral)}
+  .rpt-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px}
+  .rpt-stat{border:2px solid var(--ink);border-radius:13px;padding:13px 15px;background:var(--ground)}
+  .rpt-stat b{display:block;font-family:var(--display);font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+  .rpt-stat span{font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft)}
+  .rpt-stat.spend b{color:var(--coral)}
+  .rpt-prov{width:100%;border-collapse:collapse;font-size:13.5px}
+  .rpt-prov th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:7px 9px;border-bottom:2px solid var(--ink)}
+  .rpt-prov th:first-child{text-align:left}
+  .rpt-prov td{padding:8px 9px;border-bottom:1px solid #E4DCCB;text-align:right}
+  .rpt-prov td:first-child{text-align:left;font-weight:600}
+  .rpt-empty{color:var(--muted);font-size:13px;padding:8px 0}
+</style>
+<section class="tracker wrap" id="tracker">
+  <h2>My Bookings</h2>
+  <p class="sub">Every ride you've booked — current and past. Filter by date or status.</p>
+  <div class="tk-filters">
+    <div class="tkf"><label for="fltFrom">From</label><input type="date" id="fltFrom"></div>
+    <div class="tkf"><label for="fltTo">To</label><input type="date" id="fltTo"></div>
+    <div class="tkf"><label for="fltStatus">Status</label>
+      <select id="fltStatus">
+        <option value="">All</option>
+        <option value="active">In progress</option>
+        <option value="Delivered">Delivered</option>
+        <option value="Cancelled">Cancelled</option>
+        <option value="Failed">Failed</option>
+      </select>
+    </div>
+    <button class="tkf-btn" id="fltApply">Apply</button>
+    <button class="tkf-btn ghost" id="fltClear">Clear</button>
+    <button class="tkf-btn ghost" id="fltReload" title="Reload list">↻</button>
+  </div>
+  <div id="trackList"></div>
+  <div class="tk-pager" id="tkPager">
+    <button id="pgPrev">← Prev</button>
+    <span id="pgInfo"></span>
+    <button id="pgNext">Next →</button>
+  </div>
+</section>
+
+<!-- REPORTS (separate page) -->
+<section class="tracker wrap" id="reportsView">
+  <h2>Reports</h2>
+  <p class="sub">Your delivery performance — rides, spend, and courier breakdown. Filter by date, then export to PDF.</p>
+  <div class="rpt-bar">
+    <div class="rpt-dates">
+      <div class="tkf"><label for="rptFrom">From</label><input type="date" id="rptFrom"></div>
+      <div class="tkf"><label for="rptTo">To</label><input type="date" id="rptTo"></div>
+      <button class="tkf-btn" id="rptApply">Apply</button>
+      <button class="tkf-btn ghost" id="rptClear">Clear</button>
+    </div>
+    <button id="rptExport">⬇ Export PDF</button>
+  </div>
+  <div id="reportsBand">
+    <div class="rpt-head"><div><h3>Summary</h3><span class="rpt-range" id="rptRange"></span></div></div>
+    <div class="rpt-stats" id="rptStats"></div>
+    <table class="rpt-prov"><thead><tr><th>Courier</th><th>Rides</th><th>Delivered</th><th>Cancelled</th><th>Spend</th><th>Avg fare</th></tr></thead><tbody id="rptProv"></tbody></table>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <a class="logo" href="/" aria-label="ShipHop.ai home">
+      <svg class="bmark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:32px;height:32px">
+        <rect width="42" height="42" rx="11" fill="#17150F"/>
+        <g transform="rotate(-13 16 15)"><rect x="13" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="14.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+        <g transform="rotate(13 26 15)"><rect x="23" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="24.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+        <circle cx="21" cy="27" r="9" fill="#FBF8F2"/>
+        <circle cx="17.8" cy="26" r="1.25" fill="#17150F"/><circle cx="24.2" cy="26" r="1.25" fill="#17150F"/>
+        <circle cx="21" cy="29.3" r="1.5" fill="#D3572B"/>
+      </svg>
+      <span class="bword" style="font-size:17px">ShipHop<span class="ai">.ai</span></span>
+    </a>
+    <span>Automated last-mile delivery.</span>
+    <div class="foot-right"><a href="/connections">Connections</a><a href="/admin">Admin</a><a href="#">Support</a></div>
+  </div>
+</footer>
+
+<!-- search interstitial -->
+<div class="overlay" id="ovlSearch" role="dialog" aria-label="Searching rates">
+  <div class="ovl-card">
+    <h3>The rate race is on! 🏁</h3>
+    <p class="ovl-copy" id="searchCopy">Firing the starting pistol…</p>
+    <div class="race" id="race"></div>
+    <div class="track-line"><i></i></div>
+  </div>
+</div>
+
+<!-- booking interstitial -->
+<div class="overlay" id="ovlBook" role="dialog" aria-label="Booking in progress">
+  <div class="ovl-card">
+    <div class="stamp-anim">
+      <svg viewBox="0 0 130 130" class="wob">
+        <rect x="25" y="45" width="80" height="60" rx="10" fill="#D3572B" stroke="#17150F" stroke-width="3"/>
+        <rect x="25" y="45" width="80" height="18" rx="9" fill="#AA4520" stroke="#17150F" stroke-width="3"/>
+        <rect x="58" y="45" width="14" height="60" fill="#FBF8F2" stroke="#17150F" stroke-width="2"/>
+        <g fill="#E8B33C" stroke="#17150F" stroke-width="1.5">
+          <path d="M20 26 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4z"/>
+          <path d="M108 18 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z"/>
+        </g>
+      </svg>
+    </div>
+    <h3 id="bookTitle">Booking your rider…</h3>
+    <p class="ovl-copy" id="bookCopy">Stamping the label with authority…</p>
+  </div>
+</div>
+
+<script src="/vendor/pdfmini.js"></script>
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  /* ============================================================
+     AUTH — operator login gate. The server issues a tenant-scoped JWT only
+     against valid operator credentials (created in the admin console). No
+     token → the login screen blocks the portal. Every /api call carries the
+     stored token; a 401 kicks you back to login.
+     ============================================================ */
+  function bkToken(){ return window.BOOKER_TOKEN || localStorage.getItem("booker_token") || ""; }
+  function authHeaders(base){ base = base || {}; var t = bkToken(); if(t) base["authorization"] = "Bearer " + t; return base; }
+  function ensureToken(){ return bkToken() ? Promise.resolve() : Promise.reject(new Error("auth_required")); }
+
+  // Login overlay (built in JS so the markup stays clean).
+  var gate = document.createElement('div');
+  gate.id = 'loginGate';
+  gate.innerHTML =
+    '<div class="lg-card">' +
+      '<div class="lg-brand">' +
+        '<svg viewBox="0 0 42 42" width="46" height="46" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+          '<rect width="42" height="42" rx="11" fill="#17150F"/>' +
+          '<g transform="rotate(-13 16 15)"><rect x="13" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="14.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>' +
+          '<g transform="rotate(13 26 15)"><rect x="23" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="24.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>' +
+          '<circle cx="21" cy="27" r="9" fill="#FBF8F2"/><circle cx="17.8" cy="26" r="1.25" fill="#17150F"/><circle cx="24.2" cy="26" r="1.25" fill="#17150F"/><circle cx="21" cy="29.3" r="1.5" fill="#D3572B"/>' +
+        '</svg>' +
+        '<span class="lg-word">ShipHop<span class="lg-ai">.ai</span></span>' +
+      '</div>' +
+      '<h2>Sign in</h2>' +
+      '<p class="lg-sub">Enter the operator login your ShipHop admin gave you.</p>' +
+      '<label>Operator login</label><input id="lgUser" type="text" autocomplete="username" placeholder="you@company.com">' +
+      '<label>Password</label><input id="lgPass" type="password" autocomplete="current-password" placeholder="••••••••">' +
+      '<button id="lgBtn">Sign in →</button>' +
+      '<div id="lgMsg" class="lg-msg"></div>' +
+    '</div>';
+  document.body.appendChild(gate);
+
+  var gateStyle = document.createElement('style');
+  gateStyle.textContent =
+    '#loginGate{position:fixed;inset:0;z-index:200;background:var(--ground);display:none;align-items:center;justify-content:center;padding:24px}' +
+    '#loginGate.open{display:flex}' +
+    '#loginGate .lg-card{width:min(400px,100%);background:var(--surface);border:var(--bw) solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--ink);padding:32px 30px}' +
+    '#loginGate .lg-brand{display:flex;align-items:center;gap:11px;margin-bottom:18px}' +
+    '#loginGate .lg-word{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink)}' +
+    '#loginGate .lg-ai{color:var(--coral);font-family:var(--mono);font-size:13px}' +
+    '#loginGate h2{font-family:var(--display);font-size:24px;margin:0 0 4px}' +
+    '#loginGate .lg-sub{color:var(--ink-soft);font-size:14px;margin:0 0 20px}' +
+    '#loginGate label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px;font-weight:600}' +
+    '#loginGate input{width:100%;background:var(--ground);border:var(--bw) solid var(--ink);border-radius:12px;padding:12px 14px;font-size:15px}' +
+    '#loginGate input:focus{outline:none;background:var(--surface);box-shadow:3px 3px 0 var(--coral)}' +
+    '#loginGate #lgBtn{width:100%;margin-top:22px;background:var(--coral);color:#fff;font-family:var(--display);font-weight:800;font-size:16px;padding:13px;border-radius:12px;border:var(--bw) solid var(--ink);box-shadow:4px 4px 0 var(--ink);cursor:pointer}' +
+    '#loginGate #lgBtn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}' +
+    '#loginGate .lg-msg{color:var(--bad);font-size:13px;font-weight:600;margin-top:12px;min-height:18px;text-align:center}';
+  document.head.appendChild(gateStyle);
+
+  function showLogin(){ gate.classList.add('open'); }
+  function hideLogin(){ gate.classList.remove('open'); }
+  function signOut(){ localStorage.removeItem('booker_token'); showLogin(); }
+  window.shSignOut = signOut;
+
+  function doLogin(){
+    var op = document.getElementById('lgUser').value.trim();
+    var pw = document.getElementById('lgPass').value;
+    var msg = document.getElementById('lgMsg');
+    msg.textContent = 'Signing in…';
+    fetch('/api/auth/token', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({operator:op, password:pw})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(j && j.ok && j.token){ localStorage.setItem('booker_token', j.token); document.getElementById('lgPass').value=''; msg.textContent=''; hideLogin(); shView(localStorage.getItem('sh_view')||'book'); }
+        else { msg.textContent = 'Wrong login or password.'; }
+      })
+      .catch(function(){ msg.textContent = 'Couldn\'t reach the server.'; });
+  }
+  gate.querySelector('#lgBtn').addEventListener('click', doLogin);
+  gate.querySelector('#lgPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  gate.querySelector('#lgUser').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('lgPass').focus(); });
+
+  // On load: no token → gate. The initial view (Book / My Bookings) is booted at
+  // the END of the script, once loadBookings and shView are defined.
+  if(!bkToken()){ showLogin(); }
+
+  /* ============================================================
+     COURIER DISPLAY METADATA — keyed by the API's provider keys.
+     Fares/ETAs now come LIVE from POST /api/estimate (not synthesized).
+     ============================================================ */
+  var DISPLAY = {
+    porter_web: {name:"Porter Web", mark:"P",  color:"#2C6BED", vehicle:"2-wheeler on-demand"},
+    rapido:     {name:"Rapido",     mark:"R",  color:"#F6C542", text:"#17150F", vehicle:"Bike · parcel"},
+    uber:       {name:"Uber Connect",mark:"U", color:"#101010", vehicle:"Connect · parcel"},
+    shadowfax:  {name:"Shadowfax",  mark:"SF", color:"#D8332A", vehicle:"Flash · on-demand"},
+    shiprocket: {name:"Shiprocket", mark:"SR", color:"#5F3DC4", vehicle:"Quick · hyperlocal"},
+    delhivery:  {name:"Delhivery",  mark:"D",  color:"#C0392B", vehicle:"Direct · hyperlocal"}
+  };
+  var PROVIDER_ORDER = ["porter_web","rapido","uber","shadowfax","shiprocket","delhivery"];
+  var SEARCH_LINES = [
+    "Porter just cracked its knuckles…",
+    "Rapido sent its fastest rider to the quote desk…",
+    "Uber is doing dramatic mental math…",
+    "Shadowfax is racing its own shadow…",
+    "Shiprocket lit the boosters…",
+    "Delhivery’s robots are typing furiously…",
+    "Counting every last paisa for you…"
+  ];
+  var BOOK_LINES = [
+    "Stamping the label with authority…",
+    "Reserving the nearest, nicest rider…",
+    "Bubble-wrapping the details…",
+    "High-fiving the courier’s API…"
+  ];
+  /* ============================================================
+     PLACES AUTOCOMPLETE — LIVE Google Places via the server-side proxy
+     (/api/places/*, key stays on the backend). Typing queries
+     /autocomplete; picking a suggestion resolves coords + pincode + city
+     via /details. Selection contract unchanged: SELECTED[field] holds
+     {label, lat, lng, pincode, city, placeId}.
+     ============================================================ */
+  var SELECTED = { puAddr:null, dlAddr:null };
+
+  function cmark(c){ return '<span class="cmark" style="background:'+c.color+';color:'+(c.text||'#fff')+'">'+c.mark+'</span>'; }
+
+  // One Places session token per field (Google bills autocomplete+details as one
+  // session when they share a token).
+  function newSession(){ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){ var r=Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); }); }
+
+  function attachAC(inputId, listId){
+    var input = document.getElementById(inputId), list = document.getElementById(listId);
+    var session = newSession(), debounce = null, lastPreds = [];
+
+    function renderList(preds, source){
+      lastPreds = preds || [];
+      if(!lastPreds.length){ list.classList.remove('open'); return; }
+      list.innerHTML = lastPreds.map(function(p, i){
+        return '<div class="ac-item" data-i="'+i+'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.6-7-11a7 7 0 1 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span><b>'+esc(p.main)+'</b>'+(p.secondary?' <span style="color:var(--muted)">'+esc(p.secondary)+'</span>':'')+'</span></div>';
+      }).join('') + '<div class="ac-powered">'+(source==='demo'?'Demo address book':'Powered by Google')+'</div>';
+      list.classList.add('open');
+      Array.prototype.forEach.call(list.querySelectorAll('.ac-item'), function(el){
+        el.addEventListener('mousedown', function(e){
+          e.preventDefault();
+          var p = lastPreds[parseInt(el.getAttribute('data-i'),10)];
+          if(!p) return;
+          input.value = p.description;
+          list.classList.remove('open');
+          input.closest('.field').classList.remove('err');
+          // Resolve coords via /details, then arm SELECTED.
+          input.closest('.field').classList.add('resolving');
+          ensureToken().then(function(){
+            return fetch('/api/places/details?place_id='+encodeURIComponent(p.place_id)+'&session='+session, {headers:authHeaders()});
+          }).then(function(r){ return r.json(); }).then(function(j){
+            input.closest('.field').classList.remove('resolving');
+            if(j && j.ok && j.place && j.place.lat!=null){
+              SELECTED[inputId] = { label:j.place.label||p.description, lat:j.place.lat, lng:j.place.lng, pincode:j.place.pincode, city:j.place.city, placeId:j.place.place_id };
+            } else { SELECTED[inputId] = null; input.closest('.field').classList.add('err'); }
+            session = newSession(); // new session after a completed pick
+          }).catch(function(){ input.closest('.field').classList.remove('resolving'); SELECTED[inputId]=null; });
+        });
+      });
+    }
+
+    function query(q){
+      if(q.trim().length < 3){ list.classList.remove('open'); return; }
+      ensureToken().then(function(){
+        return fetch('/api/places/autocomplete?q='+encodeURIComponent(q)+'&session='+session, {headers:authHeaders()});
+      }).then(function(r){ return r.json(); }).then(function(j){
+        if(j && j.ok) renderList(j.predictions, j.source);
+        else { list.innerHTML='<div class="ac-item"><span style="color:var(--muted)">'+esc((j&&j.error)||'Search unavailable')+'</span></div>'; list.classList.add('open'); }
+      }).catch(function(){ list.classList.remove('open'); });
+    }
+
+    input.addEventListener('input', function(){
+      SELECTED[inputId] = null;
+      input.closest('.field').classList.remove('err');
+      clearTimeout(debounce);
+      var q = input.value;
+      debounce = setTimeout(function(){ query(q); }, 250);
+    });
+    input.addEventListener('blur', function(){ setTimeout(function(){ list.classList.remove('open'); }, 150); });
+  }
+  attachAC('puAddr','puAc');
+  attachAC('dlAddr','dlAc');
+  ['puName','puPhone','dlName','dlPhone'].forEach(function(fid){
+    var f = document.getElementById(fid);
+    f.addEventListener('input', function(){ f.closest('.field').classList.remove('err'); });
+  });
+
+  var copyTimer = null;
+  function rotateCopy(el, lines){
+    var i = 0;
+    el.textContent = lines[0];
+    copyTimer = setInterval(function(){
+      el.classList.add('fade');
+      setTimeout(function(){
+        i = (i+1) % lines.length;
+        el.textContent = lines[i];
+        el.classList.remove('fade');
+      }, 280);
+    }, 1400);
+  }
+  function stopCopy(){ if(copyTimer){ clearInterval(copyTimer); copyTimer = null; } }
+
+  $('#btnSearch').addEventListener('click', function(){
+    var ok = true;
+    ['puAddr','dlAddr'].forEach(function(id){
+      var f = document.getElementById(id);
+      // Require a picked address (with coords), not just free text.
+      if(!f.value.trim() || !SELECTED[id]){ f.closest('.field').classList.add('err'); ok = false; }
+    });
+    if(!ok){
+      var panel = document.querySelector('.panel');
+      panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+      return;
+    }
+
+    var race = $('#race');
+    race.innerHTML = PROVIDER_ORDER.map(function(k){
+      var c = DISPLAY[k];
+      return '<div class="racer" data-k="'+k+'">'+cmark(c)+'<span class="cname">'+c.name+'</span></div>';
+    }).join('');
+    $('#ovlSearch').classList.add('open');
+    rotateCopy($('#searchCopy'), SEARCH_LINES);
+    Array.prototype.forEach.call(race.querySelectorAll('.racer'), function(r, i){
+      setTimeout(function(){ r.classList.add('lit'); }, 400 + i*380);
+    });
+
+    // Fire the REAL estimate + keep the interstitial up for a minimum beat.
+    var pu = SELECTED.puAddr, dl = SELECTED.dlAddr;
+    var minWait = new Promise(function(res){ setTimeout(res, 2600); });
+    var estimate = ensureToken().then(function(){
+      return fetch('/api/estimate', {
+        method:'POST', headers:authHeaders({'content-type':'application/json'}),
+        body: JSON.stringify({
+          pickup: {address:pu.label, lat:pu.lat, lng:pu.lng, pincode:pu.pincode, city:pu.city},
+          drop:   {address:dl.label, lat:dl.lat, lng:dl.lng, pincode:dl.pincode, city:dl.city}
+        })
+      });
+    }).then(function(r){ return r.json(); }).catch(function(){ return {ok:false, results:[]}; });
+
+    Promise.all([estimate, minWait]).then(function(out){
+      stopCopy();
+      $('#ovlSearch').classList.remove('open');
+      var resp = out[0] || {};
+      renderRates(resp.results || [], resp.expired || []);
+    });
+  });
+
+  /* ============================================================
+     QUOTE RESULTS — LIVE from POST /api/estimate. Priced rows first
+     (cheapest on top), then unavailable providers shown honestly.
+     ============================================================ */
+  function etaMinutes(s){ if(!s) return null; var m=/([\d.]+)\s*(hr|hour|min)/i.exec(s); return m ? parseFloat(m[1]) * (/hr|hour/i.test(m[2])?60:1) : null; }
+
+  function renderRates(results, expired){
+    results = results || [];
+    expired = expired || [];
+    var rows = results.map(function(r){
+      var d = DISPLAY[r.provider] || {name:r.label||r.provider, mark:'?', color:'#888'};
+      return { r:r, d:d, priced:(r.fare!=null && r.serviceable===true), etaMin:etaMinutes(r.eta) };
+    });
+    var priced   = rows.filter(function(x){ return x.priced; }).sort(function(a,b){ return a.r.fare - b.r.fare; });
+    // Serviceable but no upfront fare (e.g. Shadowfax — priced at booking to avoid draft trips).
+    var noFare   = rows.filter(function(x){ return !x.priced && x.r.serviceable===true; });
+    var other    = rows.filter(function(x){ return !x.priced && x.r.serviceable!==true; });
+    var cheapest = priced[0];
+    var fastest  = priced.filter(function(x){ return x.etaMin!=null; }).sort(function(a,b){ return a.etaMin-b.etaMin; })[0];
+
+    $('#ratesRoute').innerHTML = '<b>'+SELECTED.puAddr.label.split(',')[0]+'</b> → <b>'+SELECTED.dlAddr.label.split(',')[0]+'</b> · live rates, cheapest first';
+    $('#ratesStamp').textContent = (priced.length+noFare.length)+' of '+rows.length+' available';
+
+    var html = priced.map(function(x, idx){
+      var badge = x===cheapest ? '<span class="r-badge cheap">Lowest price</span>'
+                : x===fastest  ? '<span class="r-badge fast">Fastest</span>'
+                : '<span class="r-badge none">—</span>';
+      var eta = x.r.eta || (x.etaMin ? '~'+Math.round(x.etaMin)+' min' : '—');
+      return '<div class="rate-row'+(idx===0?' winner':'')+'" data-k="'+x.r.provider+'" data-p="'+x.r.fare+'">'+cmark(x.d)+
+        '<div class="r-id"><div class="r-name">'+x.d.name+'</div><div class="r-vehicle">'+x.d.vehicle+'</div></div>'+
+        '<div class="r-meta r-m1"><b>'+eta+'</b>door to door</div>'+
+        '<div class="r-price">₹'+x.r.fare+'</div>'+badge+
+        '<button class="btn-book">Book it</button></div>';
+    }).join('');
+
+    // Serviceable-but-unpriced providers — bookable, price shown at booking.
+    html += noFare.map(function(x){
+      var eta = x.r.eta || (x.etaMin ? '~'+Math.round(x.etaMin)+' min' : '');
+      return '<div class="rate-row" data-k="'+x.r.provider+'" data-p="0">'+cmark(x.d)+
+        '<div class="r-id"><div class="r-name">'+x.d.name+'</div><div class="r-vehicle">'+x.d.vehicle+'</div></div>'+
+        '<div class="r-meta r-m1"><b>'+(eta||'Available')+'</b>price at booking</div>'+
+        '<div class="r-price" style="font-size:16px">See price</div>'+
+        '<span class="r-badge none">—</span>'+
+        '<button class="btn-book">Book it</button></div>';
+    }).join('');
+
+    html += other.map(function(x){
+      var reason = x.r.sessionExpired ? 'Not connected' :
+                   x.r.serviceable===false ? 'Not serviceable here' :
+                   x.r.error ? 'Unavailable' : 'No quote';
+      return '<div class="rate-row" style="opacity:.62" data-k="'+x.r.provider+'">'+cmark(x.d)+
+        '<div class="r-id"><div class="r-name">'+x.d.name+'</div><div class="r-vehicle">'+x.d.vehicle+'</div></div>'+
+        '<div class="r-meta r-m1"><b>—</b>'+reason+'</div>'+
+        '<div class="r-price" style="font-size:15px;color:var(--muted)">—</div>'+
+        '<span class="r-badge none">—</span><span></span></div>';
+    }).join('');
+
+    if(!rows.length) html = '<div class="rate-row"><div class="r-id"><div class="r-name">No couriers responded</div><div class="r-vehicle">Please try again</div></div></div>';
+
+    // Expired-connection alert — a token/login died; prompt the user to reconnect.
+    var alertHtml = '';
+    if(expired.length){
+      var names = expired.map(function(e){ return e.label; }).join(', ');
+      var plural = expired.length>1;
+      alertHtml =
+        '<div style="border:var(--bw) solid var(--ink);border-radius:14px;background:#F2DBD4;color:#B03A25;'+
+        'padding:14px 18px;margin-bottom:16px;font-weight:600;display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
+        '<span style="font-size:18px">⚠</span>'+
+        '<span style="flex:1;min-width:200px"><b>'+names+'</b> '+(plural?'connections have':'connection has')+
+        ' expired — reconnect to include '+(plural?'them':'it')+' in your rates.</span>'+
+        '<a href="/connections" style="border:var(--bw) solid var(--ink);border-radius:10px;background:var(--coral);color:#fff;'+
+        'padding:9px 16px;text-decoration:none;font-weight:800;white-space:nowrap">Reconnect in Connections →</a>'+
+        '</div>';
+    }
+
+    var list = $('#rateList');
+    list.innerHTML = alertHtml + html;
+    var sec = $('#rates');
+    sec.classList.add('show');
+    sec.scrollIntoView({behavior:'smooth'});
+    Array.prototype.forEach.call(list.querySelectorAll('.rate-row'), function(row, i){
+      setTimeout(function(){ row.classList.add('in'); }, 120 + i*90);
+      var bb = row.querySelector('.btn-book');
+      if(bb) bb.addEventListener('click', function(){
+        bookQuote(row.getAttribute('data-k'), parseInt(row.getAttribute('data-p'),10));
+      });
+    });
+  }
+
+  /* ============================================================
+     BOOKING — LIVE via POST /api/bookings. Interstitial stays up a
+     minimum beat; on API error the row's button flips to an inline
+     retry state (no overlay left hanging).
+     ============================================================ */
+  function bookQuote(key, price){
+    var c = DISPLAY[key] || {name:key, mark:'?', color:'#888'};
+    var pu = SELECTED.puAddr, dl = SELECTED.dlAddr;
+    if(!pu || !dl) return;
+
+    // Couriers need contact phones (receiver especially) — require them before booking.
+    var ok = true;
+    ['puPhone','dlPhone'].forEach(function(fid){
+      var f = document.getElementById(fid);
+      if(!f.value.trim()){ f.closest('.field').classList.add('err'); ok = false; }
+    });
+    if(!ok){ document.querySelector('.panel').scrollIntoView({behavior:'smooth'}); return; }
+
+    $('#ovlBook').classList.add('open');
+    $('#bookTitle').textContent = 'Booking with ' + c.name + '…';
+    rotateCopy($('#bookCopy'), BOOK_LINES);
+
+    var minWait = new Promise(function(res){ setTimeout(res, 1600); });
+    var req = ensureToken().then(function(){
+      return fetch('/api/bookings', {
+        method:'POST', headers:authHeaders({'content-type':'application/json'}),
+        body: JSON.stringify({
+          provider: key,
+          orderNumber: $('#orderNo').value.trim() || null,
+          instructions: $('#instr').value.trim(),
+          pickup: {address:pu.label, lat:pu.lat, lng:pu.lng, pincode:pu.pincode, city:pu.city, placeId:pu.placeId||null,
+                   name:$('#puName').value.trim(), phone:$('#puPhone').value.trim()},
+          drop:   {address:dl.label, lat:dl.lat, lng:dl.lng, pincode:dl.pincode, city:dl.city, placeId:dl.placeId||null,
+                   name:$('#dlName').value.trim(), phone:$('#dlPhone').value.trim()}
+        })
+      });
+    }).then(function(r){ return r.json(); })
+      .catch(function(){ return {ok:false, error:'network error'}; });
+
+    Promise.all([req, minWait]).then(function(out){
+      stopCopy();
+      $('#ovlBook').classList.remove('open');
+      var resp = out[0] || {};
+      if(!resp.ok || !resp.booking){
+        var row = document.querySelector('.rate-row[data-k="'+key+'"]');
+        var bb = row && row.querySelector('.btn-book');
+        if(bb){
+          bb.textContent = 'Failed — retry';
+          bb.title = (resp.error || 'booking failed') + (resp.sessionExpired ? ' (reconnect in Connections)' : '');
+        }
+        return;
+      }
+      // New booking is persisted server-side; jump to My Bookings (resets filters
+      // to page 1 and reloads from the server, so it shows and survives refresh).
+      tkState.from=''; tkState.to=''; tkState.status=''; tkState.page=1;
+      $('#fltFrom').value=''; $('#fltTo').value=''; $('#fltStatus').value='';
+      shView('bookings');
+    });
+  }
+
+  var STEPS = ['Booked','Rider assigned','Picked up','In transit','Delivered'];
+  var STATUS_STEP = {'Created':0,'Booked':0,'Rider assigned':1,'Picked up':2,'In transit':3,'Delivered':4};
+  var TERMINAL = {'Delivered':1,'Cancelled':1,'Failed':1};
+  function isActive(st){ return !TERMINAL[st]; }
+  function fmtWhen(s){ if(!s) return ''; try{ var d=new Date(s); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }catch(e){ return ''; } }
+
+  /* ============================================================
+     BOOKINGS LIST — data-driven from GET /api/bookings, so rides PERSIST
+     across page refresh. Date + status filter + pagination. Each in-progress
+     ride has a Refresh button (POST /:id/refresh) and Cancel; delivered rides
+     expose the provider receipt.
+     ============================================================ */
+  var tkState = { from:'', to:'', status:'', page:1, pageSize:6 };
+
+  function loadBookings(){
+    var qs = '?page='+tkState.page+'&pageSize='+tkState.pageSize
+      + (tkState.from?'&from='+encodeURIComponent(tkState.from):'')
+      + (tkState.to?'&to='+encodeURIComponent(tkState.to):'')
+      + (tkState.status?'&status='+encodeURIComponent(tkState.status):'');
+    return ensureToken().then(function(){
+      return fetch('/api/bookings'+qs, {headers:authHeaders()});
+    }).then(function(r){ if(r.status===401){ signOut(); throw new Error('auth'); } return r.json(); })
+      .then(function(j){
+        var list = $('#trackList'), rows = (j&&j.bookings)||[];
+        if(!rows.length){
+          var filtered = tkState.from||tkState.to||tkState.status;
+          list.innerHTML = '<div class="tk-empty">'+(filtered?'No rides match this filter.':'No rides yet — book one above and it will show here.')+'</div>';
+        } else {
+          list.innerHTML = '';
+          rows.forEach(function(bk){ list.appendChild(renderCard(bk)); });
+        }
+        var pages=(j&&j.pages)||1, total=(j&&j.total)||0;
+        $('#pgInfo').textContent = 'Page '+tkState.page+' of '+pages+' · '+total+' ride'+(total===1?'':'s');
+        $('#pgPrev').disabled = tkState.page<=1;
+        $('#pgNext').disabled = tkState.page>=pages;
+        $('#tracker').classList.add('show');
+        // Auto-poll if any ride is still in progress, so rider assignment + state
+        // changes surface without the operator hitting Refresh.
+        if(rows.some(function(b){ return isActive(b.status); })) startCardPolling(); else stopCardPolling();
+      }).catch(function(){});
+  }
+
+  /* Live auto-refresh: every POLL_EVERY ms, force a live poll for each active
+     card and swap it in place. Skips cards mid-interaction (data-busy), pauses on
+     a hidden tab, and stops itself when nothing is active or the view changes.
+     The 60s server-side poller is the backstop when no one is watching. */
+  var POLL_EVERY = 20000, cardPollTimer = null;
+  function stopCardPolling(){ if(cardPollTimer){ clearInterval(cardPollTimer); cardPollTimer=null; } }
+  function startCardPolling(){
+    if(cardPollTimer) return;
+    cardPollTimer = setInterval(function(){
+      if(document.hidden) return;
+      if(!document.body.classList.contains('view-bookings')){ stopCardPolling(); return; }
+      var cards = Array.prototype.slice.call(document.querySelectorAll('#trackList .ticket[data-active="1"]'));
+      if(!cards.length){ stopCardPolling(); return; }
+      cards.forEach(function(card){
+        if(card.getAttribute('data-busy')==='1') return;
+        var pid = card.getAttribute('data-id'); if(!pid) return;
+        fetch('/api/bookings/'+pid+'/refresh',{method:'POST',headers:authHeaders()})
+          .then(function(r){ return r.json(); })
+          .then(function(j){ if(j&&j.booking && card.getAttribute('data-busy')!=='1' && card.isConnected){ card.replaceWith(renderCard(j.booking)); } })
+          .catch(function(){});
+      });
+    }, POLL_EVERY);
+  }
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden && document.body.classList.contains('view-bookings')) loadBookings(); });
+
+  function renderCard(bk){
+    var c = DISPLAY[bk.provider] || {name:bk.provider_label||bk.provider, mark:'?', color:'#888'};
+    var id = bk.booking_id, st = bk.status||'Created', active = isActive(st), idx = STATUS_STEP[st];
+    // Show the status the COURIER reports (status_raw), verbatim-but-tidied, so the
+    // operator sees exactly what the app says. Only for LIVE rides — once terminal
+    // we show the clean canonical word (a cancelled Shadowfax order, say, reports a
+    // stale "closed" that would otherwise mislead).
+    var appStatus = (active && bk.status_raw) ? String(bk.status_raw).replace(/[_-]+/g,' ').replace(/\b\w/g,function(m){return m.toUpperCase();}) : (idx!=null?STEPS[idx]:st);
+    var card = document.createElement('div');
+    card.className = 'ticket';
+    card.setAttribute('data-id', id);
+    card.setAttribute('data-active', active ? '1' : '0');
+    var pillCls = (st==='Cancelled'||st==='Failed') ? ' dead' : '';
+    var stepsHtml = STEPS.map(function(s,i){
+      var cls=''; if(idx!=null){ if(i<=idx) cls+=' done'; if(i===idx) cls+=' now'; }
+      return '<div class="step'+cls+'"><i></i><span>'+s+'</span></div>';
+    }).join('');
+    // Track live only for in-progress rides (not cancelled/delivered/failed).
+    var trackBtn = (active && bk.tracking_url) ? '<a class="btn-track" href="'+esc(bk.tracking_url)+'" target="_blank" rel="noopener">Track live</a>' : '';
+    var actions = active ? '<button class="btn-refresh">↻ Refresh</button><button class="btn-cancel">Cancel booking</button>' : '';
+    // Rider + OTP block. Shows whatever the courier exposes (min: name, phone,
+    // OTPs). While active with no rider yet, shows a "locating" hint so the
+    // operator knows polling is live and the true state is being tracked.
+    var riderHtml = '';
+    if(active){
+      var tel = bk.rider_number ? String(bk.rider_number).replace(/[^0-9+]/g,'') : '';
+      var idn = []; if(bk.rider_name) idn.push('<b>'+esc(bk.rider_name)+'</b>'); if(bk.rider_vehicle_number) idn.push('<span class="rd-veh">'+esc(bk.rider_vehicle_number)+'</span>');
+      var callHtml = bk.rider_number ? '<a class="rd-call" href="tel:'+esc(tel)+'">📞 '+esc(bk.rider_number)+'</a>' : '';
+      var otps=''; if(bk.pickup_otp) otps+='<span class="otp"><i>Pickup OTP</i><b>'+esc(bk.pickup_otp)+'</b></span>'; if(bk.drop_otp) otps+='<span class="otp"><i>Drop OTP</i><b>'+esc(bk.drop_otp)+'</b></span>';
+      if(idn.length||callHtml||otps){
+        riderHtml = '<div class="tk-rider">'+
+          (idn.length?'<div class="rd-id">'+idn.join(' · ')+'</div>':'')+
+          (callHtml?'<div class="rd-call-wrap">'+callHtml+'</div>':'')+
+          (otps?'<div class="rd-otps">'+otps+'</div>':'')+'</div>';
+      } else if(bk.rider_name==null){
+        riderHtml = '<div class="tk-rider locating"><span class="dot"></span>Locating a rider — status updates automatically…</div>';
+      }
+    }
+    var etaTxt = st==='Cancelled' ? 'cancelled — no charge applied' : st==='Delivered' ? 'delivered ✓' : (fmtWhen(bk.created_at)+' · '+id);
+    card.innerHTML =
+      '<div class="tk-main">'+
+        '<div class="tk-top">'+cmark(c)+
+          '<div><div class="tk-courier">'+esc(c.name)+'</div><div class="tk-id">'+id+(bk.order_number?' · order '+esc(bk.order_number):'')+'</div></div>'+
+          '<span class="tk-pill'+pillCls+'" title="status reported by '+esc(c.name)+'">'+esc(appStatus)+'</span></div>'+
+        '<div class="tk-route"><b>'+esc(((bk.pickup&&bk.pickup.address)||'Pickup').split(',')[0])+'</b> → <b>'+esc(((bk.drop&&bk.drop.address)||'Delivery').split(',')[0])+'</b>'+(bk.instructions?' · "'+esc(bk.instructions)+'"':'')+'</div>'+
+        '<div class="steps">'+stepsHtml+'</div>'+riderHtml+'</div>'+
+      '<div class="tk-stub">'+
+        '<div class="tk-price">'+(bk.fare!=null?'₹'+bk.fare:'—')+'<small>'+(st==='Delivered'?'final fare':'rate locked')+'</small></div>'+
+        trackBtn+actions+
+        '<span class="tk-eta">'+etaTxt+'</span></div>';
+
+    var rb = card.querySelector('.btn-refresh');
+    if(rb) rb.addEventListener('click', function(){
+      rb.textContent='…'; rb.disabled=true; card.setAttribute('data-busy','1');
+      fetch('/api/bookings/'+id+'/refresh',{method:'POST',headers:authHeaders()})
+        .then(function(r){ return r.json(); })
+        .then(function(j){ card.replaceWith(renderCard((j&&j.booking)||bk)); })
+        .catch(function(){ rb.textContent='↻ Refresh'; rb.disabled=false; card.removeAttribute('data-busy'); });
+    });
+
+    var cb = card.querySelector('.btn-cancel');
+    if(cb){ var armed=false, busy=false;
+      cb.addEventListener('click', function(){
+        if(busy) return;
+        if(!armed){ armed=true; card.setAttribute('data-busy','1'); cb.textContent='Tap again to confirm'; cb.classList.add('confirm');
+          setTimeout(function(){ if(armed){ armed=false; card.removeAttribute('data-busy'); cb.textContent='Cancel booking'; cb.classList.remove('confirm'); } },3500); return; }
+        busy=true; cb.textContent='Cancelling…';
+        fetch('/api/bookings/'+id+'/cancel',{method:'POST',headers:authHeaders()})
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            busy=false;
+            if(j&&j.ok){ card.replaceWith(renderCard((j&&j.booking)||{})); }
+            else { armed=false; cb.textContent='Cancel booking'; cb.classList.remove('confirm'); card.querySelector('.tk-eta').textContent='cancel failed — '+((j&&j.error)||'try again'); }
+          })
+          .catch(function(){ busy=false; armed=false; cb.textContent='Cancel booking'; cb.classList.remove('confirm'); card.querySelector('.tk-eta').textContent='cancel failed — network error'; });
+      });
+    }
+
+    if(st==='Delivered'){
+      var stub=card.querySelector('.tk-stub');
+      var rcb=document.createElement('button'); rcb.className='btn-track'; rcb.style.marginTop='6px'; rcb.textContent='🧾 View receipt';
+      rcb.addEventListener('click', function(){
+        rcb.textContent='Fetching…';
+        fetch('/api/bookings/'+id+'/receipt',{headers:authHeaders()}).then(function(r){ return r.json(); }).then(function(j){
+          rcb.textContent='🧾 View receipt';
+          if(j&&j.ok&&j.receipt&&j.receipt.receipt_url){ window.open(j.receipt.receipt_url,'_blank','noopener'); }
+          else { card.querySelector('.tk-eta').textContent=(j&&j.receipt&&j.receipt.fare!=null)?('final fare ₹'+j.receipt.fare):'receipt unavailable'; }
+        }).catch(function(){ rcb.textContent='🧾 View receipt'; });
+      });
+      stub.appendChild(rcb);
+    }
+    return card;
+  }
+
+  // Filter + pager controls.
+  $('#fltApply').addEventListener('click', function(){ tkState.from=$('#fltFrom').value; tkState.to=$('#fltTo').value; tkState.status=$('#fltStatus').value; tkState.page=1; loadBookings(); });
+  $('#fltClear').addEventListener('click', function(){ $('#fltFrom').value=''; $('#fltTo').value=''; $('#fltStatus').value=''; tkState.from=''; tkState.to=''; tkState.status=''; tkState.page=1; loadBookings(); });
+  $('#fltReload').addEventListener('click', function(){ loadBookings(); });
+  $('#pgPrev').addEventListener('click', function(){ if(tkState.page>1){ tkState.page--; loadBookings(); } });
+  $('#pgNext').addEventListener('click', function(){ tkState.page++; loadBookings(); });
+
+  /* ============================================================
+     REPORTS page — aggregates from /api/reports with its own date filter,
+     plus a PDF export.
+     ============================================================ */
+  var lastReport = null;
+  var rptState = { from:'', to:'' };
+  function loadReports(){
+    var parts = []; if(rptState.from) parts.push('from='+rptState.from); if(rptState.to) parts.push('to='+rptState.to);
+    var qs = parts.length ? '?'+parts.join('&') : '';
+    return ensureToken().then(function(){ return fetch('/api/reports'+qs, {headers:authHeaders()}); })
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if(j && j.ok){ lastReport = j; renderReports(j); } })
+      .catch(function(){});
+  }
+  function renderReports(j){
+    var t = j.totals||{};
+    $('#rptRange').textContent = (j.range && (j.range.from||j.range.to)) ? ((j.range.from||'…')+' → '+(j.range.to||'…')) : 'All time';
+    var cards = [
+      ['Total rides', t.rides||0, ''], ['Delivered', t.delivered||0, ''], ['In progress', t.in_progress||0, ''],
+      ['Cancelled', t.cancelled||0, ''], ['Total spend', '₹'+(t.spend||0), 'spend'], ['Avg fare', '₹'+(t.avg_fare||0), ''],
+      ['Cancel rate', Math.round((t.cancellation_rate||0)*100)+'%', '']
+    ];
+    $('#rptStats').innerHTML = cards.map(function(c){ return '<div class="rpt-stat'+(c[2]?' '+c[2]:'')+'"><b>'+c[1]+'</b><span>'+esc(c[0])+'</span></div>'; }).join('');
+    var prov = j.by_provider||[];
+    $('#rptProv').innerHTML = prov.length ? prov.map(function(p){
+      return '<tr><td>'+esc(p.provider_label)+'</td><td>'+p.rides+'</td><td>'+p.delivered+'</td><td>'+p.cancelled+'</td><td>₹'+p.spend+'</td><td>₹'+p.avg_fare+'</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="rpt-empty">No rides in this range.</td></tr>';
+  }
+  // True one-click PDF download via the vendored pdfmini writer. Currency is
+  // "Rs" (base-14 PDF fonts have no ₹ glyph).
+  function exportReportPdf(){
+    if(!lastReport || !window.PdfMini){ return; }
+    var j=lastReport, t=j.totals||{}, prov=j.by_provider||[], days=j.by_day||[];
+    var range=(j.range&&(j.range.from||j.range.to))?((j.range.from||'...')+' to '+(j.range.to||'...')):'All time';
+    var INK=[23,21,15], MUT=[139,130,113], CORAL=[211,87,43], RULE=[228,220,203];
+    var d=new PdfMini({margin:44});
+    var W=d.w-88; // content width in pt
+
+    d.text(0,20,'ShipHop.ai - Delivery Report',{bold:true,color:INK}); d.moveDown(20);
+    d.text(0,10,'Range: '+range,{color:MUT}); d.moveDown(13);
+    d.text(0,10,'Generated: '+new Date().toLocaleString('en-IN'),{color:MUT}); d.moveDown(10);
+    d.line(0,W,{color:INK,width:1.4}); d.moveDown(26);
+
+    d.text(0,14,'Summary',{bold:true}); d.moveDown(20);
+    var stats=[['Total rides',t.rides||0],['Delivered',t.delivered||0],['In progress',t.in_progress||0],
+      ['Cancelled',t.cancelled||0],['Total spend','Rs '+(t.spend||0)],['Avg fare','Rs '+(t.avg_fare||0)],
+      ['Cancellation rate',Math.round((t.cancellation_rate||0)*100)+'%'],['Delivery rate',Math.round((t.delivery_rate||0)*100)+'%']];
+    stats.forEach(function(s){ d.text(0,11,s[0],{color:MUT}); d.text(200,12,String(s[1]),{bold:true}); d.moveDown(19); });
+    d.moveDown(12);
+
+    var cols=[0,190,255,335,415,470];
+    d.text(0,14,'By courier',{bold:true}); d.moveDown(18);
+    ['Courier','Rides','Delivered','Cancelled','Spend','Avg fare'].forEach(function(h,i){ d.text(cols[i],8.5,h.toUpperCase(),{color:MUT}); });
+    d.moveDown(6); d.line(0,W,{color:INK,width:1}); d.moveDown(15);
+    if(prov.length){ prov.forEach(function(p){
+      d.text(cols[0],11,p.provider_label,{bold:true}); d.text(cols[1],11,String(p.rides));
+      d.text(cols[2],11,String(p.delivered)); d.text(cols[3],11,String(p.cancelled));
+      d.text(cols[4],11,'Rs '+p.spend); d.text(cols[5],11,'Rs '+p.avg_fare);
+      d.moveDown(7); d.line(0,W,{color:RULE,width:0.6}); d.moveDown(15);
+    }); } else { d.text(0,10,'No rides in this range.',{color:MUT}); d.moveDown(18); }
+    d.moveDown(12);
+
+    var dc=[0,190,300];
+    d.text(0,14,'By day',{bold:true}); d.moveDown(18);
+    ['Day','Rides','Spend'].forEach(function(h,i){ d.text(dc[i],8.5,h.toUpperCase(),{color:MUT}); });
+    d.moveDown(6); d.line(0,W,{color:INK,width:1}); d.moveDown(15);
+    if(days.length){ days.forEach(function(day){
+      d.text(dc[0],11,day.day); d.text(dc[1],11,String(day.rides)); d.text(dc[2],11,'Rs '+day.spend);
+      d.moveDown(7); d.line(0,W,{color:RULE,width:0.6}); d.moveDown(15);
+    }); } else { d.text(0,10,'No rides in this range.',{color:MUT}); }
+
+    d.save('shiphop-report-'+(new Date().toISOString().slice(0,10))+'.pdf');
+  }
+  $('#rptExport').addEventListener('click', exportReportPdf);
+  $('#rptApply').addEventListener('click', function(){ rptState.from=$('#rptFrom').value; rptState.to=$('#rptTo').value; loadReports(); });
+  $('#rptClear').addEventListener('click', function(){ $('#rptFrom').value=''; $('#rptTo').value=''; rptState.from=''; rptState.to=''; loadReports(); });
+
+  // ---- view toggle: Book · My Bookings · Reports ----
+  function shView(v){
+    document.body.classList.remove('view-bookings','view-reports');
+    if(v==='bookings'){ document.body.classList.add('view-bookings'); loadBookings(); }
+    else if(v==='reports'){ document.body.classList.add('view-reports'); loadReports(); }
+    else { v='book'; }
+    try{ localStorage.setItem('sh_view', v); }catch(e){}
+    window.scrollTo(0,0);
+    Array.prototype.forEach.call(document.querySelectorAll('.nav-links a[data-view]'), function(a){ a.classList.toggle('active', a.getAttribute('data-view')===v); });
+  }
+  window.shView = shView;
+
+  // Boot the initial view now that everything is defined (logged-in only).
+  if(bkToken()){ shView(localStorage.getItem('sh_view')||'book'); }
+})();
+</script>
+
+</body>
+</html>

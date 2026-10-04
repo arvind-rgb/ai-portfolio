@@ -1,0 +1,18 @@
+{
+  "functions": [
+    {
+      "source": ".",
+      "codebase": "qa-backend",
+      "runtime": "nodejs20",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log",
+        ".env.example",
+        ".firebaserc.example",
+        "scripts/**",
+        "README.md"
+      ]
+    }
+  ]
+}

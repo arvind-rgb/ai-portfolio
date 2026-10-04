@@ -1,0 +1,17 @@
+# reach-otp.yaml — fresh launch → Login → request OTP → OTP entry screen (pre-auth).
+# Stops on the OTP screen (otp-input visible). Used by OTP-screen TCs.
+appId: ${APP_ID}
+---
+- runFlow: reach-login.yaml
+- tapOn: { id: "login-phone-input" }
+- waitForAnimationToEnd: { timeout: 2000 }
+- inputText: "${BHOOKLE_PHONE}"
+- assertVisible: { text: "${BHOOKLE_PHONE}" }
+- runFlow:
+    when: { platform: iOS }
+    commands:
+      - tapOn: { point: "50%,18%" }
+- tapOn: { id: "login-get-otp-btn" }
+- extendedWaitUntil:
+    visible: { id: "otp-input" }
+    timeout: 45000

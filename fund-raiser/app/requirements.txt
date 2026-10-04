@@ -1,0 +1,11 @@
+flask==3.0.3
+flask-sqlalchemy==3.1.1
+requests==2.31.0
+beautifulsoup4==4.12.3
+lxml==5.3.0
+feedparser>=6.0
+anthropic==0.40.0
+python-dotenv==1.0.1
+playwright>=1.44.0          # optional: headless search used by "Get More Leads"
+# optional — only needed for the legacy Gmail OAuth path (SMTP app-password is the default)
+# google-auth google-auth-oauthlib google-api-python-client

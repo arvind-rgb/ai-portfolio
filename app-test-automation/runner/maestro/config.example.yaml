@@ -1,0 +1,21 @@
+# Maestro env file used by every flow (copy to config.yaml and fill in).
+# The CI harness loads it via --env-file; locally:
+#   maestro --udid <udid> test --env-file config.yaml --env APP_ID=<bundle-id> smoke-ios.yaml
+
+# Test credentials for the SIT (staging) backend - never production values
+BHOOKLE_PHONE: "<TEST_PHONE>"
+BHOOKLE_OTP: "<TEST_OTP>"
+
+# Order test chef on SIT
+BHOOKLE_CHEF_ID: "<TEST_CHEF_ID>"
+BHOOKLE_CHEF_NAME: "Demo Chef"
+
+BHOOKLE_ENV: "SIT"
+
+# Per-platform app ids; run-shard.sh resolves APP_ID from these at runtime
+APP_ID_IOS: "<ios-bundle-id>"
+APP_ID_ANDROID: "<android-package>"
+
+# Local simulator (optional)
+IOS_UDID: "<SIMULATOR_UDID>"
+IOS_DEVICE_NAME: "iPhone 15 Pro Max"

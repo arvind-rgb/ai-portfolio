@@ -1,0 +1,299 @@
+{
+ "meta": {
+  "description": "SAMPLE EXCERPT (2 past weeks, already sent). Bhookle app push-notification calendar. Single source of truth for the bhookle-notify skill. The cloud worker reads this, sends due entries to FCM topic 'all', and flips status posted.",
+  "project": "<firebase-project-id>",
+  "topic": "all",
+  "timezone": "Asia/Kolkata",
+  "lunch_time_ist": "11:45",
+  "dinner_time_ist": "18:45",
+  "status_values": [
+   "yet_to_schedule",
+   "scheduled",
+   "posted"
+  ],
+  "fcm_body_placeholder": " ",
+  "updated": "sample excerpt"
+ },
+ "entries": [
+  {
+   "date": "2026-06-19",
+   "day": "Fri",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Lunch break, beta 🍲",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-19",
+   "day": "Fri",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Long week. Eat well 🌙",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-20",
+   "day": "Sat",
+   "kind": "weekend",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Lazy Saturday lunch 🏡",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-20",
+   "day": "Sat",
+   "kind": "weekend",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Cozy night in, beta 🤍",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-21",
+   "day": "Sun",
+   "kind": "weekend",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Sunday, slow & warm 🍛",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-21",
+   "day": "Sun",
+   "kind": "weekend",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Rest up for Monday 🌙",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-22",
+   "day": "Mon",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Beta, eat your lunch 🍲",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-22",
+   "day": "Mon",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Work's done. Eat well 🌙",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-23",
+   "day": "Tue",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Did you eat, beta? 🤍",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-23",
+   "day": "Tue",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Dinner time, beta 🤍",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-24",
+   "day": "Wed",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Pause for lunch, beta 🍛",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-24",
+   "day": "Wed",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Slow down, eat warm 🍵",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-25",
+   "day": "Thu",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Lunch first, work later 🌼",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-25",
+   "day": "Thu",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Eat healthy tonight 🌿",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-26",
+   "day": "Fri",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Don't skip lunch, beta 🍲",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-26",
+   "day": "Fri",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Friday's here. Relax 🌙",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-27",
+   "day": "Sat",
+   "kind": "weekend",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Slow Saturday, beta 🏡",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-27",
+   "day": "Sat",
+   "kind": "weekend",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Stay in, eat warm 🤍",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-28",
+   "day": "Sun",
+   "kind": "weekend",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Sunday comfort food 🍛",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-28",
+   "day": "Sun",
+   "kind": "weekend",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "End the week gently 🌙",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-29",
+   "day": "Mon",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Lunch o'clock, beta 🍲",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-29",
+   "day": "Mon",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Shut the laptop 🌙",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-30",
+   "day": "Tue",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Step away, eat 🌼",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-06-30",
+   "day": "Tue",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Warm dinner, beta 🍵",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-07-01",
+   "day": "Wed",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Fuel up, beta 🍛",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-07-01",
+   "day": "Wed",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "Eat light tonight 🌿",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-07-02",
+   "day": "Thu",
+   "kind": "weekday",
+   "slot": "lunch",
+   "send_ist": "11:45",
+   "title": "Don't work hungry 🤍",
+   "body": " ",
+   "status": "scheduled"
+  },
+  {
+   "date": "2026-07-02",
+   "day": "Thu",
+   "kind": "weekday",
+   "slot": "dinner",
+   "send_ist": "18:45",
+   "title": "You've earned rest 🤍",
+   "body": " ",
+   "status": "scheduled"
+  }
+ ]
+}

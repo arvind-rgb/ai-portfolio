@@ -1,0 +1,9 @@
+**/.env
+**/.env.*
+!**/.env.example
+**/.data/
+**/node_modules/
+.DS_Store
+*.log
+# Production courier adapters are private and never committed.
+server/src/providers/private/

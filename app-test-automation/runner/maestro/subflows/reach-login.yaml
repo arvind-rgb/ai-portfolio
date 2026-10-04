@@ -1,0 +1,14 @@
+# reach-login.yaml — fresh launch → GetStarted → Login screen (pre-auth).
+# Used by pre-auth TCs (Login/OTP/Welcome/Boot/GetStarted screens).
+appId: ${APP_ID}
+---
+- clearState
+- launchApp
+- runFlow: dismiss-permissions.yaml
+- extendedWaitUntil:
+    visible: { id: "getstarted-cta" }
+    timeout: 90000
+- tapOn: { id: "getstarted-cta" }
+- extendedWaitUntil:
+    visible: { id: "login-phone-input" }
+    timeout: 20000

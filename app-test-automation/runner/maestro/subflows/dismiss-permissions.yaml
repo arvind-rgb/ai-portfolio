@@ -1,0 +1,9 @@
+# dismiss-permissions.yaml — clear iOS first-launch system dialogs.
+# Order observed on the testID standalone build (2026-06-09):
+#   1) Notifications: "Allow" / "Don't Allow"
+#   2) ATT tracking:  "Ask App Not to Track" / "Allow"
+# All optional → no-ops on Android, or when already granted (warm relaunch).
+appId: ${APP_ID}
+---
+- tapOn: { text: "Allow", optional: true }
+- tapOn: { text: "Ask App Not to Track", optional: true }

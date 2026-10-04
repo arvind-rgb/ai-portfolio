@@ -1,0 +1,41 @@
+name: Bhookle Social — Daily Performance Writeback
+
+on:
+  schedule:
+    - cron: "30 17 * * *"   # 23:00 IST daily — measures posts past their 72h mark
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bhookle-perf-writeback
+  cancel-in-progress: false
+
+jobs:
+  writeback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install openpyxl
+      - name: Run writeback
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: python scripts/perf_writeback.py
+      - name: Commit results
+        run: |
+          git config user.name "bhookle-bot"
+          git config user.email "actions@github.com"
+          git add content-planner/*.xlsx
+          git add -f social/growth-log.csv
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "auto: perf writeback — 72h interactions + follower growth log"
+            git pull --rebase
+            git push
+          fi

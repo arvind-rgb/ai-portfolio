@@ -1,0 +1,12 @@
+.env
+instance/
+*.db
+*.db-wal
+*.db-shm
+__pycache__/
+*.pyc
+static/attachments/
+gmail_token.json
+credentials.json
+.venv/
+venv/

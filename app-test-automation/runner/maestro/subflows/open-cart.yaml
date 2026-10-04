@@ -1,0 +1,14 @@
+# open-cart.yaml — from the global bottom cart bar to CartScreen; assert the pay CTA.
+# Stops BEFORE PhonePe (external) — only confirm proceed-to-pay is reachable.
+# The bottom cart bar on the chef menu is "bottom-cart-btn" (BottomCartComponent).
+# Proven 2026-06-09: bottom-cart-btn -> cart-screen -> cart-proceed-to-pay-btn.
+appId: ${APP_ID}
+---
+- tapOn: { id: "bottom-cart-btn" }
+# Cart screen route transition mounts after a slight delay on Android in particular.
+- waitForAnimationToEnd: { timeout: 4000 }
+- extendedWaitUntil:
+    visible: { id: "cart-screen" }
+    timeout: 45000
+- assertVisible: { id: "cart-screen" }
+- assertVisible: { id: "cart-proceed-to-pay-btn" }

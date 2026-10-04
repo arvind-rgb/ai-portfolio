@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShipHop.AI — Connections</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root{
+    --ground:#EFEAE0; --surface:#FBF8F2; --ink:#17150F; --ink-soft:#4E483C; --muted:#8B8271;
+    --coral:#D3572B; --coral-deep:#AA4520; --coral-tint:#F6DFD3;
+    --olive:#6B7B3F; --olive-tint:#E7EAD8; --sun:#E8B33C; --sun-tint:#F8ECD2;
+    --ok:#3E7A3A; --ok-tint:#DDEBD5; --bad:#B03A25; --bad-tint:#F2DBD4; --warn:#9A6A12; --warn-tint:#F6E7C6;
+    --display:"Avenir Next","Avenir","Futura","Trebuchet MS",sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+    --bw:2px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--coral-tint)}
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea,select{font:inherit;color:inherit}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--coral)}
+  :focus-visible{outline:3px solid var(--coral);outline-offset:2px;border-radius:4px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:40;background:var(--ground);border-bottom:var(--bw) solid var(--ink)}
+  .nav-in{display:flex;align-items:center;gap:24px;height:62px}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+  .bmark{width:42px;height:42px;flex:none;display:block}
+  .bword{font-family:var(--display);font-weight:800;font-size:23px;letter-spacing:-.01em;line-height:1;color:var(--ink)}
+  .bword .ai{color:var(--coral);font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0}
+  .logo small{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400;align-self:flex-end;padding-bottom:2px}
+  .nav-links{display:flex;gap:22px;margin-left:auto;font-size:14px;font-weight:600}
+  .nav-links a{text-decoration:none;opacity:.65}
+  .nav-links a:hover{opacity:1;color:var(--coral)}
+  .nav-links a.active{opacity:1;color:var(--coral)}
+  @media(max-width:640px){.nav-links a:not(.active){display:none}}
+
+  /* header block */
+  .head{padding:34px 0 8px}
+  .head h1{font-size:clamp(28px,4vw,40px);margin:10px 0 10px}
+  .head p{color:var(--ink-soft);max-width:62ch}
+  .summary{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+  .sum-pill{display:flex;align-items:center;gap:8px;border:var(--bw) solid var(--ink);border-radius:11px;background:var(--surface);padding:9px 15px;font-size:13.5px;font-weight:600}
+  .sum-pill b{font-family:var(--display);font-size:17px}
+  .sum-pill .dot{width:10px;height:10px;border-radius:50%}
+  .dot.ok{background:var(--ok)} .dot.bad{background:var(--muted)} .dot.warn{background:var(--warn)}
+  .env-note{margin-top:16px;font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .env-note .badge{border:1px solid var(--muted);border-radius:6px;padding:2px 7px;text-transform:uppercase;letter-spacing:.08em}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;padding:26px 0 60px}
+  .card{border:var(--bw) solid var(--ink);border-radius:18px;background:var(--surface);box-shadow:5px 5px 0 var(--ink);padding:22px;display:flex;flex-direction:column;gap:14px}
+  .card-top{display:flex;align-items:center;gap:13px}
+  .cmark{width:48px;height:48px;border-radius:13px;border:var(--bw) solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:16px;color:#fff;flex:none}
+  .card-title{flex:1;min-width:0}
+  .card-title h3{font-size:19px;line-height:1.1}
+  .card-title .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+  .status-pill{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 11px;border-radius:8px;border:var(--bw) solid var(--ink);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .status-pill .sdot{width:8px;height:8px;border-radius:50%;flex:none}
+  .status-pill.connected{background:var(--ok-tint)} .status-pill.connected .sdot{background:var(--ok)}
+  .status-pill.disconnected{background:var(--ground)} .status-pill.disconnected .sdot{background:var(--muted)}
+  .status-pill.expired{background:var(--bad-tint);color:var(--bad)} .status-pill.expired .sdot{background:var(--bad)}
+  .status-pill.warn{background:var(--warn-tint);color:var(--warn)} .status-pill.warn .sdot{background:var(--warn)}
+  .status-pill.checking{background:var(--sun-tint)} .status-pill.checking .sdot{background:var(--sun);animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.3}}
+
+  .caps{display:flex;flex-wrap:wrap;gap:6px}
+  .cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:var(--ground);border:1px solid var(--line,#DDD5C4);color:var(--ink-soft)}
+  .cap.on{background:var(--olive-tint);color:var(--olive);border-color:var(--olive)}
+  .cap.no{opacity:.5;text-decoration:line-through}
+  .cap.masked{background:var(--sun-tint);color:var(--warn);border-color:var(--warn)}
+
+  .acct{font-size:13px;color:var(--ink-soft);min-height:19px}
+  .acct b{color:var(--ink)}
+  .acct .muted{color:var(--muted)}
+
+  .card-actions{display:flex;gap:10px;margin-top:auto;flex-wrap:wrap}
+  .btn{font-family:var(--display);font-weight:800;font-size:13.5px;padding:10px 18px;border-radius:11px;border:var(--bw) solid var(--ink);transition:transform .1s,box-shadow .1s}
+  .btn-primary{background:var(--coral);color:#fff;box-shadow:3px 3px 0 var(--ink)}
+  .btn-primary:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+  .btn-primary:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+  .btn-ghost{background:var(--surface);color:var(--ink-soft)}
+  .btn-ghost:hover{border-color:var(--coral);color:var(--coral)}
+  .btn-danger-ghost{background:var(--surface);color:var(--ink-soft)}
+  .btn-danger-ghost:hover{border-color:var(--bad);color:var(--bad);background:var(--bad-tint)}
+  .btn:disabled{opacity:.5;cursor:default;transform:none;box-shadow:2px 2px 0 var(--ink)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(23,21,15,.42);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+  .overlay.open{display:flex}
+  .modal{width:min(560px,100%);border:var(--bw) solid var(--ink);border-radius:20px;background:var(--surface);box-shadow:8px 8px 0 var(--ink);overflow:hidden;margin:auto}
+  .modal-head{display:flex;align-items:center;gap:13px;padding:20px 22px;border-bottom:var(--bw) solid var(--ink)}
+  .modal-head .cmark{width:40px;height:40px;font-size:14px;border-radius:11px}
+  .modal-head h3{font-size:20px;flex:1}
+  .modal-close{width:32px;height:32px;border-radius:9px;border:var(--bw) solid var(--ink);background:var(--ground);display:grid;place-items:center;font-size:17px;line-height:1}
+  .modal-close:hover{background:var(--coral-tint)}
+  .modal-body{padding:22px}
+  .instr{background:var(--sun-tint);border:var(--bw) solid var(--ink);border-radius:13px;padding:16px 18px;margin-bottom:20px}
+  .instr h4{font-family:var(--display);font-weight:800;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .instr ol{margin:0 0 0 18px;padding:0;display:flex;flex-direction:column;gap:6px}
+  .instr li{font-size:13px;color:var(--ink-soft)}
+  .instr code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--ink);border-radius:4px;padding:1px 5px}
+  .instr .caveat{margin-top:12px;font-size:12px;color:var(--warn);display:flex;gap:7px}
+  .instr .caveat::before{content:"⚠";flex:none}
+
+  .field{margin-bottom:15px}
+  .field.half{display:inline-block;width:calc(50% - 6px)}
+  .field.half:nth-of-type(odd){margin-right:12px}
+  .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;font-weight:600}
+  .field input,.field textarea{width:100%;background:var(--ground);border:var(--bw) solid var(--ink);border-radius:11px;padding:11px 13px;font-size:14.5px;transition:box-shadow .12s,background .12s}
+  .field textarea{resize:vertical;font-family:var(--mono);font-size:12.5px}
+  .field input:focus,.field textarea:focus{outline:none;background:var(--surface);box-shadow:3px 3px 0 var(--coral)}
+  .field .fhelp{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .field .import-row{display:flex;gap:8px}
+  .field .import-row textarea{flex:1}
+
+  .msg{border-radius:11px;padding:11px 14px;font-size:13px;margin-bottom:16px;border:var(--bw) solid var(--ink);display:none}
+  .msg.show{display:block}
+  .msg.err{background:var(--bad-tint);color:var(--bad)}
+  .msg.ok{background:var(--ok-tint);color:var(--ok)}
+  .msg.warn{background:var(--warn-tint);color:var(--warn)}
+  .msg.info{background:var(--sun-tint)}
+
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;padding:18px 22px;border-top:var(--bw) solid var(--ink);background:var(--ground)}
+  .otp-sent{font-size:13px;color:var(--ink-soft);margin-bottom:14px}
+  .otp-sent b{color:var(--ink)} .otp-sent a{color:var(--coral);font-weight:700;cursor:pointer;text-decoration:underline}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:80;border:var(--bw) solid var(--ink);border-radius:12px;background:var(--ink);color:var(--surface);padding:12px 20px;font-weight:600;font-size:14px;box-shadow:4px 4px 0 var(--coral);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .skeleton{border:var(--bw) dashed var(--muted);border-radius:18px;height:230px;background:var(--surface);opacity:.5;animation:pulse 1.4s infinite}
+  @keyframes pulse{50%{opacity:.25}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap nav-in">
+    <a class="logo" href="/" aria-label="ShipHop.ai home">
+      <svg class="bmark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="42" height="42" rx="11" fill="#17150F"/>
+        <g transform="rotate(-13 16 15)"><rect x="13" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="14.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+        <g transform="rotate(13 26 15)"><rect x="23" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="24.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+        <circle cx="21" cy="27" r="9" fill="#FBF8F2"/>
+        <circle cx="17.8" cy="26" r="1.25" fill="#17150F"/><circle cx="24.2" cy="26" r="1.25" fill="#17150F"/>
+        <circle cx="21" cy="29.3" r="1.5" fill="#D3572B"/>
+        <path d="M21 30.8v1.4" stroke="#17150F" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+      <span class="bword">ShipHop<span class="ai">.ai</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Book</a>
+      <a href="/#rates-anchor">Rates</a>
+      <a href="/#tracker-anchor">Track</a>
+      <a href="/connections" class="active">Connections</a>
+      <a href="/admin">Admin</a>
+      <a href="#" onclick="shSignOut();return false;">Sign out</a>
+    </div>
+  </div>
+</nav>
+
+<header class="head wrap">
+  <span class="kicker">Delivery partners</span>
+  <h1>Connect your courier accounts</h1>
+  <p>ShipHop.AI quotes and books through six delivery networks using <b>your own</b> accounts and credentials. Connect each one below, then check its status any time. Credentials are encrypted and stored server-side — they never come back to this screen.</p>
+  <div class="summary" id="summary"></div>
+  <div class="env-note" id="envNote"></div>
+</header>
+
+<main class="wrap">
+  <div class="grid" id="grid">
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+</main>
+
+<!-- connect modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <span class="cmark" id="modalMark"></span>
+      <h3 id="modalTitle">Connect</h3>
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s,r){ return (r||document).querySelector(s); };
+  var api = {
+    get: function(u){ return fetch(u,{headers:hdr()}).then(j); },
+    post: function(u,b){ return fetch(u,{method:"POST",headers:hdr(),body:JSON.stringify(b||{})}).then(j); }
+  };
+  // Auth: operator login gate (server bootstrap disabled). A tenant-scoped JWT is
+  // obtained by signing in with operator credentials; no token → login screen.
+  function token(){ return window.BOOKER_TOKEN || localStorage.getItem("booker_token") || ""; }
+  function hdr(){ var h={"content-type":"application/json"}; if(token()) h["authorization"]="Bearer "+token(); return h; }
+  function ensureToken(){ return token() ? Promise.resolve() : Promise.reject(new Error("auth_required")); }
+
+  // Login overlay (shared look with the booking portal).
+  var gate = document.createElement('div');
+  gate.id = 'loginGate';
+  gate.innerHTML =
+    '<div class="lg-card">' +
+      '<div class="lg-brand">' +
+        '<svg viewBox="0 0 42 42" width="46" height="46" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+          '<rect width="42" height="42" rx="11" fill="#17150F"/>' +
+          '<g transform="rotate(-13 16 15)"><rect x="13" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="14.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>' +
+          '<g transform="rotate(13 26 15)"><rect x="23" y="6" width="6" height="17" rx="3" fill="#FBF8F2"/><rect x="24.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>' +
+          '<circle cx="21" cy="27" r="9" fill="#FBF8F2"/><circle cx="17.8" cy="26" r="1.25" fill="#17150F"/><circle cx="24.2" cy="26" r="1.25" fill="#17150F"/><circle cx="21" cy="29.3" r="1.5" fill="#D3572B"/>' +
+        '</svg>' +
+        '<span class="lg-word">ShipHop<span class="lg-ai">.ai</span></span>' +
+      '</div>' +
+      '<h2>Sign in</h2>' +
+      '<p class="lg-sub">Enter the operator login your ShipHop admin gave you.</p>' +
+      '<label>Operator login</label><input id="lgUser" type="text" autocomplete="username" placeholder="you@company.com">' +
+      '<label>Password</label><input id="lgPass" type="password" autocomplete="current-password" placeholder="••••••••">' +
+      '<button id="lgBtn">Sign in →</button>' +
+      '<div id="lgMsg" class="lg-msg"></div>' +
+    '</div>';
+  document.body.appendChild(gate);
+  var gs = document.createElement('style');
+  gs.textContent =
+    '#loginGate{position:fixed;inset:0;z-index:200;background:var(--ground);display:none;align-items:center;justify-content:center;padding:24px}' +
+    '#loginGate.open{display:flex}' +
+    '#loginGate .lg-card{width:min(400px,100%);background:var(--surface);border:var(--bw) solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--ink);padding:32px 30px}' +
+    '#loginGate .lg-brand{display:flex;align-items:center;gap:11px;margin-bottom:18px}' +
+    '#loginGate .lg-word{font-family:var(--display);font-weight:800;font-size:24px;color:var(--ink)}' +
+    '#loginGate .lg-ai{color:var(--coral);font-family:var(--mono);font-size:13px}' +
+    '#loginGate h2{font-family:var(--display);font-size:24px;margin:0 0 4px}' +
+    '#loginGate .lg-sub{color:var(--ink-soft);font-size:14px;margin:0 0 20px}' +
+    '#loginGate label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 6px;font-weight:600}' +
+    '#loginGate input{width:100%;background:var(--ground);border:var(--bw) solid var(--ink);border-radius:12px;padding:12px 14px;font-size:15px}' +
+    '#loginGate input:focus{outline:none;background:var(--surface);box-shadow:3px 3px 0 var(--coral)}' +
+    '#loginGate #lgBtn{width:100%;margin-top:22px;background:var(--coral);color:#fff;font-family:var(--display);font-weight:800;font-size:16px;padding:13px;border-radius:12px;border:var(--bw) solid var(--ink);box-shadow:4px 4px 0 var(--ink);cursor:pointer}' +
+    '#loginGate #lgBtn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}' +
+    '#loginGate .lg-msg{color:var(--bad);font-size:13px;font-weight:600;margin-top:12px;min-height:18px;text-align:center}';
+  document.head.appendChild(gs);
+  function showLogin(){ gate.classList.add('open'); }
+  function hideLogin(){ gate.classList.remove('open'); }
+  function signOut(){ localStorage.removeItem('booker_token'); showLogin(); }
+  window.shSignOut = signOut;
+  function doLogin(){
+    var op=$("#lgUser").value.trim(), pw=$("#lgPass").value, msg=$("#lgMsg");
+    msg.textContent='Signing in…';
+    fetch('/api/auth/token',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({operator:op,password:pw})})
+      .then(function(r){ return r.json(); })
+      .then(function(x){ if(x&&x.ok&&x.token){ localStorage.setItem('booker_token',x.token); $("#lgPass").value=''; msg.textContent=''; hideLogin(); boot(); } else msg.textContent='Wrong login or password.'; })
+      .catch(function(){ msg.textContent="Couldn't reach the server."; });
+  }
+  gate.querySelector('#lgBtn').addEventListener('click', doLogin);
+  gate.querySelector('#lgPass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+  function j(r){ return r.json().catch(function(){ return {ok:false,error:"Bad response ("+r.status+")"}; }); }
+
+  var REG = [];      // registry + session, from /api/providers
+  var current = null; // provider being edited in the modal
+  var otpStage = {};  // key -> {mobile} between login and verify
+
+  function toast(msg){
+    var t=$("#toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove("show"); },2600);
+  }
+
+  function statusOf(p){
+    var s=p.session||{};
+    if(s.checking) return {cls:"checking",label:"Checking…"};
+    if((s.last401At || s.expired) && !s.active) return {cls:"expired",label:"Session expired"};
+    if(!s.active) return {cls:"disconnected",label:"Not connected"};
+    return {cls:"connected",label:"Connected"};
+  }
+
+  function capChips(p){
+    var c=p.capabilities||{}, out=[];
+    function chip(on,label){ var cls = on===true?"on":on==="masked"?"masked":on==="heuristic"?"masked":"no"; return '<span class="cap '+cls+'">'+label+'</span>'; }
+    out.push('<span class="cap on">'+(c.status==="webhook"?"Webhook status":"Polled status")+'</span>');
+    out.push(chip(c.estimate===true,"Quote"));
+    out.push(chip(c.cancel===true,"Cancel"));
+    if(c.pickupOtp) out.push(chip(c.pickupOtp,"Pickup OTP"));
+    if(c.dropOtp) out.push(chip(c.dropOtp,"Drop OTP"));
+    out.push(chip(c.riderPhone,"Rider phone"));
+    if(c.riderLocation) out.push('<span class="cap on">Live map</span>');
+    return out.join("");
+  }
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];}); }
+  function rel(ts){ if(!ts) return ""; var d=(Date.now()-new Date(ts).getTime())/1000; if(d<60)return"just now"; if(d<3600)return Math.floor(d/60)+"m ago"; if(d<86400)return Math.floor(d/3600)+"h ago"; return Math.floor(d/86400)+"d ago"; }
+
+  function render(){
+    var connected=0, expired=0;
+    REG.forEach(function(p){ var st=statusOf(p); if(st.cls==="connected")connected++; if(st.cls==="expired")expired++; });
+    $("#summary").innerHTML =
+      '<span class="sum-pill"><span class="dot ok"></span><b>'+connected+'</b> of '+REG.length+' connected</span>' +
+      (expired?'<span class="sum-pill"><span class="dot warn"></span><b>'+expired+'</b> need re-connect</span>':'') +
+      '<span class="sum-pill"><span class="dot bad"></span><b>'+(REG.length-connected-expired)+'</b> not set up</span>';
+
+    $("#grid").innerHTML = REG.map(function(p){
+      var st=statusOf(p), s=p.session||{};
+      var acct = s.active
+        ? 'Connected as <b>'+esc(s.accountLabel||"account")+'</b>'+(s.refreshedAt?' <span class="muted">· '+rel(s.refreshedAt)+'</span>':'')
+        : (st.cls==="expired" ? '<span class="muted">Session ended — reconnect to resume</span>' : '<span class="muted">Not connected yet</span>');
+      return ''+
+      '<div class="card" data-k="'+p.key+'">'+
+        '<div class="card-top">'+
+          '<span class="cmark" style="background:'+p.color+';color:'+p.textColor+'">'+markLabel(p)+'</span>'+
+          '<div class="card-title"><h3>'+esc(p.name)+'</h3><div class="tag">'+esc(p.tagline)+'</div></div>'+
+        '</div>'+
+        '<div class="status-pill '+st.cls+'"><span class="sdot"></span>'+st.label+'</div>'+
+        '<div class="caps">'+capChips(p)+'</div>'+
+        '<div class="acct">'+acct+'</div>'+
+        '<div class="card-actions">'+
+          (s.active
+            ? '<button class="btn btn-ghost" data-act="check">Check status</button>'+
+              '<button class="btn btn-danger-ghost" data-act="logout">Disconnect</button>'
+            : (st.cls==="expired"
+              ? '<button class="btn btn-primary" data-act="connect">↻ Reconnect '+esc(p.name)+'</button>'
+              : '<button class="btn btn-primary" data-act="connect">Connect '+esc(p.name)+'</button>'+
+                (p.authType==="otp"?'<button class="btn btn-ghost" data-act="connect">Re-login</button>'
+                 :p.authType==="paste"?'<button class="btn btn-ghost" data-act="connect">Paste session</button>':'')))+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+    Array.prototype.forEach.call($("#grid").querySelectorAll(".card"),function(card){
+      var key=card.getAttribute("data-k");
+      Array.prototype.forEach.call(card.querySelectorAll("[data-act]"),function(btn){
+        btn.addEventListener("click",function(){ onAction(key, btn.getAttribute("data-act")); });
+      });
+    });
+  }
+
+  function markLabel(p){ return {porter_web:"P",delhivery:"D",shiprocket:"SR",shadowfax:"SF",rapido:"R",uber:"U"}[p.key]||p.name[0]; }
+
+  function onAction(key, act){
+    var p = REG.find(function(x){ return x.key===key; });
+    if(act==="connect") return openModal(p);
+    if(act==="check") return checkStatus(p);
+    if(act==="logout") return logout(p);
+  }
+
+  function checkStatus(p){
+    p.session=p.session||{}; p.session.checking=true; render();
+    toast("Checking "+p.name+" with a live fare call…");
+    api.post("/api/providers/"+p.key+"/check").then(function(r){
+      p.session = { active:r.active, accountLabel:r.accountLabel, refreshedAt:r.refreshedAt, last401At:r.last401At,
+                    live:r.live, serviceable:r.serviceable, fare:r.fare, note:r.note };
+      render();
+      var msg;
+      if(r.live===false || !r.active) msg = p.name+" — session expired, please reconnect";
+      else if(r.fare!=null) msg = p.name+" ✓ live — sample fare ₹"+r.fare+(r.eta?(" · "+r.eta):"");
+      else if(r.serviceable===false) msg = p.name+" ✓ token live — test route not serviceable right now";
+      else if(r.note) msg = p.name+" ✓ "+r.note;
+      else msg = p.name+" ✓ live";
+      toast(msg);
+    }).catch(function(){ p.session.checking=false; render(); toast("Couldn't reach "+p.name); });
+  }
+
+  function logout(p){
+    api.post("/api/providers/"+p.key+"/logout").then(function(){
+      p.session={active:false}; render(); toast(p.name+" disconnected");
+    });
+  }
+
+  // ---------- modal ----------
+  function openModal(p){
+    current=p;
+    $("#modalMark").textContent=markLabel(p);
+    $("#modalMark").style.background=p.color; $("#modalMark").style.color=p.textColor;
+    var reconnecting = p.session && !p.session.active && (p.session.last401At || p.session.expired);
+    $("#modalTitle").textContent = (reconnecting ? "Reconnect " : "Connect ")+p.name;
+    if(p.authType==="otp") renderOtpMobile(p);
+    else renderPaste(p);
+    $("#overlay").classList.add("open");
+  }
+  function closeModal(){ $("#overlay").classList.remove("open"); current=null; }
+
+  function instrBlock(p){
+    var ins=p.instructions||{}; if(!ins.steps) return "";
+    return '<div class="instr"><h4>ℹ︎ '+esc(ins.title||"How to connect")+'</h4><ol>'+
+      ins.steps.map(function(s){ return '<li>'+linkify(s)+'</li>'; }).join("")+'</ol>'+
+      (ins.caveat?'<div class="caveat">'+esc(ins.caveat)+'</div>':'')+'</div>';
+  }
+  function linkify(s){ return esc(s); }
+
+  function msgBox(){ return '<div class="msg" id="modalMsg"></div>'; }
+  function showMsg(cls,text){ var m=$("#modalMsg"); if(!m)return; m.className="msg show "+cls; m.innerHTML=text; }
+  function clearMsg(){ var m=$("#modalMsg"); if(m) m.className="msg"; }
+
+  // OTP — step 1 (mobile)
+  function renderOtpMobile(p){
+    var f=p.login.fields[0];
+    $("#modalBody").innerHTML = instrBlock(p)+msgBox()+
+      '<div class="field"><label>'+esc(f.label)+'</label>'+
+      '<input id="fld_mobile" type="tel" maxlength="'+(f.maxlen||10)+'" placeholder="'+esc(f.placeholder||"")+'">'+
+      (f.help?'<div class="fhelp">'+esc(f.help)+'</div>':'')+'</div>';
+    $("#modalActions").innerHTML =
+      '<button class="btn btn-ghost" id="mCancel">Cancel</button>'+
+      '<button class="btn btn-primary" id="mNext">Send OTP</button>';
+    $("#mCancel").onclick=closeModal;
+    $("#mNext").onclick=function(){ sendOtp(p); };
+    setTimeout(function(){ var el=$("#fld_mobile"); if(el) el.focus(); },50);
+  }
+  function sendOtp(p){
+    var mobile=($("#fld_mobile").value||"").replace(/\D/g,"");
+    if(mobile.length<10){ showMsg("err","Enter a 10-digit mobile number."); return; }
+    setBusy("#mNext","Sending…");
+    api.post("/api/providers/"+p.key+"/login",{mobile:mobile}).then(function(r){
+      if(!r.ok){ showMsg("err",r.error||"Couldn't send OTP"); resetBusy("#mNext","Send OTP"); return; }
+      if(r.alreadyConnected){ toast(p.name+" already connected"); afterConnect(p,r.accountLabel); return; }
+      otpStage[p.key]={mobile:mobile};
+      renderOtpVerify(p, r.demoHint);
+    }).catch(function(){ showMsg("err","Network error"); resetBusy("#mNext","Send OTP"); });
+  }
+  // OTP — step 2 (verify)
+  function renderOtpVerify(p, hint){
+    var vf=p.login.verifyFields[0], mobile=otpStage[p.key].mobile;
+    $("#modalBody").innerHTML = msgBox()+
+      '<div class="otp-sent">OTP sent to <b>+91 '+esc(mobile)+'</b> · <a id="chg">change number</a></div>'+
+      '<div class="field"><label>'+esc(vf.label)+'</label>'+
+      '<input id="fld_otp" type="tel" inputmode="numeric" maxlength="'+(vf.maxlen||6)+'" placeholder="'+esc(vf.placeholder||"")+'"></div>'+
+      (hint?'<div class="msg show info">'+esc(hint)+'</div>':'');
+    $("#modalActions").innerHTML =
+      '<button class="btn btn-ghost" id="mBack">Back</button>'+
+      '<button class="btn btn-primary" id="mVerify">Verify &amp; connect</button>';
+    $("#chg").onclick=function(){ renderOtpMobile(p); };
+    $("#mBack").onclick=function(){ renderOtpMobile(p); };
+    $("#mVerify").onclick=function(){ verifyOtp(p); };
+    setTimeout(function(){ var el=$("#fld_otp"); if(el) el.focus(); },50);
+  }
+  function verifyOtp(p){
+    var otp=($("#fld_otp").value||"").replace(/\D/g,"");
+    if(otp.length<4){ showMsg("err","Enter the OTP."); return; }
+    setBusy("#mVerify","Verifying…");
+    api.post("/api/providers/"+p.key+"/verify",{mobile:otpStage[p.key].mobile,otp:otp}).then(function(r){
+      if(!r.ok||!r.connected){ showMsg("err",r.error||"Verification failed"); resetBusy("#mVerify","Verify & connect"); return; }
+      afterConnect(p, r.accountLabel, r);
+    }).catch(function(){ showMsg("err","Network error"); resetBusy("#mVerify","Verify & connect"); });
+  }
+
+  // PASTE
+  function renderPaste(p){
+    var fields=p.login.fields.map(function(f){
+      var input;
+      if(f.type==="textarea"){
+        var ta='<textarea id="fld_'+f.name+'" rows="'+(f.rows||3)+'" placeholder="'+esc(f.placeholder||"")+'"></textarea>';
+        input = ta;
+      } else {
+        input='<input id="fld_'+f.name+'" type="'+(f.type||"text")+'" placeholder="'+esc(f.placeholder||"")+'">';
+      }
+      return '<div class="field'+(f.half?" half":"")+'"><label>'+esc(f.label)+'</label>'+input+
+        (f.help?'<div class="fhelp">'+esc(f.help)+'</div>':'')+'</div>';
+    }).join("");
+    $("#modalBody").innerHTML = instrBlock(p)+msgBox()+fields;
+    $("#modalActions").innerHTML =
+      '<button class="btn btn-ghost" id="mCancel">Cancel</button>'+
+      '<button class="btn btn-primary" id="mSave">Save &amp; connect</button>';
+    $("#mCancel").onclick=closeModal;
+    $("#mSave").onclick=function(){ savePaste(p); };
+  }
+  function savePaste(p){
+    var body={};
+    p.login.fields.forEach(function(f){ var el=$("#fld_"+f.name); if(el) body[f.name]=el.value.trim(); });
+    var missing=p.login.fields.filter(function(f){ return f.required && !body[f.name]; });
+    if(missing.length){ showMsg("err","Required: "+missing.map(function(f){return f.label;}).join(", ")); return; }
+    setBusy("#mSave","Saving…");
+    api.post("/api/providers/"+p.key+"/save-session",body).then(function(r){
+      if(!r.ok||!r.connected){ showMsg("err",r.error||"Couldn't save session"); resetBusy("#mSave","Save & connect"); return; }
+      if(r.warnings&&r.warnings.length) toast(r.warnings[0]);
+      afterConnect(p, r.accountLabel, r);
+    }).catch(function(){ showMsg("err","Network error"); resetBusy("#mSave","Save & connect"); });
+  }
+
+  function afterConnect(p, label, r){
+    p.session={active:true, accountLabel:label, refreshedAt:new Date().toISOString()};
+    closeModal(); render();
+    r = r || {};
+    var fare = r.probe && r.probe.fare;
+    if(fare!=null) toast(p.name+" connected ✓ — verified with a live fare (₹"+fare+")");
+    else if(r.warnings && r.warnings.length) toast(p.name+" connected ✓ — "+r.warnings[0]);
+    else toast(p.name+" connected ✓ (live fare check passed)");
+  }
+
+  function setBusy(sel,txt){ var b=$(sel); if(b){ b.disabled=true; b._t=b.textContent; b.textContent=txt; } }
+  function resetBusy(sel,txt){ var b=$(sel); if(b){ b.disabled=false; b.textContent=txt; } }
+
+  $("#modalClose").onclick=closeModal;
+  $("#overlay").addEventListener("click",function(e){ if(e.target===$("#overlay")) closeModal(); });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&$("#overlay").classList.contains("open")) closeModal(); });
+
+  // ---------- boot ----------
+  function boot(){
+    api.get("/api/providers").then(function(r){
+      if(r && r.error && /auth/i.test(r.error)){ signOut(); return; }
+      REG = r.providers||[];
+      var mode = r.authMode==="dev" ? "single-tenant dev mode" : "tenant "+String(r.tenantId||"").slice(0,8);
+      var anyMock = REG.some(function(p){ return p.adapterMode==="mock"; });
+      $("#envNote").innerHTML='<span class="badge">'+esc(r.authMode||"?")+'</span> '+esc(mode)+
+        (anyMock?' · <span class="badge">demo adapters</span> connect/quote/track simulated — no courier is contacted':' · live adapters');
+      render();
+    }).catch(function(){
+      $("#grid").innerHTML='<div class="msg show err" style="display:block">Couldn\'t reach the ShipHop API. Start the server (npm start in server/) and reload.</div>';
+    });
+  }
+  // Gate on login. Stored token → validate by booting; a 401 shows the login.
+  if(!token()){ showLogin(); }
+  else {
+    fetch('/api/providers',{headers:hdr()}).then(function(r){ if(r.status===401){ signOut(); } else { boot(); } }).catch(function(){ boot(); });
+  }
+})();
+</script>
+</body>
+</html>

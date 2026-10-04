@@ -1,0 +1,117 @@
+{
+  "chef": {
+    "name": "Meera Sample",
+    "brand": "Meera Sample",
+    "city": "Bengaluru",
+    "locality": "HSR Layout",
+    "kitchen_hours": "9 AM to 9 PM"
+  },
+  "rates": {
+    "zomato": 0.27,
+    "bhookle": 0.18,
+    "chef_share_of_bhookle_rate": 0.8,
+    "rounding": 1,
+    "assumed_current_commission": 0.3
+  },
+  "items": [
+    {
+      "s_no": 1,
+      "name": "Methi Thepla",
+      "category": "Breakfast",
+      "subcategory": "Theplas & Chillas",
+      "serving_size": "4 pieces - Serves 1",
+      "description": "Four methi thepla served with masala dahi and achaar",
+      "dietary": "Veg",
+      "bhookle_rate": 125,
+      "chef_rate": 100.0,
+      "customer_price": 182,
+      "units": [
+        4,
+        "piece"
+      ],
+      "zomato_cut": 49.14,
+      "bhookle_cut": 32.76,
+      "net_to_chef": 100.1,
+      "margin_vs_chef_rate": 0.1
+    },
+    {
+      "s_no": 2,
+      "name": "Regular Thali",
+      "category": "Thali",
+      "subcategory": "Everyday Thali",
+      "serving_size": "2 phulkas + dal + sabji + rice - Serves 1",
+      "description": "Two phulkas served with dal of the day, a seasonal dry sabji and jeera rice",
+      "dietary": "Veg",
+      "bhookle_rate": 150,
+      "chef_rate": 120.0,
+      "customer_price": 219,
+      "zomato_cut": 59.13,
+      "bhookle_cut": 39.42,
+      "net_to_chef": 120.45,
+      "margin_vs_chef_rate": 0.45
+    },
+    {
+      "s_no": 3,
+      "name": "Phulka Paneer Gravy",
+      "category": "Main Course",
+      "subcategory": "Phulka Combos",
+      "serving_size": "4 phulkas + 250 ml - Serves 1",
+      "description": "Four phulkas served with a 250 ml box of paneer gravy",
+      "dietary": "Veg",
+      "bhookle_rate": 180,
+      "chef_rate": 144.0,
+      "customer_price": 262,
+      "units": [
+        4,
+        "phulka"
+      ],
+      "zomato_cut": 70.74,
+      "bhookle_cut": 47.16,
+      "net_to_chef": 144.1,
+      "margin_vs_chef_rate": 0.1
+    }
+  ],
+  "held_back": [
+    {
+      "s_no": 15,
+      "name": "Rava Handvo",
+      "bhookle_rate": 150,
+      "missing": "Serving size — the source dish story reads \"Rava Handvo with Chutney\" with no piece count or volume.",
+      "ask": "How many pieces, or what box size, is one order?"
+    }
+  ],
+  "market": {
+    "competitors": [
+      {
+        "name": "Khanna's, Kaikondrahalli",
+        "rating": "4.2 ★",
+        "prices": "₹289 for two kulchas with gravy · ₹55 for one lachha parantha · ₹319 for a full non-veg thali · around ₹450 for two people"
+      },
+      {
+        "name": "Paratha Kitchen, Sarjapur Road",
+        "rating": "3.7 ★",
+        "prices": "₹24 for a plain paratha · ₹67 chana masala · ₹76 matar paneer · around ₹400 for two people"
+      },
+      {
+        "name": "RRoyal Rajasthan, Sarjapur Road",
+        "rating": "4.1 ★",
+        "prices": "₹129 for six poori with chole · around ₹850 for two people"
+      }
+    ],
+    "notes": [
+      "Your menu is priced below them, and that is deliberate. Twenty of your 31 dishes are ₹219 or less. Your paratha combos are ₹182 to ₹219 against Khanna's ₹289 for a comparable plate, from a kitchen that has not yet earned its first rating. That gap is what gets a new listing its first orders."
+    ]
+  },
+  "changes_intro": "Three dishes were priced above anything a single vegetarian order fetches in your area. At ₹328, the jeera rice with palak paneer cost more than Khanna's entire non-veg thali at ₹319. This does reduce your rate on these three, and we would rather say so plainly than leave you with three dishes nobody buys.",
+  "changes": [
+    {
+      "name": "Jeera Rice Palak Paneer",
+      "old_chef_rate": 180,
+      "new_chef_rate": 156,
+      "old_customer_price": 328,
+      "new_customer_price": 284,
+      "why": "Was above Khanna's full thali at ₹319."
+    }
+  ],
+  "open_question": "Ajwain Poori, ₹262 for three poori with aloo matar sabji. RRoyal Rajasthan on Sarjapur Road, rated 4.1 with 349 reviews, sells six poori with chole for ₹129. Yours is half the number of pooris at twice the price. We have not changed it, because we think the answer is the portion rather than the rate. Would four or five pooris work at this price? Your call."
+}

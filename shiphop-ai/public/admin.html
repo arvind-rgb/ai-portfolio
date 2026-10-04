@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShipHop.AI · Admin</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  :root{
+    --amber:#FFA70B; --purple:#341C3D; --white:#fff; --off:#F5F5F5;
+    --ink:#333; --grey:#AAA; --line:#e7e3ec; --ok:#1e9e5a; --err:#C0392B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Poppins","Segoe UI",Roboto,system-ui,sans-serif;background:var(--off);color:var(--ink)}
+  header{background:var(--purple);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:12px}
+  header .logo{width:30px;height:30px;border-radius:8px;background:var(--amber);color:var(--purple);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+  header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+  header .bmark{width:40px;height:40px;flex:none;display:block}
+  header .bword{font-family:"Poppins",system-ui,sans-serif;font-weight:800;font-size:21px;line-height:1;color:#fff}
+  header .bword .ai{color:var(--amber);font-size:12px;font-weight:700}
+  header .divider{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 4px}
+  header .sub{color:#cbb9d6;font-size:12px;margin-left:auto}
+  main{max-width:920px;margin:32px auto;padding:0 20px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:0 1px 3px rgba(52,28,61,.06);margin-bottom:22px}
+  h2{font-size:16px;margin:0 0 16px;font-weight:600}
+  label{display:block;font-size:12px;color:#6b6b6b;margin:0 0 6px;font-weight:600}
+  input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font:inherit;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,167,11,.15)}
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .row .grow{flex:1;min-width:200px}
+  button{border:none;border-radius:10px;padding:11px 18px;font:inherit;font-weight:700;cursor:pointer}
+  .btn-amber{background:var(--amber);color:#17150f}
+  .btn-purple{background:var(--purple);color:#fff}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:600}
+  button:active{transform:translateY(1px)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line)}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--grey)}
+  td code{background:var(--off);padding:2px 6px;border-radius:6px;font-size:12px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;background:#e6f6ec;color:var(--ok)}
+  .msg{padding:11px 14px;border-radius:10px;font-size:13px;margin-top:12px;display:none}
+  .msg.show{display:block}
+  .msg.err{background:#fbe9e6;color:var(--err)}
+  .msg.ok{background:#e6f6ec;color:var(--ok)}
+  .cred{background:#fff8ec;border:1px solid #ffd98a;border-radius:12px;padding:16px;margin-top:14px}
+  .cred h3{margin:0 0 10px;font-size:14px;color:#8a5a00}
+  .cred .kv{display:flex;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+  .cred .kv b{min-width:150px;color:#6b6b6b;font-weight:600;font-size:12px}
+  .cred code{background:#fff;border:1px solid #ffd98a;padding:4px 9px;border-radius:7px;font-size:13px;user-select:all}
+  .muted{color:var(--grey);font-size:12px}
+  .hidden{display:none}
+  .copy{font-size:11px;padding:4px 8px;border-radius:6px;background:var(--purple);color:#fff;border:none;cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <svg class="bmark" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="42" height="42" rx="11" fill="#FBF8F2"/>
+    <g transform="rotate(-13 16 15)"><rect x="13" y="6" width="6" height="17" rx="3" fill="#341C3D"/><rect x="14.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+    <g transform="rotate(13 26 15)"><rect x="23" y="6" width="6" height="17" rx="3" fill="#341C3D"/><rect x="24.6" y="8.6" width="2.8" height="10.5" rx="1.4" fill="#D3572B"/></g>
+    <circle cx="21" cy="27" r="9" fill="#341C3D"/>
+    <circle cx="17.8" cy="26" r="1.25" fill="#FBF8F2"/><circle cx="24.2" cy="26" r="1.25" fill="#FBF8F2"/>
+    <circle cx="21" cy="29.3" r="1.5" fill="#FFA70B"/>
+  </svg>
+  <span class="bword">ShipHop<span class="ai">.ai</span></span>
+  <span class="divider"></span>
+  <h1>Admin</h1>
+  <span class="sub" id="who"></span>
+</header>
+<main>
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <h2>Admin sign-in</h2>
+    <div class="row">
+      <div class="grow">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@company.com" autocomplete="username">
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="grow">
+        <label for="pw">Password</label>
+        <input id="pw" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-purple" id="loginBtn">Sign in</button>
+    </div>
+    <div class="msg err" id="loginMsg"></div>
+    <p class="muted" style="margin-top:14px">This console manages the businesses (tenants) that use ShipHop.AI. Credentials are set via <code>BOOKER_ADMIN_EMAIL</code> / <code>BOOKER_ADMIN_PASSWORD</code> in <code>server/.env</code>.</p>
+  </div>
+
+  <!-- CONSOLE -->
+  <div id="console" class="hidden">
+    <div class="card">
+      <h2>Create a tenant</h2>
+      <div class="row">
+        <div class="grow">
+          <label for="tname">Business name</label>
+          <input id="tname" placeholder="e.g. Anna Nagar Kitchens">
+        </div>
+        <button class="btn-amber" id="createBtn">Create tenant</button>
+      </div>
+      <div class="msg err" id="createMsg"></div>
+      <div class="cred hidden" id="credBox">
+        <h3>⚠ Operator credential — shown once. Copy it now and hand it to the business.</h3>
+        <div class="kv"><b>Login</b> <code id="credLogin"></code> <button class="copy" data-c="credLogin">Copy</button></div>
+        <div class="kv"><b>Password</b> <code id="credPass"></code> <button class="copy" data-c="credPass">Copy</button></div>
+        <div class="kv"><b>Tenant ID</b> <code id="credTid"></code></div>
+        <p class="muted" style="margin:8px 0 0">The operator signs in at <code>/connections</code> and <code>/</code> with this login + password.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Tenants</h2>
+      <table>
+        <thead><tr><th>Business</th><th>Operator login</th><th>Tenant ID</th><th>Created</th><th>Status</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+  function tok(){ return localStorage.getItem("booker_admin_token") || ""; }
+  function setTok(t){ if(t) localStorage.setItem("booker_admin_token", t); else localStorage.removeItem("booker_admin_token"); }
+  function hdr(){ var h={"content-type":"application/json"}; if(tok()) h["authorization"]="Bearer "+tok(); return h; }
+  function show(el,msg,kind){ el.textContent=msg; el.className="msg show "+(kind||"err"); }
+  function hide(el){ el.className="msg"; }
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  function enterConsole(){
+    $("#loginCard").classList.add("hidden");
+    $("#console").classList.remove("hidden");
+    $("#who").textContent = "signed in";
+    loadTenants();
+  }
+
+  function login(){
+    var email = $("#email").value.trim(), pw = $("#pw").value;
+    hide($("#loginMsg"));
+    fetch("/api/admin/login",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email:email, password:pw})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(j && j.ok && j.token){ setTok(j.token); $("#pw").value=""; enterConsole(); }
+        else show($("#loginMsg"), j && j.error==="admin_not_configured" ? "Admin login isn't set on the server (BOOKER_ADMIN_EMAIL / BOOKER_ADMIN_PASSWORD)." : "Wrong email or password.");
+      })
+      .catch(function(){ show($("#loginMsg"),"Couldn't reach the server."); });
+  }
+
+  function loadTenants(){
+    fetch("/api/admin/tenants",{headers:hdr()})
+      .then(function(r){ if(r.status===401||r.status===403){ setTok(null); location.reload(); return {tenants:[]}; } return r.json(); })
+      .then(function(j){
+        var rows = (j && j.tenants) || [];
+        var tb = $("#tbody");
+        if(!rows.length){ tb.innerHTML='<tr><td colspan="5" class="muted">No tenants yet. Create one above.</td></tr>'; return; }
+        tb.innerHTML = rows.map(function(t){
+          var d = t.created_at ? new Date(t.created_at).toLocaleDateString() : "—";
+          return '<tr><td><b>'+esc(t.name)+'</b></td><td><code>'+esc(t.login||"—")+'</code></td>'+
+            '<td><code>'+esc(String(t.tenant_id).slice(0,8))+'…</code></td><td>'+esc(d)+'</td>'+
+            '<td><span class="pill">'+esc(t.status||"active")+'</span></td></tr>';
+        }).join("");
+      })
+      .catch(function(){});
+  }
+
+  function createTenant(){
+    var name = $("#tname").value.trim();
+    hide($("#createMsg")); $("#credBox").classList.add("hidden");
+    if(!name){ show($("#createMsg"),"Enter a business name."); return; }
+    fetch("/api/admin/tenants",{method:"POST",headers:hdr(),body:JSON.stringify({name:name})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(j && j.ok){
+          $("#credLogin").textContent = j.tenant.login;
+          $("#credPass").textContent = j.password;
+          $("#credTid").textContent = j.tenant.tenant_id;
+          $("#credBox").classList.remove("hidden");
+          $("#tname").value="";
+          loadTenants();
+        } else show($("#createMsg"), (j && j.error) || "Couldn't create tenant.");
+      })
+      .catch(function(){ show($("#createMsg"),"Couldn't reach the server."); });
+  }
+
+  $("#loginBtn").addEventListener("click", login);
+  $("#pw").addEventListener("keydown", function(e){ if(e.key==="Enter") login(); });
+  $("#email").addEventListener("keydown", function(e){ if(e.key==="Enter") login(); });
+  $("#createBtn").addEventListener("click", createTenant);
+  $("#tname").addEventListener("keydown", function(e){ if(e.key==="Enter") createTenant(); });
+  document.addEventListener("click", function(e){
+    var b = e.target.closest(".copy"); if(!b) return;
+    var el = document.getElementById(b.getAttribute("data-c"));
+    if(el && navigator.clipboard){ navigator.clipboard.writeText(el.textContent); b.textContent="Copied"; setTimeout(function(){ b.textContent="Copy"; }, 1400); }
+  });
+
+  // Resume a session if the admin token is still valid.
+  if(tok()){
+    fetch("/api/admin/tenants",{headers:hdr()}).then(function(r){ if(r.ok) enterConsole(); else setTok(null); }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>

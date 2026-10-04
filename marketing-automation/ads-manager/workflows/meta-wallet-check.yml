@@ -1,0 +1,68 @@
+# Bhookle AdsManager — Meta prepaid wallet watchdog
+# Checks the ad account's available balance every 6 hours and emails
+# owner@example.com when it falls below ₹1,000 (transition + 24h re-reminds).
+# State is committed to AdManager/wallet_state.json to suppress duplicate alerts.
+
+name: Meta Wallet Check
+
+permissions:
+  contents: write   # commit wallet_state.json back
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 */6 * * *'   # every 6h (GH cron has jitter; fine for this)
+
+jobs:
+  wallet-check:
+    name: Check Meta wallet balance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run wallet check
+        env:
+          META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADS_REPORT_RECIPIENT: owner@example.com
+          WALLET_ALERT_THRESHOLD_INR: '1000'
+        run: python3 _skills/ads-manager/scripts/check_wallet.py
+
+      - name: Commit state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AdManager/wallet_state.json || true
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(wallet-check): state update"
+            git pull --rebase origin main
+            git push
+          fi
+
+      - name: Email me on workflow failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "⚠️ Bhookle workflow failed: ${{ github.workflow }}"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            Workflow: ${{ github.workflow }}
+            Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            The wallet balance check did not complete — the low-balance alert may not fire.

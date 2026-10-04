@@ -1,0 +1,147 @@
+name: Bhookle Notify — Sync & Preview
+
+# Sending is done ON THE DOT by Cloud Scheduler + Firebase functions (codebase
+# bhookle-notify in project <firebase-project-id>): notifyLunch 11:45, notifyDinner 18:45 IST
+# (+ idempotent 11:57/18:57 retries). This workflow does NOT send — it only:
+#   - sync   : push the calendar (source of truth) -> Firestore (the function's store)
+#   - preview: Monday 07:00 IST FYI email of the week
+#   - dry    : manual FCM auth self-test
+#   - tick   : manual break-glass sender (emergency only)
+#
+# IST->UTC: Mon 07:00 -> 01:30 UTC Mon.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'notifications/notification-calendar.json'
+  schedule:
+    - cron: '30 1 * * 1'    # Mon 07:00 IST — weekly FYI preview
+    - cron: '0 3 * * *'     # 08:30 IST daily — runway watchdog (emails if low / today unarmed)
+  repository_dispatch:
+    types: [notify_sync, notify_preview]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'sync | preview | dry | tick | runway'
+        default: 'dry'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bhookle-notify
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve mode
+        id: m
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          SCHED: ${{ github.event.schedule }}
+          WD_MODE: ${{ github.event.inputs.mode }}
+        run: |
+          MODE=sync
+          case "$EVENT" in
+            push) MODE=sync;;
+            schedule) [ "$SCHED" = "0 3 * * *" ] && MODE=runway || MODE=preview;;
+            repository_dispatch) [ "$ACTION" = "notify_preview" ] && MODE=preview || MODE=sync;;
+            workflow_dispatch) MODE="${WD_MODE:-dry}";;
+          esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "mode=$MODE (event=$EVENT)"
+
+      # ---- sync: calendar JSON -> Firestore (Node, firebase-admin) ----
+      - name: Set up Node
+        if: steps.m.outputs.mode == 'sync'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Sync calendar to Firestore
+        if: steps.m.outputs.mode == 'sync'
+        env:
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$FCM_SERVICE_ACCOUNT_JSON" > /tmp/sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+          cd notifications/functions
+          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+          node sync.js
+          rm -f /tmp/sa.json
+
+      # ---- preview / dry / tick: Python ----
+      - name: Set up Python
+        if: steps.m.outputs.mode != 'sync'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python deps
+        if: steps.m.outputs.mode != 'sync'
+        run: pip install --quiet requests google-auth pytz
+
+      - name: Runway watchdog — email if calendar running low / today unarmed
+        if: steps.m.outputs.mode == 'runway'
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_RECIPIENT: owner@example.com
+        run: python3 _skills/bhookle-notify/scripts/check_runway.py
+
+      - name: Preview — weekly FYI email
+        if: steps.m.outputs.mode == 'preview'
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_RECIPIENT: owner@example.com
+        run: python3 _skills/bhookle-notify/scripts/send_preview.py
+
+      - name: Dry — FCM auth self-test (no delivery)
+        if: steps.m.outputs.mode == 'dry'
+        env:
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+        run: python3 _skills/bhookle-notify/scripts/notify_tick.py --selftest
+
+      - name: Tick — break-glass manual sender (emergency)
+        if: steps.m.outputs.mode == 'tick'
+        env:
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+        run: python3 _skills/bhookle-notify/scripts/notify_tick.py
+
+      - name: Commit calendar status changes (tick only)
+        if: steps.m.outputs.mode == 'tick'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add notifications/notification-calendar.json || true
+          if ! git diff --staged --quiet; then
+            git commit -m "auto: notify break-glass status update [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin main && git push origin main && break
+              echo "push retry $i"; sleep 5
+            done
+          fi
+
+      - name: Email me on failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "⚠️ Bhookle Notify (${{ steps.m.outputs.mode }}) failed"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            Mode: ${{ steps.m.outputs.mode }}
+            Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Note: actual sending is via Cloud Scheduler functions, not this workflow.

@@ -1,0 +1,28 @@
+# add-first-dish.yaml — on a chef menu, add the first dish; assert the cart bar.
+#
+# ★ CRITICAL CHECK — PROVEN 2026-06-09 ★ tapping ADD BY ID adds the dish.
+# Findings captured this session:
+#   - ADD button id is STATIC "dish-add-btn" (CartButton_2), shared by every dish
+#     card → select by index, not a templated dish-add-<id>.
+#   - A COORDINATE/point-tap on ADD is swallowed by the dish-card touchable, but a
+#     Maestro `id:` tap dispatches straight to the element and WORKS. So testIDs
+#     solved the card-swallow problem — you just must drive by id:, never by point.
+#   - On success the ADD turns into a stepper (dish-qty-minus-btn / dish-qty-value /
+#     dish-qty-plus-btn) and the GLOBAL bottom cart bar appears as "bottom-cart-btn"
+#     (BottomCartComponent) — NOT "cart-bar" (CartBarComponent). The bar is global
+#     and persists until the cart is cleared.
+#   - dish-add-btn is not always in the first viewport: the top "Get It Today"
+#     (instant) cards group ADD out of the tree; the addressable CartButton_2 ADD
+#     shows lower ("Get It Later") → scroll to it first.
+appId: ${APP_ID}
+---
+- assertVisible: { id: "cheffoodlist-screen" }
+- scrollUntilVisible:
+    element: { id: "dish-add-btn" }
+    direction: DOWN
+    timeout: 20000
+- tapOn: { id: "dish-add-btn", index: 0 }
+- extendedWaitUntil:
+    visible: { id: "bottom-cart-btn" }
+    timeout: 12000
+- assertVisible: { id: "bottom-cart-btn" }

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Bhookle · Kitchen Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;500;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+:root{
+  --bh-cream:#FFF8EC; --bh-mulberry:#341C3D; --bh-orange:#FFA70B; --bh-orange-600:#E08A00;
+  --bh-magenta:#E51A4B; --bh-teal:#00AAB2; --bh-burnt:#E15A18;
+  --fg-2:#6E4F7A; --line:#F0E3CE;
+  --r-md:12px; --r-lg:18px; --r-2xl:32px; --r-pill:999px;
+  --shadow-2:0 6px 24px rgba(52,28,61,.10);
+  --shadow-orange:0 6px 20px rgba(255,167,11,.35);
+  --ease-out:cubic-bezier(0.2,0.8,0.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;font-weight:500;background:var(--bh-cream);color:var(--bh-mulberry)}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px}
+
+/* hero */
+.hero{background:var(--bh-mulberry);padding:56px 0 64px}
+.hero .wrap{display:flex;flex-direction:column;gap:16px}
+.hero img.logo{width:150px;align-self:flex-start}
+.eyebrow{font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--bh-magenta);font-size:13px}
+.hero h1{font-weight:900;color:var(--bh-cream);font-size:clamp(30px,5vw,44px);line-height:1.12}
+.hero h1 em{font-style:normal;color:var(--bh-orange)}
+.hero p.sub{color:var(--bh-cream);opacity:.75;font-size:16px;max-width:560px}
+
+/* form card */
+.card{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow-2);padding:40px}
+.gen{margin-top:-36px}
+.card h2{font-weight:900;font-size:22px;margin-bottom:6px}
+.card p.hint{color:var(--fg-2);font-size:14px;margin-bottom:28px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field.full{grid-column:1/-1}
+label{font-size:13px;font-weight:900;letter-spacing:.02em}
+label .opt{font-weight:500;color:var(--fg-2)}
+input,textarea{font-family:inherit;font-weight:500;font-size:15px;color:var(--bh-mulberry);
+  background:var(--bh-cream);border:1.5px solid var(--line);border-radius:var(--r-md);
+  padding:13px 16px;transition:border-color .14s var(--ease-out)}
+input:focus,textarea:focus{outline:2px solid var(--bh-orange);outline-offset:2px;border-color:var(--bh-orange)}
+textarea{resize:vertical;min-height:70px}
+.actions{display:flex;align-items:center;gap:16px;margin-top:28px;flex-wrap:wrap}
+button.primary{font-family:inherit;font-weight:900;font-size:16px;color:var(--bh-mulberry);
+  background:var(--bh-orange);border:none;border-radius:var(--r-md);padding:15px 32px;cursor:pointer;
+  box-shadow:var(--shadow-orange);display:inline-flex;align-items:center;gap:10px;
+  transition:background .14s var(--ease-out)}
+button.primary:hover{background:var(--bh-orange-600)}
+button.primary:active{transform:scale(.96)}
+button.ghost{font-family:inherit;font-weight:900;font-size:14px;color:var(--bh-mulberry);
+  background:transparent;border:1.5px solid var(--bh-mulberry);border-radius:var(--r-md);
+  padding:13px 22px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+button.ghost:active{transform:scale(.96)}
+.status{margin-top:18px;font-size:14px;color:var(--bh-teal);font-weight:900;display:none}
+
+/* gallery */
+.section-head{display:flex;align-items:baseline;gap:14px;margin:56px 0 20px}
+.section-head h2{font-weight:900;font-size:24px}
+.section-head span{color:var(--fg-2);font-size:14px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.rep{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow-2);padding:26px;
+  display:flex;flex-direction:column;gap:10px;color:var(--bh-mulberry);
+  border-top:5px solid var(--bh-orange);transition:transform .22s var(--ease-out)}
+.rep:hover{transform:translateY(-3px)}
+.rep .k{font-weight:900;font-size:18px;line-height:1.25}
+.rep .loc{color:var(--fg-2);font-size:13.5px}
+.rep .meta{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.rep .acts{display:flex;gap:10px;margin-top:12px}
+.rep .acts a{font-weight:900;font-size:13px;text-decoration:none;border-radius:var(--r-md);
+  padding:10px 18px;display:inline-flex;align-items:center;gap:7px}
+.rep .acts a.open{background:var(--bh-orange);color:var(--bh-mulberry);box-shadow:var(--shadow-orange)}
+.rep .acts a.pdf{border:1.5px solid var(--bh-mulberry);color:var(--bh-mulberry)}
+.rep .acts a:active{transform:scale(.96)}
+.panel{display:none;margin-top:20px;background:var(--bh-cream);border:1.5px solid var(--bh-orange);
+  border-radius:var(--r-md);padding:16px 20px;font-size:14px;line-height:1.6}
+.panel.show{display:block}
+.panel strong{font-weight:900}
+.tokenlink{margin-top:14px;font-size:12.5px;color:var(--fg-2)}
+.tokenlink a{color:var(--bh-burnt);font-weight:900;cursor:pointer;text-decoration:underline}
+.chip{font-size:11.5px;font-weight:900;letter-spacing:.04em;border-radius:var(--r-pill);
+  padding:4px 12px;background:var(--bh-cream);color:var(--bh-mulberry)}
+.chip.sample{background:var(--bh-teal);color:#fff}
+.empty{color:var(--fg-2);font-size:15px;background:#fff;border-radius:var(--r-lg);
+  box-shadow:var(--shadow-2);padding:32px;grid-column:1/-1}
+
+/* how it works */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:20px}
+.how .step{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow-2);padding:24px}
+.how .n{font-weight:900;font-size:26px;color:var(--bh-orange)}
+.how h3{font-weight:900;font-size:15.5px;margin:8px 0 6px}
+.how p{color:var(--fg-2);font-size:13.5px;line-height:1.55}
+
+footer{margin-top:72px;background:var(--bh-mulberry);padding:34px 0}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+footer .foot-tag{font-weight:900;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--bh-orange)}
+footer .fine{color:var(--bh-cream);opacity:.6;font-size:12.5px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.how{grid-template-columns:1fr}.card{padding:28px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <img class="logo" src="assets/logo-full-orange.png" alt="Bhookle">
+    <div class="eyebrow">Kitchen Intelligence</div>
+    <h1>Know a kitchen <em>before</em> you walk into the pitch.</h1>
+    <p class="sub">Enter a home chef's kitchen and their Zomato / Swiggy pages. The research agent
+    compiles a full market intelligence report — standing, branding, menu, pricing, competitors
+    and reviews — ready to share.</p>
+  </div>
+</div>
+
+<div class="wrap gen">
+  <div class="card">
+    <h2>Generate a report</h2>
+    <p class="hint">Kitchen name is required. Add the platform links if you have them — the agent
+    will locate anything missing.</p>
+    <form id="genform">
+      <div class="grid">
+        <div class="field"><label for="kitchen">Chef / kitchen name</label>
+          <input id="kitchen" required placeholder="e.g. Anita's Kitchen"></div>
+        <div class="field"><label for="loc">Location <span class="opt">— area, city</span></label>
+          <input id="loc" placeholder="e.g. Indiranagar, Bangalore"></div>
+        <div class="field"><label for="zom">Zomato page <span class="opt">— optional</span></label>
+          <input id="zom" type="url" placeholder="https://www.zomato.com/..."></div>
+        <div class="field"><label for="swig">Swiggy page <span class="opt">— optional</span></label>
+          <input id="swig" type="url" placeholder="https://www.swiggy.com/..."></div>
+        <div class="field full"><label for="notes">Anything the agent should know <span class="opt">— optional</span></label>
+          <textarea id="notes" placeholder="e.g. meeting the chef on Friday; focus on biryani pricing"></textarea></div>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit"><i data-lucide="sparkles"></i>Generate report</button>
+        <button class="ghost" type="button" id="copycmd"><i data-lucide="clipboard-copy"></i>Copy agent command</button>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="panel" id="panel"></div>
+      <div class="tokenlink" id="tokenlink"></div>
+    </form>
+  </div>
+
+  <div class="section-head"><h2>How it works</h2></div>
+  <div class="how">
+    <div class="step"><div class="n">1</div><h3>Queue the request</h3>
+      <p>Generate files the request into the research queue (a GitHub issue on this portal's repo).</p></div>
+    <div class="step"><div class="n">2</div><h3>Agent researches</h3>
+      <p>The Bhookle research agent browses the kitchen's public Zomato, Swiggy and Google presence,
+      plus 5–8 nearby competitors, live in a real browser.</p></div>
+    <div class="step"><div class="n">3</div><h3>Report + PDF land here</h3>
+      <p>The finished intelligence report is published to this portal as a web page and a
+      downloadable PDF — every page footnoted “AI Augmented Research by Bhookle”.</p></div>
+  </div>
+
+  <div class="section-head"><h2>Reports</h2><span id="repcount"></span></div>
+  <div class="gallery" id="gallery"><div class="empty">Loading reports…</div></div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-tag">AI Augmented Research by Bhookle</div>
+    <div class="fine">Internal tool · Compiled from publicly visible platform data</div>
+  </div>
+</footer>
+
+<script>
+const REPO = 'arvind-rgb/bhookle-kitchen-intel';
+const v = id => document.getElementById(id).value.trim();
+
+function requestBody(){
+  return [
+    '**Kitchen:** ' + v('kitchen'),
+    '**Location:** ' + (v('loc') || '_not provided — locate it_'),
+    '**Zomato:** ' + (v('zom') || '_not provided — locate it_'),
+    '**Swiggy:** ' + (v('swig') || '_not provided — locate it_'),
+    v('notes') ? '**Notes:** ' + v('notes') : '',
+    '', '_Requested via the Kitchen Intelligence portal._'
+  ].filter(Boolean).join('\n');
+}
+
+function showPanel(html){
+  const p = document.getElementById('panel');
+  p.innerHTML = html; p.classList.add('show');
+  p.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+document.getElementById('genform').addEventListener('submit', async e => {
+  e.preventDefault();
+  const title = '[intel] ' + v('kitchen') + (v('loc') ? ' — ' + v('loc') : '');
+  const token = localStorage.getItem('bki_token');
+  if(token){
+    try{
+      const r = await fetch('https://api.github.com/repos/' + REPO + '/issues', {
+        method:'POST',
+        headers:{'Authorization':'Bearer ' + token, 'Accept':'application/vnd.github+json'},
+        body: JSON.stringify({title: title, body: requestBody(), labels:['intel-request']})
+      });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      showPanel('<strong>Request #' + j.number + ' queued.</strong> The research agent will browse the '
+        + 'kitchen’s public Zomato, Swiggy and Google presence and publish the full report here — '
+        + 'open it below in <strong>Reports</strong>, with a one-click <strong>PDF</strong>.');
+      e.target.reset();
+      return;
+    }catch(err){
+      showPanel('<strong>Queueing failed</strong> (' + err.message + ') — token may have expired. '
+        + 'Falling back to the GitHub form…');
+    }
+  }
+  const url = 'https://github.com/' + REPO + '/issues/new'
+    + '?labels=intel-request'
+    + '&title=' + encodeURIComponent(title)
+    + '&body=' + encodeURIComponent(requestBody());
+  window.open(url, '_blank');
+  showPanel('<strong>One more click:</strong> press <strong>Create</strong> on the GitHub tab that just '
+    + 'opened — that queues the request. The finished report lands below in <strong>Reports</strong> '
+    + 'as web + PDF. To queue in one click next time (no GitHub tab), use '
+    + '“Set up one-click queueing” underneath.');
+});
+
+function renderTokenLink(){
+  const t = localStorage.getItem('bki_token');
+  document.getElementById('tokenlink').innerHTML = t
+    ? 'One-click queueing is on. <a id="tokbtn">Remove token</a>'
+    : '<a id="tokbtn">Set up one-click queueing</a> — paste a GitHub fine-grained token '
+      + '(Issues: read &amp; write on this repo only). Stored only in this browser.';
+  document.getElementById('tokbtn').onclick = () => {
+    if(localStorage.getItem('bki_token')){ localStorage.removeItem('bki_token'); }
+    else{
+      const tok = prompt('Paste your GitHub fine-grained personal access token\n'
+        + '(github.com → Settings → Developer settings → Fine-grained tokens; scope it to '
+        + 'bhookle-kitchen-intel with Issues read/write only):');
+      if(tok) localStorage.setItem('bki_token', tok.trim());
+    }
+    renderTokenLink();
+  };
+}
+renderTokenLink();
+
+document.getElementById('copycmd').addEventListener('click', () => {
+  if(!v('kitchen')){ flash('Enter a kitchen name first.'); return; }
+  const cmd = 'run kitchen intel for ' + v('kitchen')
+    + (v('loc') ? ', ' + v('loc') : '')
+    + (v('zom') ? ' — zomato: ' + v('zom') : '')
+    + (v('swig') ? ' — swiggy: ' + v('swig') : '')
+    + (v('notes') ? ' — notes: ' + v('notes') : '');
+  navigator.clipboard.writeText(cmd).then(() => flash('Command copied — paste it to the agent.'));
+});
+
+function flash(msg){
+  const s = document.getElementById('status');
+  s.textContent = msg; s.style.display = 'block';
+  clearTimeout(s._t); s._t = setTimeout(() => s.style.display = 'none', 6000);
+}
+
+fetch('reports/index.json?cb=' + Date.now())
+  .then(r => r.json())
+  .then(list => {
+    const g = document.getElementById('gallery');
+    document.getElementById('repcount').textContent =
+      list.length + (list.length === 1 ? ' report' : ' reports');
+    if(!list.length){
+      g.innerHTML = '<div class="empty">No reports yet — generate the first one above.</div>';
+      return;
+    }
+    g.innerHTML = list.map(r =>
+      '<div class="rep">'
+      + '<div class="k">' + r.kitchen + '</div>'
+      + '<div class="loc">' + r.location + '</div>'
+      + '<div class="meta"><span class="chip">' + r.date + '</span>'
+      + (r.sample ? '<span class="chip sample">Sample</span>' : '')
+      + '</div>'
+      + '<div class="acts">'
+      + '<a class="open" href="reports/' + r.file + '"><i data-lucide="file-search"></i>Open report</a>'
+      + (r.pdf ? '<a class="pdf" href="reports/' + r.pdf + '" download><i data-lucide="download"></i>PDF</a>' : '')
+      + '</div></div>').join('');
+    lucide.createIcons();
+  })
+  .catch(() => {
+    document.getElementById('gallery').innerHTML =
+      '<div class="empty">No reports yet — generate the first one above.</div>';
+  });
+
+lucide.createIcons();
+</script>
+</body>
+</html>

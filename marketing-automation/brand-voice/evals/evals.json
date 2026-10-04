@@ -1,0 +1,29 @@
+{
+  "skill_name": "bhookle-brand-voice",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write 2 Instagram posts for Bhookle featuring a Tamil chef named Sujatha who makes Kumbakonam Kadappa and Chettinad Chicken Curry in Chennai.",
+      "expected_output": "Two Instagram captions that: (1) lead with Sujatha's story/persona before the dish, (2) name the regional cuisine specifically (Tamil, Kumbakonam, Chettinad), (3) use sensory/emotional language instead of generic words like 'delicious', (4) avoid banned vocabulary like 'restaurant-style', (5) include at least one power phrase from the brand guide, (6) end with a discovery-led CTA not just 'order now'.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Write a Meta ad for Bhookle targeting health-conscious working professionals in Bengaluru who are bored of restaurant food.",
+      "expected_output": "A Meta ad with headline, primary text, and CTA that: (1) opens with emotional hook or the food fatigue problem, (2) never mentions price or discount, (3) anchors brand identity at the end, (4) avoids banned words like 'yummy/tasty/delicious', (5) positions Bhookle as the antidote to processed food rather than just another delivery app.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Write an email to onboard a new home chef named Meena who makes Rajasthani food in Hyderabad. She's hesitant about joining because she's never sold food commercially before.",
+      "expected_output": "An email that: (1) leads with empathy and Meena's perspective, not Bhookle's features, (2) addresses her hesitation by reframing her role as artist not vendor, (3) uses empowerment language around identity and financial independence, (4) lists Bhookle's support (FSSAI, logistics, promotion) as reassurance, (5) never calls her a 'vendor' or 'seller', (6) closes with a warm human CTA.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Write a landing page hero section and 2 feature blocks for a Bhookle campaign targeting corporate offices in Chennai for bulk lunch orders.",
+      "expected_output": "Landing page copy that: (1) frames corporate catering as 'giving your team a real meal', (2) positions the human home-chef angle even in a B2B context, (3) keeps the warmth and brand voice even for a professional audience, (4) avoids corporate jargon while still being persuasive to an office manager, (5) uses at least one brand power phrase.",
+      "files": []
+    }
+  ]
+}

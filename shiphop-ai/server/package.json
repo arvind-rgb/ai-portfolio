@@ -1,0 +1,21 @@
+{
+  "name": "shiphop-ai-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ShipHop.AI portal server — courier connections, rate fan-out, booking, tracking, reports",
+  "main": "src/app.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/app.js",
+    "demo": "node scripts/demo.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "optionalDependencies": {
+    "pg": "^8.11.5"
+  }
+}

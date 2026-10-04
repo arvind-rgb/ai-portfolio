@@ -1,0 +1,3432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bhookle — Investment Leads 🍱</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ── */
+    :root {
+      --amber:   #FFA70B;
+      --amber-d: #e8950a;
+      --amber-l: #fff3d6;
+      --purple:  #341C3D;
+      --purple-l:#4a2a5a;
+      --purple-ll:#f0eaf3;
+      --white:   #FFFFFF;
+      --offwhite:#F5F5F5;
+      --charcoal:#333333;
+      --grey:    #AAAAAA;
+      --grey-l:  #e8e8e8;
+      --green:   #22c55e;
+      --blue:    #3b82f6;
+      --red:     #ef4444;
+      --yellow:  #f59e0b;
+      --radius:  12px;
+      --shadow:  0 2px 12px rgba(52,28,61,0.10);
+      --shadow-lg: 0 8px 32px rgba(52,28,61,0.18);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--offwhite);
+      color: var(--charcoal);
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--purple);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(52,28,61,0.35);
+      overflow: hidden;
+    }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 100%;
+      overflow: hidden;
+    }
+    .logo-wrap a { display: flex; align-items: center; height: 40px; }
+    .logo-wrap img {
+      height: 36px;
+      max-height: 36px;
+      width: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .header-tagline {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.25);
+    }
+    .header-right { display: flex; gap: 10px; align-items: center; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-amber { background: var(--amber); color: var(--white); }
+    .btn-amber:hover { background: var(--amber-d); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,167,11,0.4); }
+    .btn-purple { background: var(--purple); color: var(--white); }
+    .btn-purple:hover { background: var(--purple-l); }
+    .btn-outline { background: transparent; color: rgba(255,255,255,0.8); border: 1.5px solid rgba(255,255,255,0.25); }
+    .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
+    .btn-ghost { background: transparent; color: var(--grey); border: 1.5px solid var(--grey-l); }
+    .btn-ghost:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-l); }
+    .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+    .btn-danger { background: #fdecea; color: var(--red); border: 1px solid #fca5a5; }
+    .btn-danger:hover { background: var(--red); color: white; }
+    /* ── Sortable Headers ── */
+    thead th.sortable { cursor: pointer; user-select: none; }
+    thead th.sortable:hover { color: var(--amber); }
+    thead th.sort-asc .sort-icon::after  { content: ' ↑'; }
+    thead th.sort-desc .sort-icon::after { content: ' ↓'; }
+    .sort-icon { opacity: 0.45; font-size: 10px; }
+    thead th.sort-asc .sort-icon,
+    thead th.sort-desc .sort-icon { opacity: 1; color: var(--amber); }
+
+    /* ── Follow Up Date ── */
+    .followup-input {
+      width: 100%;
+      border: 1px solid var(--grey-l);
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-family: 'Roboto', sans-serif;
+      font-size: 11px;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+    .followup-input:focus { border-color: var(--amber); background: var(--white); }
+    .followup-input::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
+
+    .btn-delete-inline {
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      color: var(--grey-l);
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.12s, background 0.12s;
+    }
+    .btn-delete-inline:hover { color: var(--red); background: #fdecea; }
+
+    /* ── Status Filter Module ── */
+    .status-module {
+      background: var(--white);
+      border-bottom: 1px solid var(--grey-l);
+      padding: 8px 20px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      box-shadow: 0 1px 6px rgba(52,28,61,0.06);
+    }
+    .status-module-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--grey);
+      margin-right: 4px;
+    }
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      border: 2px solid var(--grey-l);
+      color: var(--charcoal);
+      background: var(--offwhite);
+    }
+    .stat-chip .count {
+      background: rgba(52,28,61,0.08);
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .stat-chip.all:hover, .stat-chip.all.active     { border-color: var(--amber); color: var(--amber-d); background: var(--amber-l); }
+    .stat-chip.s-new:hover, .stat-chip.s-new.active { border-color: #3b82f6; color: #1d4ed8; background: #eff6ff; }
+    .stat-chip.s-reached:hover, .stat-chip.s-reached.active { border-color: #22c55e; color: #15803d; background: #f0fdf4; }
+    .stat-chip.s-reachedagain:hover, .stat-chip.s-reachedagain.active { border-color: #f97316; color: #c2410c; background: #fff7ed; }
+    .stat-chip.s-engaged:hover, .stat-chip.s-engaged.active { border-color: #a855f7; color: #7e22ce; background: #fdf4ff; }
+    .stat-chip.s-noresp:hover, .stat-chip.s-noresp.active   { border-color: #f59e0b; color: #a16207; background: #fefce8; }
+    .stat-chip.s-notint:hover, .stat-chip.s-notint.active   { border-color: #ef4444; color: #be123c; background: #fff1f2; }
+    .stat-chip.t1:hover, .stat-chip.t1.active { border-color: #15803d; color: #14532d; background: #dcfce7; }
+    .stat-chip.t2:hover, .stat-chip.t2.active { border-color: #a16207; color: #92400e; background: #fef3c7; }
+    .lead-added-at {
+      font-size: 9.5px; color: var(--grey); margin-top: 3px; letter-spacing: .1px;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      padding: 10px 20px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--white);
+      border-bottom: 1px solid var(--grey-l);
+    }
+    /* Contextual action strip for the Not Interested view (houses the
+       Classify Rejections button — only relevant in this filter). */
+    .ni-actions {
+      margin: 12px 20px 0; padding: 12px 16px;
+      background: linear-gradient(90deg, #fff1f2 0%, #fff5f6 100%);
+      border: 1px solid #fecdd3; border-radius: 10px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .ni-actions-text { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.5; }
+    .ni-actions-text strong { color: #be123c; font-size: 13px; display: block; margin-bottom: 2px; }
+    .ni-actions-text span { color: var(--charcoal); }
+    .search-wrap { position: relative; flex: 1; min-width: 220px; max-width: 380px; }
+    .search-wrap .ico { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--grey); }
+    .search-input {
+      width: 100%;
+      background: var(--offwhite);
+      border: 1.5px solid var(--grey-l);
+      border-radius: 8px;
+      padding: 9px 12px 9px 34px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--charcoal);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus { border-color: var(--amber); background: var(--white); }
+    .search-input::placeholder { color: var(--grey); }
+    .filter-select {
+      background: var(--offwhite);
+      border: 1.5px solid var(--grey-l);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--charcoal);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .filter-select:focus { border-color: var(--amber); }
+    .result-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--grey);
+      font-family: 'Roboto', sans-serif;
+    }
+    .result-count strong { color: var(--purple); font-weight: 700; }
+
+    /* ── Table ── */
+    .table-wrap { padding: 14px 20px 32px; overflow-x: auto; }
+    .table-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--grey-l);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--purple); }
+    thead th {
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.6);
+      white-space: nowrap;
+      border-bottom: 2px solid var(--amber);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--offwhite);
+      transition: background 0.12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fdf9f0; }
+    td { padding: 8px 10px; vertical-align: top; font-family: 'Roboto', sans-serif; }
+
+    /* ── Cell: Investor ── */
+    .investor-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 12px; color: var(--purple); line-height: 1.3; }
+    /* ── Get More Leads count picker ── */
+    .gl-count-btn {
+      padding: 7px 16px; border-radius: 8px; font-size: 14px; font-weight: 700;
+      border: 2px solid var(--purple-ll); background: white; color: var(--purple);
+      cursor: pointer; transition: all .15s;
+    }
+    .gl-count-btn:hover { border-color: var(--purple); background: var(--purple-ll); }
+    .gl-count-btn.active { background: var(--purple); color: white; border-color: var(--purple); }
+    /* ── getLeads scoring display ── */
+    .score-badge {
+      display: inline-block; margin: 3px 4px 2px 0; padding: 1px 7px;
+      font-size: 10px; font-weight: 800; border-radius: 10px; letter-spacing: .2px;
+      cursor: help;
+    }
+    .score-badge.tier1 { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .score-badge.tier2 { background: #fef9c3; color: #a16207; border: 1px solid #fde68a; }
+    .lead-trigger {
+      margin-top: 4px; font-size: 10.5px; color: #6d28d9; line-height: 1.35;
+      max-width: 210px; cursor: help;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .lead-action {
+      margin-top: 3px; font-size: 10px; color: var(--grey); line-height: 1.3;
+      max-width: 210px; cursor: help; font-style: italic;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .type-badge {
+      display: inline-block;
+      margin-top: 3px;
+      padding: 1px 6px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .t-vc       { background: #eef2ff; color: #4f46e5; }
+    .t-pe       { background: #f0f9ff; color: #0369a1; }
+    .t-angel    { background: #f0fdf4; color: #15803d; }
+    .t-angelnet { background: #fefce8; color: #a16207; }
+    .t-family   { background: #fdf4ff; color: #9333ea; }
+    .t-corporate{ background: #f0fdfa; color: #0f766e; }
+    .t-accel    { background: #fff7ed; color: #c2410c; }
+
+    /* ── Cell: Company ── */
+    .company-name { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 13px; }
+    .company-sector { font-size: 11px; color: var(--grey); margin-top: 2px; }
+
+    /* ── Cell: Amount ── */
+    .amount { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 14px; color: var(--amber-d); }
+    .round-tag {
+      display: inline-block;
+      margin-top: 3px;
+      background: var(--purple-ll);
+      color: var(--purple);
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+    }
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--grey);
+      text-decoration: none;
+      margin-top: 4px;
+    }
+    .source-link:hover { color: var(--amber-d); }
+
+    /* ── Cell: Contact ── */
+    .contact-name { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 11px; color: var(--charcoal); }
+    .contact-links { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+    .contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1.5px solid;
+      transition: all 0.12s;
+    }
+    .pill-email { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .pill-email:hover { background: #15803d; color: white; }
+    .contact-field {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .contact-field svg { color: var(--grey); flex-shrink: 0; }
+    .contact-field-input {
+      flex: 1;
+      border: none;
+      border-bottom: 1px dashed var(--grey-l);
+      background: transparent;
+      font-size: 10px;
+      font-family: 'Roboto', sans-serif;
+      color: #0369a1;
+      padding: 1px 2px;
+      outline: none;
+      min-width: 0;
+      max-width: 160px;
+      text-overflow: ellipsis;
+    }
+    .contact-field-input:focus { border-bottom-color: var(--amber); background: var(--amber-l); border-radius: 3px 3px 0 0; }
+    .contact-field-input::placeholder { color: var(--grey); font-style: italic; }
+    .add-contact-wrap { display: flex; flex-direction: column; }
+    .btn-add-contact {
+      align-self: flex-start;
+      background: transparent;
+      color: var(--amber-d);
+      border: 1px solid var(--amber);
+      border-radius: 4px;
+      font-size: 9px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      padding: 1px 6px;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: all 0.12s;
+    }
+    .btn-add-contact:hover { background: var(--amber); color: white; }
+    .btn-enrich-contact {
+      background: transparent;
+      border: 1px solid var(--purple-ll);
+      border-radius: 4px;
+      font-size: 10px;
+      padding: 1px 5px;
+      cursor: pointer;
+      color: var(--purple);
+      transition: all 0.12s;
+      line-height: 1.4;
+    }
+    .btn-enrich-contact:hover { background: var(--purple); color: white; }
+    .btn-enrich-contact:disabled { opacity: 0.5; cursor: not-allowed; }
+    .pill-linkedin { color: #0369a1; border-color: #93c5fd; background: #f0f9ff; }
+    .pill-linkedin:hover { background: #0369a1; color: white; }
+    .na { color: var(--grey-l); font-style: italic; font-size: 11px; }
+    /* ── Persistent flag for any New lead missing an email address ── */
+    /* Subtle amber accent — perceivable without screaming */
+    tr.lead-no-email > td:first-child {
+      box-shadow: inset 3px 0 0 #f59e0b;
+    }
+    tr.lead-no-email {
+      background: linear-gradient(90deg, #fffbeb 0%, #fffdf5 60%, transparent 100%);
+    }
+    .no-email-tag {
+      display: inline-block; margin-left: 6px; vertical-align: middle;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+      color: #92400e; background: #fef3c7; border: 1px solid #fde68a;
+      border-radius: 4px; padding: 1px 6px; text-transform: uppercase;
+    }
+    /* ── Bounced tag: this lead's last send was rejected by the recipient
+         server. Shown alongside the investor name so it's impossible to miss
+         when scanning the list. ────────────────────────────────────────────── */
+    .bounced-tag {
+      display: inline-block; margin-left: 6px; vertical-align: middle;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+      color: #be123c; background: #fff1f2; border: 1px solid #fecdd3;
+      border-radius: 4px; padding: 1px 6px; text-transform: uppercase;
+    }
+    /* ── Enrich: flag leads still missing email/linkedin for manual follow-up ── */
+    tr.lead-missing > td:first-child { box-shadow: inset 4px 0 0 #ef4444; }
+    tr.lead-missing { background: #fef2f2; }
+    .contact-field-input.field-missing {
+      border: 1px solid #ef4444 !important;
+      background: #fff1f1;
+    }
+    .contact-field-input.field-missing::placeholder { color: #ef4444; opacity: 0.8; }
+    .missing-flag {
+      display: inline-block; margin-left: 5px; font-size: 9px; font-weight: 700;
+      color: #b91c1c; background: #fee2e2; border: 1px solid #fecaca;
+      border-radius: 4px; padding: 1px 5px; vertical-align: middle;
+    }
+    #enrichBanner {
+      display: none; margin: 0 24px 12px; padding: 12px 16px; border-radius: 10px;
+      background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 13px;
+    }
+    #enrichBanner b { color: #7f1d1d; }
+    #enrichBanner .eb-list { margin-top: 6px; font-size: 12px; line-height: 1.7; }
+    #enrichBanner .eb-close {
+      float: right; cursor: pointer; border: none; background: transparent;
+      color: #991b1b; font-size: 16px; font-weight: 700; line-height: 1;
+    }
+    /* ── Enrich loading overlay ──────────────────────────────────────────── */
+    #enrichOverlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(52, 28, 61, 0.55); backdrop-filter: blur(3px);
+      align-items: center; justify-content: center;
+    }
+    #enrichOverlay.show { display: flex; }
+
+    /* Dispatch lock — full-screen, blocks ALL interaction during send. */
+    #dispatchLock {
+      display: none; position: fixed; inset: 0; z-index: 100000;
+      background: rgba(52, 28, 61, 0.72);
+      align-items: center; justify-content: center;
+    }
+    #dispatchLock.show { display: flex; }
+    .dispatch-card {
+      background: white; border-radius: 14px; padding: 30px 36px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+      min-width: 420px; max-width: 520px; text-align: center;
+    }
+    .dispatch-card h3 { margin: 0 0 6px; font-size: 17px; font-weight: 800; color: var(--purple); }
+    .dispatch-sub { font-size: 12px; color: var(--grey); margin-bottom: 18px; line-height: 1.5; }
+    .dispatch-spinner {
+      width: 50px; height: 50px; margin: 2px auto 16px;
+      border: 5px solid var(--purple-ll); border-top-color: var(--amber);
+      border-radius: 50%; animation: enrichspin 0.9s linear infinite;
+    }
+    .dispatch-bar {
+      height: 10px; background: var(--grey-l); border-radius: 6px;
+      overflow: hidden; margin: 6px 0;
+    }
+    .dispatch-bar-fill {
+      height: 100%; width: 0; background: var(--amber);
+      transition: width 0.3s ease; border-radius: 6px;
+    }
+    .dispatch-count { font-size: 13px; font-weight: 700; color: var(--charcoal); margin-top: 10px; }
+    .dispatch-current { font-size: 12px; color: var(--purple); margin-top: 6px; min-height: 16px; font-weight: 600; }
+    .enrich-card {
+      background: white; border-radius: 14px; padding: 28px 32px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+      min-width: 380px; max-width: 460px; text-align: center;
+    }
+    .enrich-card h3 {
+      margin: 0 0 6px; font-size: 16px; font-weight: 800; color: var(--purple);
+    }
+    .enrich-card .sub {
+      font-size: 12px; color: var(--grey); margin-bottom: 18px;
+    }
+    .enrich-spinner {
+      width: 56px; height: 56px; margin: 6px auto 14px;
+      border: 5px solid var(--purple-ll);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: enrichspin 0.9s linear infinite;
+    }
+    @keyframes enrichspin { to { transform: rotate(360deg); } }
+    .enrich-source {
+      display: inline-block; font-size: 12px; font-weight: 700;
+      color: var(--purple); background: var(--amber-l);
+      padding: 6px 12px; border-radius: 20px; min-width: 240px;
+      transition: opacity 0.3s ease;
+    }
+    .enrich-source.fade { opacity: 0; }
+    .enrich-current-lead {
+      font-size: 13px; color: var(--charcoal); margin-top: 12px;
+      font-weight: 600; min-height: 18px;
+    }
+    .enrich-progress-text {
+      font-size: 11px; color: var(--grey); margin-top: 10px;
+      font-weight: 500; letter-spacing: 0.3px;
+    }
+    .enrich-bar {
+      width: 100%; height: 6px; background: var(--purple-ll); border-radius: 3px;
+      margin-top: 10px; overflow: hidden;
+    }
+    .enrich-bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-d));
+      width: 0%; transition: width 0.4s ease;
+    }
+
+    /* ── Cell: Recent Investments ── */
+    .recent-invest { font-size: 11px; color: var(--charcoal); line-height: 1.5; max-width: 160px; }
+    .recent-invest .tag {
+      display: inline-block;
+      background: var(--amber-l);
+      color: var(--amber-d);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      margin: 1px 2px 1px 0;
+    }
+    .btn-fetch-recent {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      background: var(--purple-ll);
+      color: var(--purple);
+      border: 1.5px solid #c8aad8;
+      border-radius: 6px;
+      font-size: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+      margin-top: 3px;
+    }
+    .btn-fetch-recent:hover { background: var(--purple); color: white; }
+
+    /* ── Cell: Status ── */
+    .status-select {
+      width: 100%;
+      min-width: 118px;
+      padding: 4px 22px 4px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      transition: all 0.12s;
+    }
+    .s-New          { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .s-ReachedOut   { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+    .s-Engaged      { background: #fdf4ff; color: #7e22ce; border-color: #d8b4fe; }
+    .s-DidntRespond { background: #fefce8; color: #a16207; border-color: #fde68a; }
+    .s-NotInterested{ background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+    /* Re-engagement bucket — orange to visually separate from green Reached Out */
+    .s-ReachedOutAgain { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+
+    /* ── Rejection-reason dropdown (appears only under Not Interested) ── */
+    .rejection-select {
+      width: 100%; min-width: 118px;
+      margin-top: 6px;
+      padding: 4px 22px 4px 7px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      border: 1.5px dashed #fda4af;
+      background: #fff5f6; color: #9f1239;
+      cursor: pointer; outline: none;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9' viewBox='0 0 24 24' fill='none' stroke='%239f1239' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      transition: all 0.12s;
+    }
+    .rejection-select:hover { background: #ffe4e6; }
+    /* When a real reason is selected, switch to solid border to signal "tagged" */
+    .rejection-select.tagged { border-style: solid; background: #ffe4e6; }
+
+    /* ── Cell: Notes ── */
+    .notes-ta {
+      width: 100%;
+      min-width: 100px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      padding: 4px 6px;
+      font-family: 'Roboto', sans-serif;
+      font-size: 11px;
+      color: var(--charcoal);
+      resize: none;
+      min-height: 32px;
+      outline: none;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .notes-ta:hover { border-color: var(--grey-l); background: var(--offwhite); }
+    .notes-ta:focus { border-color: var(--amber); background: var(--white); }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--grey);
+    }
+    .empty .emoji { font-size: 56px; margin-bottom: 12px; display: block; }
+    .empty p { font-size: 16px; font-family: 'Poppins', sans-serif; font-weight: 600; }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(52,28,61,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--white);
+      border-radius: 16px;
+      width: 580px;
+      max-width: 95vw;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-head {
+      padding: 22px 26px 16px;
+      border-bottom: 2px solid var(--offwhite);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-head h2 { font-size: 17px; font-weight: 700; color: var(--purple); }
+    .modal-close { background: none; border: none; font-size: 22px; color: var(--grey); cursor: pointer; line-height:1; }
+    .modal-close:hover { color: var(--red); }
+    .modal-body { padding: 22px 26px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fg-full { grid-column: 1/-1; }
+    .form-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--grey); margin-bottom: 5px; }
+    .form-input, .form-select {
+      width: 100%;
+      background: var(--offwhite);
+      border: 1.5px solid var(--grey-l);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--charcoal);
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--amber); background: var(--white); }
+    .modal-foot {
+      padding: 16px 26px 22px;
+      border-top: 1px solid var(--offwhite);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* ── Money Rain ── */
+    #money-rain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    /* Lift all content above the rain */
+    .fun-bar, header, .status-module, .toolbar, .table-wrap {
+      position: relative;
+      z-index: 2;
+    }
+    .bill {
+      position: absolute;
+      top: -60px;
+      font-size: 22px;
+      opacity: 0;
+      animation: fall linear infinite;
+      user-select: none;
+    }
+    /* Pause the money rain whenever a full-screen overlay is open — it's hidden
+       behind the modal anyway, and the continuous animation needlessly pegs the
+       GPU compositor (WindowServer). Resumes instantly on close. */
+    body:has(.overlay.open) .bill,
+    body:has(#enrichOverlay.show) .bill { animation-play-state: paused; }
+    @keyframes fall {
+      0%   { transform: translateY(0) rotate(0deg) scale(1);   opacity: 0; }
+      5%   { opacity: 0.55; }
+      90%  { opacity: 0.4; }
+      100% { transform: translateY(110vh) rotate(360deg) scale(0.8); opacity: 0; }
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      padding: 11px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.22s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+      box-shadow: var(--shadow-lg);
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: var(--purple); color: var(--amber); border-left: 4px solid var(--amber); }
+    #toast.error   { background: #fff1f2; color: var(--red); border-left: 4px solid var(--red); }
+    #toast.info    { background: var(--amber); color: var(--purple); border-left: 4px solid var(--purple); }
+
+    /* ── Spinner ── */
+    .spin {
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid transparent; border-top-color: currentColor;
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Fun accent bar ── */
+    .fun-bar {
+      background: linear-gradient(90deg, var(--amber) 0%, #ffcf60 50%, var(--amber) 100%);
+      height: 3px;
+    }
+
+    /* ── Gmail status pill ── */
+    .gmail-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 11px; border-radius: 20px; font-size: 11px;
+      font-family: 'Poppins', sans-serif; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .gmail-pill.connected    { background:#f0fdf4; color:#15803d; border:1.5px solid #86efac; }
+    .gmail-pill.disconnected { background:#fff1f2; color:#be123c; border:1.5px solid #fecdd3; }
+    .gmail-pill.disconnected:hover { background:#be123c; color:white; }
+
+    /* ── Row checkboxes ── */
+    .row-check { width: 15px; height: 15px; cursor: pointer; accent-color: var(--purple); }
+    .th-check  { width: 32px; text-align: center; }
+
+    /* ── Bulk action bar ── */
+    #bulk-bar {
+      display: none;
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--purple); color: white;
+      border-radius: 40px; padding: 10px 20px;
+      box-shadow: 0 8px 32px rgba(52,28,61,0.45);
+      align-items: center; gap: 14px;
+      z-index: 300; font-family: 'Poppins', sans-serif;
+      font-size: 13px; font-weight: 600;
+      white-space: nowrap;
+    }
+    #bulk-bar.show { display: flex; }
+    /* Hide the selection bar whenever a modal is open — it otherwise overlaps the
+       modal footer (e.g. the review Skip / Approve buttons). */
+    body:has(.overlay.open) #bulk-bar { display: none; }
+    #bulk-bar select {
+      background: rgba(255,255,255,0.15); color: white;
+      border: 1.5px solid rgba(255,255,255,0.3); border-radius: 8px;
+      padding: 5px 10px; font-size: 12px; font-family: 'Poppins', sans-serif;
+      outline: none; min-width: 180px;
+    }
+    #bulk-bar select option { background: var(--purple); }
+    /* Slim vertical separator between the Review action and the bulk-move
+       controls so the two operations read as distinct groups inside the bar. */
+    .bulk-divider {
+      width: 1px; align-self: stretch;
+      background: rgba(255,255,255,0.2); margin: 2px 4px;
+    }
+
+    /* ── Email outreach button ── */
+    .btn-outreach {
+      background: transparent;
+      border: 1px solid #c4b5fd;
+      border-radius: 4px;
+      font-size: 10px;
+      padding: 1px 5px;
+      cursor: pointer;
+      color: #7c3aed;
+      transition: all 0.12s;
+      line-height: 1.4;
+    }
+    .btn-outreach:hover { background: #7c3aed; color: white; border-color: #7c3aed; }
+    .btn-linkedin { border-color: #0a66c2; color: #0a66c2; font-weight: 800;
+      font-style: italic; padding: 1px 7px; }
+    .btn-linkedin:hover { background: #0a66c2; color: white; border-color: #0a66c2; }
+    /* The per-row primary action: compose a LinkedIn message. Filled blue so it
+       reads as a clear CTA, not another tiny icon. */
+    .btn-linkedin-msg {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #0a66c2; color: #fff; border: 1px solid #0a66c2;
+      border-radius: 5px; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; cursor: pointer; transition: all .12s; white-space: nowrap;
+    }
+    .btn-linkedin-msg:hover { background: #084d92; border-color: #084d92; }
+    .btn-linkedin-msg svg { flex-shrink: 0; }
+    /* Second channel: automated email send. Amber so the two actions read as a
+       pair (blue = LinkedIn, amber = email) without either looking primary. */
+    .btn-email-send {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--amber, #f59e0b); color: #4a2c00;
+      border: 1px solid var(--amber, #f59e0b);
+      border-radius: 5px; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; cursor: pointer; transition: all .12s; white-space: nowrap;
+    }
+    .btn-email-send:hover { filter: brightness(0.94); }
+    .btn-email-send svg { flex-shrink: 0; }
+    /* Shown instead of the Email button on leads already emailed in a past
+       cycle — a reminder, not an action. */
+    .tag-emailed {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f1f5f9; color: #475569; border: 1px dashed #94a3b8;
+      border-radius: 5px; font-size: 10px; font-weight: 700;
+      padding: 3px 8px; cursor: help; white-space: nowrap;
+    }
+    /* Lead we could not identify — no profile, no employer. Shown instead of a
+       Message button so the user never hunts through strangers. */
+    /* Proof-of-investment chip on each lead row. */
+    .lead-evidence {
+      display: inline-block; margin-top: 3px; font-size: 10px; font-weight: 700;
+      color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0;
+      border-radius: 4px; padding: 1px 6px; text-decoration: none;
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    a.lead-evidence:hover { background: #dcfce7; text-decoration: underline; }
+    .btn-unfindable {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
+      border-radius: 5px; font-size: 10px; font-weight: 700;
+      padding: 3px 8px; cursor: help; white-space: nowrap;
+    }
+    .li-type-toggle { display: flex; gap: 8px; margin-bottom: 4px; }
+    .li-type-btn { flex: 1; background: #f4f6f8; border: 1.5px solid var(--grey-l);
+      border-radius: 8px; padding: 9px 10px; font-size: 12px; font-weight: 700;
+      color: var(--grey); cursor: pointer; transition: all .12s; }
+    .li-type-btn:hover { border-color: #0a66c2; color: #0a66c2; }
+    .li-type-btn.active { background: #eaf3fb; border-color: #0a66c2; color: #0a66c2; }
+    .li-type-sub { display: block; font-size: 9px; font-weight: 500; color: var(--grey);
+      margin-top: 2px; }
+    .li-type-btn.active .li-type-sub { color: #0a66c2; }
+    .li-steps { margin-top: 12px; background: #f4f6f8; border: 1px solid var(--grey-l);
+      border-radius: 8px; padding: 9px 11px; font-size: 11px; color: var(--charcoal);
+      line-height: 1.55; }
+    .li-steps em { color: #0a66c2; font-style: normal; font-weight: 700; }
+    #li-char-count.over { color: var(--red); font-weight: 700; }
+
+    /* ── Template cards ── */
+    .tpl-card {
+      border: 1.5px solid var(--grey-l);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: var(--white);
+      transition: border-color 0.12s;
+    }
+    .tpl-card:hover { border-color: #c4b5fd; }
+    .tpl-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .tpl-card-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 13px; color: var(--purple); }
+    .tpl-card-subject { font-size: 11px; color: var(--grey); margin-top: 2px; }
+    .tpl-stage-badge { display: inline-block; font-size: 10px; font-weight: 600; color: var(--charcoal);
+      background: var(--purple-ll); border-radius: 10px; padding: 1px 8px; margin-left: 4px; vertical-align: middle; }
+    .tpl-lock-badge { font-size: 11px; vertical-align: middle; }
+    .tpl-card-preview {
+      font-size: 11px; color: var(--charcoal); margin-top: 6px;
+      white-space: pre-wrap; line-height: 1.5;
+      max-height: 52px; overflow: hidden;
+      position: relative;
+    }
+    .tpl-card-preview::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 20px;
+      background: linear-gradient(transparent, var(--white));
+    }
+    .tpl-edit-form { display: none; margin-top: 12px; border-top: 1px solid var(--grey-l); padding-top: 12px; }
+    .tpl-edit-form.open { display: block; }
+
+    /* ── Stage tabs ── */
+    .tpl-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px;
+      border-bottom: 1.5px solid var(--grey-l); }
+    .tpl-tab { font-size: 12px; font-weight: 600; color: var(--grey); background: none;
+      border: none; border-bottom: 2.5px solid transparent; padding: 8px 12px; cursor: pointer;
+      border-radius: 6px 6px 0 0; white-space: nowrap; transition: all .12s; margin-bottom: -1.5px; }
+    .tpl-tab:hover { color: var(--purple); background: var(--purple-ll); }
+    .tpl-tab.active { color: var(--purple); border-bottom-color: var(--amber); background: var(--purple-ll); }
+    .tpl-tab .dot { color: #16a34a; font-size: 8px; vertical-align: middle; margin-left: 2px; }
+    .tpl-stage-head { font-size: 14px; color: var(--purple); margin-bottom: 14px; }
+
+    /* ── Email draft modal inputs ── */
+    .draft-section-label {
+      display: block; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--grey); margin-bottom: 5px;
+    }
+    .draft-field-input {
+      width: 100%; background: var(--offwhite);
+      border: 1.5px solid var(--grey-l); border-radius: 8px;
+      padding: 8px 11px; font-family: 'Poppins', sans-serif;
+      font-size: 13px; color: var(--charcoal); outline: none;
+      transition: border-color 0.12s; margin-bottom: 12px;
+    }
+    .draft-field-input:focus { border-color: var(--amber); background: var(--white); }
+    .draft-body-ta {
+      width: 100%; min-height: 220px;
+      border: 1.5px solid var(--grey-l); border-radius: 8px;
+      padding: 10px 12px; font-family: 'Roboto', sans-serif;
+      font-size: 13px; line-height: 1.65; color: var(--charcoal);
+      background: var(--offwhite); resize: vertical; outline: none;
+      transition: border-color 0.12s;
+    }
+    .draft-body-ta:focus { border-color: var(--amber); background: var(--white); }
+    .draft-placeholder {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 140px; border: 2px dashed var(--grey-l); border-radius: 8px;
+      color: var(--grey); font-size: 13px; text-align: center;
+      flex-direction: column; gap: 10px; padding: 20px;
+    }
+    .draft-controls {
+      display: flex; gap: 10px; align-items: flex-end;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .investor-pill {
+      background: var(--purple-ll); border-radius: 8px;
+      padding: 8px 12px; margin-bottom: 14px;
+      font-size: 12px; color: var(--purple);
+      font-family: 'Poppins', sans-serif; font-weight: 600;
+    }
+  /* ── Delivery status badges ── */
+  .del-badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:10px; font-family:'Poppins',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+  .del-pending    { background:#fefce8; color:#a16207; border:1px solid #fde68a; }
+  .del-booked     { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .del-in_transit { background:#f0fdf4; color:#15803d; border:1px solid #86efac; }
+  .del-delivered  { background:#fdf4ff; color:#7e22ce; border:1px solid #d8b4fe; }
+  .del-failed     { background:#fff1f2; color:#be123c; border:1px solid #fecdd3; }
+  .del-cancelled  { background:#f3f4f6; color:#6b7280; border:1px solid #d1d5db; }
+  </style>
+</head>
+<body>
+
+<!-- Money Rain -->
+<div id="money-rain"></div>
+
+<!-- Fun accent -->
+<div class="fun-bar"></div>
+
+<!-- Header -->
+<header>
+  <div class="logo-wrap">
+    <a href="/"><img src="/static/bhookle_logo.png" alt="Bhookle" /></a>
+    <div class="header-tagline">Investment Lead Tracker</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="openReport()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Report
+    </button>
+    <a href="/api/export" class="btn btn-outline">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </a>
+    <button class="btn btn-outline" onclick="openTemplatesModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+      LinkedIn Templates
+    </button>
+    <button class="btn btn-amber" id="refreshBtn" onclick="getMoreLeads()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Get More Leads
+    </button>
+<button class="btn btn-outline" onclick="openModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Lead
+    </button>
+  </div>
+</header>
+
+<!-- Status Filter Module -->
+<div class="status-module">
+  <a href="/?{% if search %}search={{ search }}&{% endif %}{% if current_type %}investor_type={{ current_type }}&{% endif %}"
+     class="stat-chip all {% if not current_status %}active{% endif %}">
+    🍱 All <span class="count">{{ total }}</span>
+  </a>
+  <a href="/?status=New{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip s-new {% if current_status == 'New' %}active{% endif %}">
+    🔵 New <span class="count">{{ status_counts.get('New', 0) }}</span>
+  </a>
+  <a href="/?status=Reached Out{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip s-reached {% if current_status == 'Reached Out' %}active{% endif %}">
+    ✉️ Reached Out <span class="count">{{ status_counts.get('Reached Out', 0) }}</span>
+  </a>
+  <a href="/?status=Engaged{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip s-engaged {% if current_status == 'Engaged' %}active{% endif %}">
+    🟣 Engaged <span class="count">{{ status_counts.get('Engaged', 0) }}</span>
+  </a>
+  <a href="/?status=Didn't Respond{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip s-noresp {% if current_status == "Didn't Respond" %}active{% endif %}">
+    🟡 No Response <span class="count">{{ status_counts.get("Didn't Respond", 0) }}</span>
+  </a>
+  <a href="/?status=Reached Out Again{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip s-reachedagain {% if current_status == 'Reached Out Again' %}active{% endif %}"
+     title="Second-attempt sends — leads you re-pinged after they went quiet. 5d without reply → Not Interested (Never responded).">
+    🔁 Reached Out Again <span class="count">{{ status_counts.get('Reached Out Again', 0) }}</span>
+  </a>
+  <a href="/?status=Not Interested{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip s-notint {% if current_status == 'Not Interested' %}active{% endif %}">
+    🔴 Not Interested <span class="count">{{ status_counts.get('Not Interested', 0) }}</span>
+  </a>
+  <span style="width:1px;background:var(--grey-l);align-self:stretch;margin:0 4px;display:inline-block;opacity:.4"></span>
+  <a href="/?tier=1{% if current_status %}&status={{ current_status }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip t1 {% if current_tier == '1' %}active{% endif %}">
+    ★ Tier 1 <span class="count">{{ tier_counts.get('1', 0) }}</span>
+  </a>
+  <a href="/?tier=2{% if current_status %}&status={{ current_status }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if current_type %}&investor_type={{ current_type }}{% endif %}"
+     class="stat-chip t2 {% if current_tier == '2' %}active{% endif %}">
+    ☆ Tier 2 <span class="count">{{ tier_counts.get('2', 0) }}</span>
+  </a>
+</div>
+
+<!-- Toolbar -->
+<form method="get" action="/" class="toolbar">
+  {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}" />{% endif %}
+  <div class="search-wrap">
+    <svg class="ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search-input" name="search" placeholder="Search investors, companies, sectors…" value="{{ search }}" />
+  </div>
+  <select class="filter-select" name="investor_type" onchange="this.form.submit()">
+    <option value="">All Types</option>
+    {% for t in investor_types %}
+    <option value="{{ t }}" {% if current_type == t %}selected{% endif %}>{{ t }}</option>
+    {% endfor %}
+  </select>
+  <select class="filter-select" name="tier" onchange="this.form.submit()">
+    <option value="">All Tiers</option>
+    <option value="1" {% if current_tier == '1' %}selected{% endif %}>★ Tier 1 (High Intent)</option>
+    <option value="2" {% if current_tier == '2' %}selected{% endif %}>☆ Tier 2 (Niche Fit)</option>
+  </select>
+  <button type="submit" class="btn btn-ghost btn-sm">Search</button>
+  {% if search or current_type or current_tier %}
+  <a href="/?{% if current_status %}status={{ current_status }}{% endif %}" class="btn btn-ghost btn-sm">✕ Clear</a>
+  {% endif %}
+  <span class="result-count"><strong>{{ leads|length }}</strong> result{{ 's' if leads|length != 1 else '' }}</span>
+</form>
+
+<!-- Get More Leads — count picker modal -->
+<div class="overlay" id="getLeadsModal">
+  <div class="modal" style="width:400px;padding:28px 32px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      <h2 style="margin:0;font-size:18px;font-weight:800;color:var(--purple)">Get More Leads</h2>
+    </div>
+    <p style="font-size:13px;color:var(--charcoal);margin:0 0 20px;line-height:1.6">
+      Scouts <strong>reachable India-based angels &amp; HNIs</strong> investing in
+      <strong>D2C, consumer-tech &amp; food</strong> — from LinkedIn-first news, angel
+      scouting &amp; thesis queries. Keeps only seed-stage first-cheque writers with a
+      real LinkedIn profile; <strong>marquee / celebrity investors are skipped</strong>
+      (cold outreach won't convert), and <strong>anyone — or any company — you've
+      already contacted</strong> is never re-surfaced.
+    </p>
+    <label style="font-size:12px;font-weight:700;color:var(--purple);display:block;margin-bottom:8px">
+      How many leads do you want?
+    </label>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="gl-count-btn" onclick="setLeadCount(5)">5</button>
+      <button class="gl-count-btn active" onclick="setLeadCount(10)">10</button>
+      <button class="gl-count-btn" onclick="setLeadCount(15)">15</button>
+      <button class="gl-count-btn" onclick="setLeadCount(20)">20</button>
+      <button class="gl-count-btn" onclick="setLeadCount(25)">25</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px">
+      <input id="glCustomCount" type="number" min="1" max="50" value="10"
+             style="width:70px;padding:7px 10px;border:1.5px solid var(--purple-ll);border-radius:7px;font-size:14px;font-weight:700;text-align:center;color:var(--purple)"
+             oninput="syncCountInput(this.value)" />
+      <span style="font-size:12px;color:var(--grey)">custom count (max 50)</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-amber" style="flex:1;justify-content:center" onclick="startGetLeads()">
+        🚀 Start Fetching
+      </button>
+      <button class="btn btn-outline" onclick="closeGetLeadsModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Enrich loading overlay -->
+<div id="enrichOverlay">
+  <div class="enrich-card">
+    <div class="enrich-spinner"></div>
+    <h3>Finding verified contacts</h3>
+    <div class="sub">Crawling open web + investor directories. No emails are ever guessed.</div>
+    <div class="enrich-source" id="enrichSourceLabel">Enriching via DuckDuckGo…</div>
+    <div class="enrich-current-lead" id="enrichCurrentLead">&nbsp;</div>
+    <div class="enrich-bar"><div class="enrich-bar-fill" id="enrichBarFill"></div></div>
+    <div class="enrich-progress-text" id="enrichProgressText">Starting…</div>
+  </div>
+</div>
+
+<!-- Enrich follow-up banner -->
+<div id="enrichBanner">
+  <button class="eb-close" onclick="dismissEnrichBanner()" title="Dismiss">×</button>
+  <span id="enrichBannerText"></span>
+  <div class="eb-list" id="enrichBannerList"></div>
+</div>
+
+{# ── Contextual action strip: only when the user has filtered to Not
+     Interested. Houses the "Classify Rejections" action because it only
+     makes sense in that view (works on NI leads' notes). ──────────────── #}
+{% if current_status == 'Not Interested' %}
+<div class="ni-actions">
+  <div class="ni-actions-text">
+    <strong>🔴 Not Interested · {{ status_counts.get('Not Interested', 0) }} leads</strong>
+    <span>Read each lead's notes and auto-tag with a structured rejection reason — so you can craft sharper re-engagement angles.</span>
+  </div>
+  <button class="btn btn-amber" id="classifyBtn" onclick="classifyRejections()" title="Read notes on every Not Interested lead and tag each with a rejection reason (Portfolio Misfit / Thesis Misfit / Traction / Scalability / Never Responded / Others)">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    🏷 Classify Rejections
+  </button>
+</div>
+{% endif %}
+
+<!-- Table -->
+<div class="table-wrap">
+  <div class="table-card">
+    {% if leads %}
+    <table>
+      <thead>
+        <tr>
+          <th class="th-check"><input type="checkbox" class="row-check" id="check-all" onchange="toggleAllChecks(this)" title="Select all"></th>
+          <th class="sortable" onclick="sortTable(1)">Investor <span class="sort-icon">⇅</span></th>
+          <th class="sortable" onclick="sortTable(2)">Key Contact <span class="sort-icon">⇅</span></th>
+          <th class="sortable" onclick="sortTable(3)">Status <span class="sort-icon">⇅</span></th>
+          <th>Notes</th>
+          <th class="sortable" onclick="sortTable(5)">Follow Up <span class="sort-icon">⇅</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lead in leads %}
+        {% set _row_names    = (lead.key_contact or '').split(',') %}
+        {% set _row_emails   = (lead.email or '').split(',') %}
+        {% set _name_count   = _row_names | map('trim') | reject('equalto', '') | list | length %}
+        {% set _email_count  = _row_emails | map('trim') | reject('equalto', '') | list | length %}
+        {% set _ns = namespace(has_gap=false) %}
+        {% for i in range(_row_names | length) %}
+          {% set _nm = (_row_names[i] | trim) if i < (_row_names | length) else '' %}
+          {% set _em = (_row_emails[i] | trim) if i < (_row_emails | length) else '' %}
+          {% if _nm and not _em %}{% set _ns.has_gap = true %}{% endif %}
+        {% endfor %}
+        {% set _missing_email = lead.status == 'New' and (_email_count == 0 or _ns.has_gap or _email_count < _name_count) %}
+        <tr id="row-{{ lead.id }}"{% if _missing_email %} class="lead-no-email"{% endif %}>
+          <td style="width:32px;text-align:center">
+            <input type="checkbox" class="row-check lead-check"
+              data-lead-id="{{ lead.id }}"
+              data-email="{{ (lead.email or '').split(',')[0].strip() }}"
+              data-all-emails="{{ lead.email or '' }}"
+              data-lead-name="{{ lead.investor_name }}"
+              data-company="{{ lead.invested_company or '' }}"
+              data-contact="{{ lead.key_contact or '' }}"
+              data-status="{{ lead.status or 'New' }}"
+              onchange="onCheckChange()">
+          </td>
+
+          <!-- Investor -->
+          <td style="width:220px">
+            <div class="investor-name">
+              {{ lead.investor_name }}{% if _missing_email %}<span class="no-email-tag" title="At least one contact in this row is missing an email">⚠ no email</span>{% endif %}{% if lead.id in bounced_ids %}<span class="bounced-tag" title="A previous send to this lead bounced. Verify the email address before retrying.">↩ bounced</span>{% endif %}
+            </div>
+            {% if lead.confidence_score is not none %}
+            {% set _t1 = lead.priority_tier and '1' in lead.priority_tier %}
+            <span class="score-badge {{ 'tier1' if _t1 else 'tier2' }}"
+                  title="{{ lead.trigger_signals or '' }}">
+              {{ '★' if _t1 else '☆' }} {{ lead.confidence_score }} · {{ (lead.priority_tier or '').split('[')[0]|trim }}
+            </span>
+            {% endif %}
+            {% if lead.investor_type %}
+            <span class="type-badge t-{{ lead.investor_type|lower|replace(' ','')|replace('/','')|replace('network','angelnet')|truncate(10,false,'') }}">
+              {{ lead.investor_type }}
+            </span>
+            {% endif %}
+            {% if lead.created_at %}
+            <div class="lead-added-at" title="Added on {{ lead.created_at|ist }} IST">
+              🕐 Added {{ lead.created_at|ist }}
+            </div>
+            {% endif %}
+            {% if lead.trigger_signals %}
+            <div class="lead-trigger" title="{{ lead.trigger_signals }}">⚡ {{ lead.trigger_signals.split(';')[0]|trim }}</div>
+            {% endif %}
+            {% if lead.action_item %}
+            <div class="lead-action" title="{{ lead.action_item }}">🎯 {{ lead.action_item }}</div>
+            {% endif %}
+            {# Proof this is a real, reported investor — one click to the source. #}
+            {% if lead.evidence_url %}
+            <a class="lead-evidence" href="{{ lead.evidence_url }}" target="_blank" rel="noopener"
+               title="{{ lead.evidence_note or 'View the source that verifies this investment' }}">
+              ✅ verified — see source</a>
+            {% elif lead.evidence_note %}
+            <div class="lead-evidence" title="{{ lead.evidence_note }}">✅ verified</div>
+            {% endif %}
+          </td>
+
+          <!-- Contact -->
+          <td style="width:220px">
+            {% if lead.key_contact %}
+            {% set names = lead.key_contact.split(',') %}
+            {% set emails = (lead.email or '').split(',') %}
+            {% set linkedins = (lead.linkedin or '').split(',') %}
+            {% for name in names %}
+            {% set i = loop.index0 %}
+            {% set c_email = emails[i].strip() if i < emails|length else '' %}
+            {% set c_linkedin = linkedins[i].strip() if i < linkedins|length else '' %}
+            <div style="{% if not loop.first %}margin-top:8px;padding-top:8px;border-top:1px solid var(--grey-l);{% endif %}">
+              <div class="contact-name">{{ name.strip() }}</div>
+              <div class="contact-field">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <input class="contact-field-input" type="email"
+                  placeholder="+ add email"
+                  value="{{ c_email }}"
+                  data-lead-id="{{ lead.id }}"
+                  data-field="email"
+                  onblur="saveContactDetail({{ lead.id }}, 'email')" />
+              </div>
+              <div class="contact-field">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                <input class="contact-field-input" type="url"
+                  placeholder="+ add linkedin"
+                  value="{{ c_linkedin }}"
+                  data-lead-id="{{ lead.id }}"
+                  data-field="linkedin"
+                  onblur="saveContactDetail({{ lead.id }}, 'linkedin')" />
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <!-- Add new contact form (shown/hidden for all rows) -->
+            <div id="add-contact-{{ lead.id }}" style="display:none;margin-top:6px;padding-top:6px;border-top:1px dashed var(--grey-l)">
+              <input class="contact-field-input" type="text"
+                placeholder="name" id="add-name-{{ lead.id }}" style="display:block;max-width:100%;margin-bottom:3px" />
+              <input class="contact-field-input" type="email"
+                placeholder="email" id="add-email-{{ lead.id }}" style="display:block;max-width:100%;margin-bottom:3px" />
+              <input class="contact-field-input" type="url"
+                placeholder="linkedin" id="add-linkedin-{{ lead.id }}" style="display:block;max-width:100%;margin-bottom:5px" />
+              <button class="btn-add-contact" onclick="addContact({{ lead.id }})">✓ Save</button>
+            </div>
+            {% set _has_all = (lead.email or '').strip() and (lead.linkedin or '').strip() %}
+            <div style="display:flex;gap:5px;margin-top:5px;align-items:center">
+              <button class="btn-add-contact" onclick="toggleAddContact({{ lead.id }})">+</button>
+              {% if not _has_all %}
+              <button class="btn-enrich-contact" id="enrich-btn-{{ lead.id }}"
+                onclick="enrichLead({{ lead.id }})"
+                title="Missing {% if not (lead.email or '').strip() %}email{% endif %}{% if not (lead.email or '').strip() and not (lead.linkedin or '').strip() %} + {% endif %}{% if not (lead.linkedin or '').strip() %}linkedin{% endif %} — click to auto-find">🔍 {% if not (lead.email or '').strip() %}email{% endif %}{% if not (lead.email or '').strip() and not (lead.linkedin or '').strip() %}&amp;{% endif %}{% if not (lead.linkedin or '').strip() %}linkedin{% endif %}</button>
+              {% endif %}
+              {% set _li_ok = '/in/' in (lead.linkedin or '') %}
+              {% set _findable = _li_ok or (lead.contact_headline or '').strip() %}
+              {% if not _findable %}
+              {# No verified profile AND no employer → a name search would just
+                 return strangers. Don't offer a Message button that wastes time. #}
+              <span class="btn-unfindable" title="No LinkedIn profile and no employer on record — this person can't be identified, so cold outreach isn't possible. Add their profile URL via the + button if you know them.">⚠ can't identify</span>
+              {% else %}
+              <button class="btn-linkedin-msg"
+                data-lead-id="{{ lead.id }}"
+                data-lead-name="{{ lead.investor_name }}"
+                data-lead-type="{{ lead.investor_type or '' }}"
+                data-linkedin="{{ (lead.linkedin or '').split(',')[0].strip() }}"
+                onclick="openLinkedInCompose(this)"
+                title="{{ 'Opens their profile directly' if _li_ok else 'Opens a name + employer search' }}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+                Message</button>
+              {% endif %}
+              {# Reopened email-only leads: they already got the email, so the
+                 Email button is suppressed and LinkedIn is the remaining play. #}
+              {% if lead.email_only_retry %}
+              <span class="tag-emailed" title="This lead was already contacted by email in an earlier cycle. Reopened so you can attempt LinkedIn — the email button is hidden to avoid a duplicate send.">✉ Already contacted in email</span>
+              {% else %}
+              {# Email is the second channel — automated send, no copy/paste.
+                 Status stays put; the founder advances it once both are done. #}
+              <button class="btn-email-send"
+                data-lead-id="{{ lead.id }}"
+                data-lead-name="{{ lead.investor_name }}"
+                data-email="{{ (lead.email or '').split(',')[0].strip() }}"
+                onclick="openEmailSend(this)"
+                title="{{ 'Compose & send email to ' + (lead.email or '').split(',')[0].strip() if (lead.email or '').strip() else 'No email yet — click to find one' }}">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Email{% if not (lead.email or '').strip() %} ?{% endif %}</button>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td style="width:130px">
+            <select
+              class="status-select s-{{ lead.status|replace(' ','')|replace("'","") }}"
+              onchange="updateStatus({{ lead.id }}, this)"
+            >
+              <option value="New"               {% if lead.status=='New' %}selected{% endif %}>🔵 New</option>
+              <option value="Reached Out"       {% if lead.status=='Reached Out' %}selected{% endif %}>✉️ Reached Out</option>
+              <option value="Reached Out Again" {% if lead.status=='Reached Out Again' %}selected{% endif %}>🔁 Reached Out Again</option>
+              <option value="Engaged"           {% if lead.status=='Engaged' %}selected{% endif %}>🟣 Engaged</option>
+              <option value="Didn't Respond"    {% if lead.status=="Didn't Respond" %}selected{% endif %}>🟡 No Response</option>
+              <option value="Not Interested"    {% if lead.status=='Not Interested' %}selected{% endif %}>🔴 Not Interested</option>
+            </select>
+            {# ── Rejection-reason dropdown: only shown when the lead is parked
+                 in Not Interested. Gives a structured "why did they pass" tag
+                 the founder can use to tune the re-engagement email. ──── #}
+            {% if lead.status == 'Not Interested' %}
+            <select class="rejection-select {% if lead.rejection_reason %}tagged{% endif %}"
+                    onchange="updateRejectionReason({{ lead.id }}, this)"
+                    title="Why did they reject us?">
+              <option value=""  {% if not lead.rejection_reason %}selected{% endif %}>— why? —</option>
+              {% for r in rejection_reasons %}
+              <option value="{{ r }}" {% if lead.rejection_reason == r %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
+          </td>
+
+          <!-- Notes -->
+          <td style="width:168px">
+            <textarea class="notes-ta" rows="2" placeholder="Jot something down…"
+              onblur="saveNotes({{ lead.id }}, this)">{{ lead.notes or '' }}</textarea>
+          </td>
+
+          <!-- Follow Up -->
+          <td style="width:110px">
+            <input type="date" class="followup-input"
+              value="{{ lead.follow_up_date or '' }}"
+              onchange="saveFollowUp({{ lead.id }}, this.value)" />
+          </td>
+
+          <!-- Delete -->
+          <td style="width:32px;text-align:center">
+            <button class="btn-delete-inline" onclick="deleteLead({{ lead.id }})" title="Delete">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <span class="emoji">🍱</span>
+      <p>No leads here yet — hit "Get More Leads" to serve up some fresh ones!</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Lead Modal -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>🍽️ Add New Lead</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg-full">
+          <label class="form-label">Investor Name *</label>
+          <input class="form-input" id="f_investor_name" placeholder="e.g. Example Seed Partners" />
+        </div>
+        <div class="fg-full">
+          <label class="form-label">Investor Type</label>
+          <select class="form-select" id="f_investor_type">
+            <option value="">Select type</option>
+            <option>VC</option><option>PE</option><option>Angel</option>
+            <option>Angel Network</option><option>Family Office</option><option>Corporate VC</option><option>Accelerator</option>
+          </select>
+        </div>
+        <div class="fg-full">
+          <label class="form-label">Key Contact</label>
+          <input class="form-input" id="f_key_contact" placeholder="e.g. Jane Placeholder" />
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input class="form-input" id="f_email" type="email" placeholder="contact@firm.com" />
+        </div>
+        <div>
+          <label class="form-label">LinkedIn</label>
+          <input class="form-input" id="f_linkedin" placeholder="https://linkedin.com/in/…" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-amber" onclick="submitLead()">🍜 Add Lead</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ── Bulk action bar ── -->
+<div id="bulk-bar">
+  <span id="bulk-count">0 leads selected</span>
+  <span class="bulk-divider"></span>
+  <select id="bulk-status-select" title="Bulk move all selected leads to this status">
+    <option value="">— Move to status —</option>
+    <option value="New">🔵 New</option>
+    <option value="Reached Out">✉️ Reached Out</option>
+    <option value="Engaged">🟣 Engaged</option>
+    <option value="Didn't Respond">🟡 Didn't Respond</option>
+    <option value="Reached Out Again">🔁 Reached Out Again</option>
+    <option value="Not Interested">🔴 Not Interested</option>
+  </select>
+  <button class="btn" id="bulkMoveBtn" onclick="bulkSetStatus()" style="background:rgba(255,255,255,0.18);color:white;border:1.5px solid rgba(255,255,255,0.35)">→ Move</button>
+  <button class="btn btn-ghost" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2)" onclick="clearSelection()">✕</button>
+</div>
+
+<!-- ── Review & Approve modal (Stage 1) ── -->
+<div class="overlay" id="reviewModal">
+  <div class="modal" style="width:720px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-head">
+      <h2>📝 Review Outreach</h2>
+      <button class="modal-close" onclick="closeReview()">×</button>
+    </div>
+    <div style="padding:14px 20px 0">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--grey);margin-bottom:6px">
+        <span id="review-progress-label">Lead 1 of 1</span>
+        <span id="review-tally"></span>
+      </div>
+      <div style="height:6px;background:var(--grey-l);border-radius:4px;overflow:hidden">
+        <div id="review-progress-bar" style="height:100%;width:0;background:var(--amber);transition:width .2s"></div>
+      </div>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1" id="review-body"></div>
+    <div class="modal-foot" id="review-foot"></div>
+  </div>
+</div>
+
+<!-- ── Outreach Report modal ── -->
+<div class="overlay" id="reportModal">
+  <div class="modal" style="width:560px;max-height:88vh;display:flex;flex-direction:column">
+    <div class="modal-head">
+      <h2>📊 Outreach Report</h2>
+      <button class="modal-close" onclick="closeReport()">×</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1" id="report-body">
+      <div class="draft-placeholder"><span class="spin" style="width:22px;height:22px;border-width:3px"></span><span>Computing…</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Gmail connect dialog (shown only if not connected at send time) ── -->
+<div class="overlay" id="gmailConnectDialog">
+  <div class="modal" style="width:500px;padding:26px 30px;text-align:center">
+    <div style="font-size:34px">✉️</div>
+    <h2 style="margin:8px 0 10px;font-size:18px;font-weight:800;color:var(--purple)">Connect Gmail to send</h2>
+    <p id="gmail-connect-body" style="font-size:13px;color:var(--charcoal);line-height:1.6;margin-bottom:16px"></p>
+
+    <!-- Step 1: upload OAuth credentials (shown only if missing) -->
+    <div id="gmail-creds-upload" style="display:none;text-align:left;background:#faf7fc;border:1px solid var(--purple-ll);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--charcoal);line-height:1.6;margin-bottom:10px">
+        <strong>Step 1 — upload your Google OAuth file.</strong> In
+        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:var(--purple);font-weight:700">Google Cloud Console</a>
+        → Create Credentials → <em>OAuth client ID (Web application)</em>, add this exact redirect URI, then download the JSON and upload it here:
+        <div id="gmail-redirect-uri" style="background:white;border:1px solid var(--grey-l);border-radius:6px;padding:6px 8px;margin-top:6px;font-family:monospace;font-size:11px;user-select:all;word-break:break-all"></div>
+      </div>
+      <input type="file" id="gmail-creds-file" accept=".json,application/json" style="font-size:12px" />
+      <button class="btn btn-purple btn-sm" style="margin-top:8px" id="gmail-creds-upload-btn" onclick="uploadGmailCreds()">⬆ Upload credentials.json</button>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-amber" id="gmail-connect-go" onclick="connectGmailThenSend()" style="display:none">🔗 Connect Gmail</button>
+      <button class="btn btn-ghost" onclick="hideGmailConnectDialog()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Dispatch lock (full-screen, blocks all interaction during send) ── -->
+<div id="dispatchLock">
+  <div class="dispatch-card">
+    <div class="dispatch-spinner"></div>
+    <h3 id="dispatch-title">Sending…</h3>
+    <div class="dispatch-sub" id="dispatch-sub"></div>
+    <div class="dispatch-bar"><div class="dispatch-bar-fill" id="dispatch-bar-fill"></div></div>
+    <div class="dispatch-count" id="dispatch-count"></div>
+    <div class="dispatch-current" id="dispatch-current"></div>
+    <div style="margin-top:18px">
+      <button class="btn btn-outline btn-sm" id="dispatch-stop-btn" onclick="stopDispatch()">🛑 Stop after current send</button>
+      <button class="btn btn-amber" id="dispatch-done-btn" style="display:none" onclick="location.reload()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Bulk send progress modal (legacy, unused) ── -->
+<div class="overlay" id="bulkModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-head">
+      <h2>🚀 Bulk Email Send</h2>
+      <button class="modal-close" onclick="closeBulkModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="bulk-progress-header" style="margin-bottom:14px;font-size:13px;color:var(--grey)">
+        Generating personalised AI drafts and sending…
+      </div>
+      <div id="bulk-results" style="max-height:320px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-amber" id="bulkDoneBtn" onclick="closeBulkModal()" style="display:none">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Templates Modal ── -->
+<div class="overlay" id="templatesModal">
+  <div class="modal" style="width:700px;max-height:88vh;display:flex;flex-direction:column">
+    <div class="modal-head">
+      <h2>💼 LinkedIn Templates</h2>
+      <button class="modal-close" onclick="closeTemplatesModal()">×</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1">
+      <p style="font-size:12px;color:var(--grey);margin-bottom:14px">
+        Your two base messages. Each lead's message is personalised from these when you compose.
+        Pick a tab, paste your draft, hit <strong>✨ Write with AI</strong>, tweak, and save.
+      </p>
+      <!-- Stage tabs -->
+      <div class="tpl-tabs" id="tpl-tabs"></div>
+      <!-- Active stage editor (rendered by JS) -->
+      <div id="tpl-tab-panel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── LinkedIn Compose Modal ── -->
+<div class="overlay" id="linkedinModal">
+  <div class="modal" style="width:660px">
+    <div class="modal-head">
+      <h2 style="display:flex;align-items:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+        Compose LinkedIn message
+      </h2>
+      <button class="modal-close" onclick="closeLinkedInModal()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Investor info pill -->
+      <div class="investor-pill" id="li-investor-info"></div>
+
+      <!-- Composing spinner -->
+      <div id="li-generating">
+        <div class="draft-placeholder">
+          <span class="spin" style="width:24px;height:24px;border-width:3px"></span>
+          <span>Personalising in your voice…</span>
+        </div>
+      </div>
+
+      <!-- No LinkedIn URL hint -->
+      <div id="li-no-url" style="display:none">
+        <div class="draft-placeholder">
+          <span style="font-size:28px">🔗</span>
+          <span>No LinkedIn URL on this lead yet.<br>Add one, or hit <strong>🔍 linkedin</strong> on the row to auto-find it, then try again.</span>
+        </div>
+      </div>
+
+      <!-- Compose form -->
+      <div id="li-form" style="display:none">
+        <!-- Message-type toggle -->
+        <div class="li-type-toggle">
+          <button type="button" class="li-type-btn active" data-type="connect" onclick="switchLiType('connect')">
+            🤝 Connection note <span class="li-type-sub">≤300 chars</span>
+          </button>
+          <button type="button" class="li-type-btn" data-type="dm" onclick="switchLiType('dm')">
+            💬 Direct message <span class="li-type-sub">after they accept</span>
+          </button>
+        </div>
+
+        <div id="li-personalization-note" style="display:none"></div>
+
+        <label class="draft-section-label" style="margin-top:10px">Message</label>
+        <textarea class="draft-body-ta" id="li-body" rows="11" oninput="updateLiCounter()"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span id="li-char-count" style="font-size:11px;color:var(--grey)"></span>
+          <span style="font-size:10px;color:var(--grey)">✏️ Edit freely before copying.</span>
+        </div>
+
+        <div class="li-steps">
+          <strong>How to send:</strong> hit <em>Copy &amp; Open LinkedIn</em> → on their profile click
+          <em>Connect → Add a note</em> (or <em>Message</em>) → paste (⌘V) → Send.
+          <div id="li-lookfor" style="display:none;margin-top:6px"></div>
+          <div style="margin-top:6px">Can't find them?
+            <a href="#" id="li-google-link" target="_blank" rel="noopener" style="color:#0a66c2;font-weight:700">Find their profile via Google</a>
+            <span style="color:var(--grey)">— matches the startup they backed, which LinkedIn search can't.</span>
+          </div>
+        </div>
+
+        <!-- Save the confirmed profile so the hunt happens only ONCE per lead -->
+        <div id="li-savebox" style="margin-top:8px;background:#eaf3fb;border:1px solid #b6d4ef;border-radius:8px;padding:9px 11px">
+          <div style="font-size:11px;font-weight:700;color:#0a66c2;margin-bottom:5px">
+            📌 Found the right person? Paste their profile URL — saved for good, opens directly next time.
+          </div>
+          <div style="display:flex;gap:6px">
+            <input id="li-save-url" type="url" placeholder="https://www.linkedin.com/in/…"
+              style="flex:1;padding:5px 8px;border:1px solid var(--grey-l);border-radius:6px;font-size:11px" />
+            <button class="btn btn-sm" onclick="saveLinkedInProfile()"
+              style="background:#0a66c2;color:#fff;font-size:11px;padding:5px 12px">Save</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeLinkedInModal()">Cancel</button>
+      <button class="btn" id="li-copy-btn" onclick="copyAndOpenLinkedIn()" disabled
+        style="background:#0a66c2;color:white">
+        📋 Copy &amp; Open LinkedIn
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Email send modal (automated — no copy/paste) ── -->
+<div class="overlay" id="emailModal">
+  <div class="modal" style="width:660px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-head">
+      <h2>✉️ Send email</h2>
+      <button class="modal-close" onclick="closeEmailModal()">×</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1">
+      <div class="investor-pill" id="em-investor-info"></div>
+
+      <div id="em-generating" style="display:none">
+        <div class="draft-placeholder">
+          <span class="spin" style="width:22px;height:22px;border-width:3px"></span>
+          <span>Personalising your email…</span>
+        </div>
+      </div>
+
+      <div id="em-noemail" style="display:none">
+        <div class="draft-placeholder" style="flex-direction:column;gap:8px">
+          <span style="font-size:26px">📭</span>
+          <span>No email address for this lead yet.<br>
+            Use the <strong>🔍</strong> button on the row to find one, or type it below.</span>
+        </div>
+      </div>
+
+      <div id="em-form" style="display:none">
+        <div id="em-note" style="margin-bottom:8px"></div>
+        <label class="draft-section-label">To</label>
+        <input class="draft-field-input" type="email" id="em-to" placeholder="investor@firm.com" />
+        <label class="draft-section-label" style="margin-top:8px">Subject</label>
+        <input class="draft-field-input" type="text" id="em-subject" />
+        <label class="draft-section-label" style="margin-top:8px">Body</label>
+        <textarea class="draft-body-ta" id="em-body" rows="14"></textarea>
+        <p style="font-size:10px;color:var(--grey);margin-top:6px" id="em-attach-note"></p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn btn-amber" id="em-send-btn" onclick="sendLeadEmail()" disabled>
+        🚀 Send email now
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// Money rain
+(function() {
+  const container = document.getElementById('money-rain');
+  const symbols = ['💵','💸','💰','🤑','$','₹','💵','💸'];
+  for (let i = 0; i < 28; i++) {
+    const el = document.createElement('span');
+    el.className = 'bill';
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.animationDuration = (6 + Math.random() * 10) + 's';
+    el.style.animationDelay = (Math.random() * 12) + 's';
+    el.style.fontSize = (14 + Math.random() * 18) + 'px';
+    container.appendChild(el);
+  }
+})();
+
+const STATUS_CLASS = {
+  'New': 's-New', 'Reached Out': 's-ReachedOut',
+  'Reached Out Again': 's-ReachedOutAgain', 'Engaged': 's-Engaged',
+  "Didn't Respond": 's-DidntRespond', 'Not Interested': 's-NotInterested'
+};
+
+function toast(msg, type='success', duration=3200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className='', duration);
+}
+
+async function updateStatus(id, sel) {
+  const s = sel.value;
+  sel.className = `status-select ${STATUS_CLASS[s] || 's-New'}`;
+  await fetch(`/api/lead/${id}/status`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status: s})
+  });
+  toast(`Status → "${s}" 🎯`);
+}
+
+let ntimer = {};
+function saveNotes(id, el) {
+  clearTimeout(ntimer[id]);
+  ntimer[id] = setTimeout(() =>
+    fetch(`/api/lead/${id}/notes`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({notes: el.value})
+    }), 500);
+}
+
+async function deleteLead(id) {
+  if (!confirm('Remove this lead?')) return;
+  await fetch(`/api/lead/${id}`, {method:'DELETE'});
+  const row = document.getElementById(`row-${id}`);
+  row.style.transition = 'opacity .25s, transform .25s';
+  row.style.opacity = '0'; row.style.transform = 'translateX(20px)';
+  setTimeout(() => row.remove(), 260);
+  toast('Lead removed 🗑️');
+}
+
+async function fetchRecent(id, btn) {
+  btn.innerHTML = '<span class="spin"></span> Fetching…';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`/api/lead/${id}/recent`, {method:'POST'});
+    const d = await r.json();
+    if (!r.ok) {
+      const msg = d.error || 'Error';
+      if (msg.includes('ANTHROPIC_API_KEY')) {
+        toast('Add ANTHROPIC_API_KEY to your .env file to use AI fetch 🔑', 'error');
+      } else {
+        toast(msg, 'error');
+      }
+      btn.innerHTML = '⚠ No API key';
+      btn.disabled = false;
+      return;
+    }
+    if (d.recent_investments && d.recent_investments !== 'Data unavailable') {
+      const cell = document.getElementById(`recent-cell-${id}`);
+      const tags = d.recent_investments.split(',').map(s =>
+        `<span class="tag">${s.trim()}</span>`).join('');
+      cell.innerHTML = `<div class="recent-invest">${tags}</div>`;
+      toast('Recent investments fetched! 🍴');
+    } else {
+      btn.innerHTML = '⊘ Fetch';
+      btn.disabled = false;
+    }
+  } catch { btn.innerHTML = '⊘ Fetch'; btn.disabled = false; }
+}
+
+let sortState = {col: -1, dir: 1};
+function sortTable(col) {
+  const table = document.querySelector('tbody');
+  const rows = Array.from(table.querySelectorAll('tr'));
+  const ths = document.querySelectorAll('thead th');
+  ths.forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  if (sortState.col === col) sortState.dir *= -1;
+  else { sortState.col = col; sortState.dir = 1; }
+  ths[col].classList.add(sortState.dir === 1 ? 'sort-asc' : 'sort-desc');
+  rows.sort((a, b) => {
+    const aText = (a.cells[col]?.innerText || '').trim().toLowerCase();
+    const bText = (b.cells[col]?.innerText || '').trim().toLowerCase();
+    const aDate = Date.parse(aText), bDate = Date.parse(bText);
+    if (!isNaN(aDate) && !isNaN(bDate)) return (aDate - bDate) * sortState.dir;
+    return aText.localeCompare(bText) * sortState.dir;
+  });
+  rows.forEach(r => table.appendChild(r));
+}
+
+function toggleAddContact(leadId) {
+  const form = document.getElementById(`add-contact-${leadId}`);
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function enrichLead(leadId) {
+  const btn = document.getElementById(`enrich-btn-${leadId}`);
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  toast('🔍 Crawling the web for a verified email + LinkedIn…', 'info');
+  try {
+    const r = await fetch(`/api/lead/${leadId}/enrich`, {method: 'POST'});
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Error enriching', 'error'); btn.textContent = '🔍'; btn.disabled = false; return; }
+    if (d.complete) {
+      toast(`✅ Found email + LinkedIn! Refreshing…`);
+      setTimeout(() => location.reload(), 900);
+    } else if (d.has_email || d.has_linkedin) {
+      const got = [d.has_email ? 'email' : null, d.has_linkedin ? 'LinkedIn' : null].filter(Boolean).join(' + ');
+      const miss = [!d.has_email ? 'email' : null, !d.has_linkedin ? 'LinkedIn' : null].filter(Boolean).join(' & ');
+      toast(`Found ${got}, but still missing ${miss} — try manually. Refreshing…`, 'info');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      toast('Couldn\'t verify an email or LinkedIn for this one 😕 — add it manually', 'error');
+      btn.textContent = '🔍'; btn.disabled = false;
+    }
+  } catch { toast('Something went wrong 😅', 'error'); btn.textContent = '🔍'; btn.disabled = false; }
+}
+
+// The actual sources the backend crawls — these names map to real crawl steps
+// in scraper.find_verified_contact(), so what the user reads is what's happening.
+const ENRICH_SOURCES = [
+  'DuckDuckGo (search)',
+  'IndianVCs.com',
+  'OpenVC India',
+  'Venture Intelligence',
+  'Crunchbase (public)',
+  'Wellfound (AngelList)',
+  'Investor\'s own website',
+];
+let _enrichSrcInterval = null;
+
+function showEnrichOverlay() {
+  document.getElementById('enrichOverlay').classList.add('show');
+  document.getElementById('enrichSourceLabel').textContent = 'Enriching via ' + ENRICH_SOURCES[0] + '…';
+  document.getElementById('enrichCurrentLead').innerHTML = '&nbsp;';
+  document.getElementById('enrichProgressText').textContent = 'Starting…';
+  document.getElementById('enrichBarFill').style.width = '0%';
+
+  // Rotate through source labels every 1.4s for a "working through them" feel.
+  let idx = 0;
+  _enrichSrcInterval = setInterval(() => {
+    const label = document.getElementById('enrichSourceLabel');
+    label.classList.add('fade');
+    setTimeout(() => {
+      idx = (idx + 1) % ENRICH_SOURCES.length;
+      label.textContent = 'Enriching via ' + ENRICH_SOURCES[idx] + '…';
+      label.classList.remove('fade');
+    }, 280);
+  }, 1400);
+}
+
+function hideEnrichOverlay() {
+  document.getElementById('enrichOverlay').classList.remove('show');
+  if (_enrichSrcInterval) { clearInterval(_enrichSrcInterval); _enrichSrcInterval = null; }
+}
+
+// enrichAll() removed — enrichment is now built into GetLeads (Phase 2).
+// Per-lead 🔍 button handles individual enrichment when email/LinkedIn is missing.
+
+// ── Highlight leads the crawl couldn't complete (read from sessionStorage) ───
+function applyEnrichHighlights() {
+  let missing;
+  try { missing = JSON.parse(sessionStorage.getItem('enrichMissing') || '[]'); } catch { missing = []; }
+  if (!missing.length) return;
+
+  missing.forEach(m => {
+    const row = document.getElementById('row-' + m.id);
+    if (!row) return;
+    row.classList.add('lead-missing');
+    (m.missing || []).forEach(field => {
+      const input = row.querySelector(`.contact-field-input[data-field="${field}"]`);
+      if (input && !input.value.trim()) input.classList.add('field-missing');
+      // also tag the contact field even if no contact row was rendered
+    });
+    // add an inline flag next to the investor name
+    const nameEl = row.querySelector('.investor-name');
+    if (nameEl && !nameEl.querySelector('.missing-flag')) {
+      const flag = document.createElement('span');
+      flag.className = 'missing-flag';
+      flag.textContent = 'needs ' + (m.missing || []).join(' + ');
+      nameEl.appendChild(flag);
+    }
+  });
+
+  // Banner summary
+  const banner = document.getElementById('enrichBanner');
+  const text = document.getElementById('enrichBannerText');
+  const list = document.getElementById('enrichBannerList');
+  text.innerHTML = `<b>${missing.length} lead${missing.length !== 1 ? 's' : ''}</b> couldn't be auto-completed — the web crawl found no verified email/LinkedIn (no addresses are ever guessed). Please add these manually:`;
+  list.innerHTML = missing.map(m =>
+    `• <a href="#row-${m.id}" onclick="document.getElementById('row-${m.id}').scrollIntoView({behavior:'smooth',block:'center'});return false;"><b>${m.name}</b></a> <span style="color:#b91c1c">(missing ${(m.missing||[]).join(' + ')})</span>`
+  ).join('<br>');
+  banner.style.display = 'block';
+}
+
+function dismissEnrichBanner() {
+  document.getElementById('enrichBanner').style.display = 'none';
+  sessionStorage.removeItem('enrichMissing');
+  document.querySelectorAll('tr.lead-missing').forEach(r => r.classList.remove('lead-missing'));
+  document.querySelectorAll('.field-missing').forEach(i => i.classList.remove('field-missing'));
+  document.querySelectorAll('.missing-flag').forEach(f => f.remove());
+}
+
+applyEnrichHighlights();
+
+async function addContact(leadId) {
+  const name = document.getElementById(`add-name-${leadId}`).value.trim();
+  const email = document.getElementById(`add-email-${leadId}`).value.trim();
+  const linkedin = document.getElementById(`add-linkedin-${leadId}`).value.trim();
+  if (!name) { toast('Name is required 🙏', 'error'); return; }
+  const r = await fetch(`/api/lead/${leadId}/contacts`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ names: [name], emails: [email], linkedins: [linkedin] })
+  });
+  if (r.ok) { toast('Contact saved ✓'); setTimeout(() => location.reload(), 600); }
+}
+
+async function saveFollowUp(id, date) {
+  await fetch(`/api/lead/${id}/followup`, {
+    method: 'PATCH', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({follow_up_date: date})
+  });
+  toast('Follow-up date saved 📅');
+}
+
+async function saveContactDetail(leadId, field) {
+  const inputs = document.querySelectorAll(`[data-lead-id="${leadId}"][data-field="${field}"]`);
+  const values = Array.from(inputs).map(inp => inp.value.trim());
+  const r = await fetch(`/api/lead/${leadId}/contacts`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({[field + 's']: values})
+  });
+  if (r.ok) toast('Contact saved ✓');
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ── LinkedIn templates modal ──────────────────────────────────────────────────
+let _templates = [];
+let _activeTplStage = 'li_connect';
+let _tabPendingFile = null;   // (unused for LinkedIn — no attachments)
+
+// The two LinkedIn message types. Matches backend VALID_STAGES.
+const TPL_STAGES = [
+  {v:'li_connect', emoji:'🤝', label:'Connection Note', sub:'≤300 chars'},
+  {v:'li_dm',      emoji:'💬', label:'Direct Message',  sub:'after they accept'},
+];
+const LI_CONNECT_MAX = 300;
+function _stageMeta(v){ return TPL_STAGES.find(s => s.v === v) || TPL_STAGES[TPL_STAGES.length - 1]; }
+function _tplForStage(v){ return _templates.find(t => (t.stage || 'generic') === v) || null; }
+function _wc(text){ return (text || '').trim().split(/\s+/).filter(Boolean).length; }
+
+async function openTemplatesModal() {
+  document.getElementById('templatesModal').classList.add('open');
+  await loadTemplates();
+}
+function closeTemplatesModal() {
+  document.getElementById('templatesModal').classList.remove('open');
+}
+
+async function loadTemplates() {
+  const r = await fetch('/api/templates');
+  _templates = await r.json();
+  renderTplTabs();
+  renderTplPanel(_activeTplStage);
+}
+
+function renderTplTabs() {
+  document.getElementById('tpl-tabs').innerHTML = TPL_STAGES.map(s => {
+    const has = !!_tplForStage(s.v);
+    const active = s.v === _activeTplStage ? 'active' : '';
+    return `<button type="button" class="tpl-tab ${active}" onclick="switchTplTab('${s.v}')">${s.emoji} ${s.label}${has ? ' <span class="dot" title="Message saved">●</span>' : ''}</button>`;
+  }).join('');
+}
+
+function switchTplTab(stage) {
+  _activeTplStage = stage;
+  _tabPendingFile = null;
+  renderTplTabs();
+  renderTplPanel(stage);
+}
+
+function renderTplPanel(stage) {
+  const meta = _stageMeta(stage);
+  const t = _tplForStage(stage);
+  const body    = t ? (t.body || '') : '';
+  const locked  = t ? t.locked : false;
+  const isConnect = stage === 'li_connect';
+  const panel = document.getElementById('tpl-tab-panel');
+  panel.dataset.tid = t ? t.id : '';
+  panel.innerHTML = `
+    <div class="tpl-stage-head">${meta.emoji} <strong>${meta.label}</strong> <span style="color:var(--grey);font-weight:500">— ${meta.sub}</span></div>
+
+    <div style="font-size:11px;color:var(--grey);margin-bottom:10px;line-height:1.5">
+      ${isConnect
+        ? 'The note that goes with a connection request. LinkedIn caps this at <strong>300 characters</strong>. Use <code>{investor_name}</code>.'
+        : 'The full message you send once connected (or as an InMail). Use <code>{investor_name}</code>.'}
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <label class="form-label" style="margin:0">Message</label>
+        <button type="button" class="btn btn-purple btn-sm" id="tab-ai-btn" style="font-size:11px;padding:4px 10px" onclick="writeWithAI()">✨ Write with AI</button>
+      </div>
+      <textarea class="draft-body-ta" id="tab-final" rows="12" oninput="updateTabWordCount()" placeholder="Paste or type your ${isConnect ? 'connection note' : 'message'} here. Then hit ✨ Write with AI to rewrite it in your voice.">${escHtml(body)}</textarea>
+      <p id="tab-wordcount" style="font-size:10px;color:var(--grey);margin-top:4px"></p>
+    </div>
+
+    <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;font-size:12px;color:var(--charcoal);cursor:pointer;line-height:1.4">
+      <input type="checkbox" id="tab-locked" ${locked ? 'checked' : ''} style="margin-top:2px" />
+      <span>🔒 <strong>Lock as approved base</strong> — used verbatim as the safe fallback when the AI isn't confident enough to personalise per investor.</span>
+    </label>
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-amber btn-sm" onclick="saveTplStage()">💾 Save ${meta.label}</button>
+      ${t ? `<button class="btn btn-danger btn-sm" style="font-size:11px;padding:6px 10px" onclick="deleteTplStage()">🗑 Delete</button>` : ''}
+    </div>
+  `;
+  updateTabWordCount();
+}
+
+function updateTabWordCount() {
+  const el = document.getElementById('tab-wordcount');
+  if (!el) return;
+  const val = document.getElementById('tab-final').value;
+  if (_activeTplStage === 'li_connect') {
+    const n = val.length;
+    const over = n > LI_CONNECT_MAX;
+    el.innerHTML = `<span style="color:${over ? 'var(--red)' : 'var(--grey)'};font-weight:${over ? 700 : 400}">${n} / ${LI_CONNECT_MAX} characters${over ? ' — too long for a connection note' : ''}</span>`;
+  } else {
+    const n = _wc(val);
+    el.textContent = n ? `${n} words` : '';
+  }
+}
+
+async function writeWithAI() {
+  const current = document.getElementById('tab-final').value;
+  const btn = document.getElementById('tab-ai-btn');
+  if (!current.trim()) { toast('Paste or type a draft in the message box first 🙏', 'error'); return; }
+  const orig = btn.textContent; btn.disabled = true; btn.textContent = '✨ Writing…';
+  try {
+    const r = await fetch('/api/templates/ai-improve', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({subject: '', body: current, stage: _activeTplStage})
+    });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'AI failed — try again', 'error'); return; }
+    document.getElementById('tab-final').value = d.body || '';   // replace in place
+    updateTabWordCount();
+    toast('✨ Rewritten in your voice — review & edit', 'info', 4000);
+  } catch { toast('Something went wrong 😅', 'error'); }
+  finally { btn.disabled = false; btn.textContent = orig; }
+}
+
+async function saveTplStage() {
+  const stage   = _activeTplStage;
+  const meta    = _stageMeta(stage);
+  const body    = document.getElementById('tab-final').value.trim();
+  const locked  = document.getElementById('tab-locked').checked;
+  if (!body) { toast('Message is empty — write or paste it first 🙏', 'error'); return; }
+  if (stage === 'li_connect' && body.length > LI_CONNECT_MAX) {
+    toast(`Connection note is ${body.length} chars — LinkedIn caps it at ${LI_CONNECT_MAX}. Trim it first ✂️`, 'error', 5000); return;
+  }
+  const panel = document.getElementById('tpl-tab-panel');
+  let id = panel.dataset.tid;
+  const payload = {name: `LinkedIn — ${meta.label}`, subject: '', body, stage, locked};
+  let r;
+  if (id) {
+    r = await fetch(`/api/templates/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  } else {
+    r = await fetch('/api/templates', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    if (r.ok) { id = (await r.json()).id; }
+  }
+  if (!r.ok) { toast('Failed to save 😬', 'error'); return; }
+  toast(`✅ ${meta.label} saved`);
+  await loadTemplates();
+}
+
+async function deleteTplStage() {
+  const id = document.getElementById('tpl-tab-panel').dataset.tid;
+  if (!id) return;
+  if (!confirm(`Delete the ${_stageMeta(_activeTplStage).label} message? This cannot be undone.`)) return;
+  const r = await fetch(`/api/templates/${id}`, {method:'DELETE'});
+  if (r.ok) { toast('Deleted 🗑️'); await loadTemplates(); }
+}
+
+// ── Gmail status ─────────────────────────────────────────────────────────────
+let _gmailConnected = false;
+
+async function refreshGmailStatus() {
+  try {
+    const r = await fetch('/api/gmail/status');
+    const d = await r.json();
+    _gmailConnected = d.connected;
+    const pill = document.getElementById('gmailPill');
+    if (d.connected) {
+      pill.className = 'gmail-pill connected';
+      pill.textContent = '✉ Gmail: Connected';
+      pill.title = 'Gmail connected — click to disconnect';
+    } else {
+      pill.className = 'gmail-pill disconnected';
+      pill.textContent = '✉ Gmail: Not Connected';
+      pill.title = d.has_credentials_json
+        ? 'Click to authorise Gmail sending'
+        : 'credentials.json not found — see setup instructions';
+    }
+  } catch {}
+}
+
+function handleGmailPillClick() {
+  if (_gmailConnected) {
+    if (confirm('Disconnect Gmail? You won\'t be able to send emails until you reconnect.')) {
+      fetch('/api/gmail/disconnect', {method:'POST'}).then(() => refreshGmailStatus());
+    }
+  } else {
+    // Check if credentials.json exists
+    fetch('/api/gmail/status').then(r => r.json()).then(d => {
+      if (!d.has_credentials_json) {
+        alert(
+          'One-time setup needed:\n\n' +
+          '1. Go to console.cloud.google.com\n' +
+          '2. Create a project → APIs & Services → Library → enable Gmail API\n' +
+          '3. Credentials → Create OAuth 2.0 Client ID (type: Web app)\n' +
+          '4. Add authorised redirect URI:\n   http://localhost:5050/api/gmail/callback\n' +
+          '5. Download JSON → rename to credentials.json\n' +
+          '6. Put it in: the app folder (next to app.py)\n' +
+          '7. Click the Gmail pill again to authorise'
+        );
+      } else {
+        window.location.href = '/api/gmail/auth';
+      }
+    });
+  }
+}
+
+// ── Bulk send ─────────────────────────────────────────────────────────────────
+function onCheckChange() {
+  const checked = document.querySelectorAll('.lead-check:checked');
+  const bar     = document.getElementById('bulk-bar');
+  const countEl = document.getElementById('bulk-count');
+  if (checked.length > 0) {
+    bar.classList.add('show');
+    countEl.textContent = `${checked.length} lead${checked.length > 1 ? 's' : ''} selected`;
+  } else {
+    bar.classList.remove('show');
+    document.getElementById('check-all').checked = false;
+  }
+}
+
+function toggleAllChecks(master) {
+  document.querySelectorAll('.lead-check').forEach(c => { c.checked = master.checked; });
+  onCheckChange();
+}
+
+function clearSelection() {
+  document.querySelectorAll('.lead-check').forEach(c => { c.checked = false; });
+  document.getElementById('check-all').checked = false;
+  document.getElementById('bulk-bar').classList.remove('show');
+}
+
+// ── Bulk status transition: move every checked lead to the picked status in
+//    one call. Used to fast-park a cohort (e.g. mark a whole batch as
+//    "Not Interested" after a no-show round, or bring stale leads back to
+//    "New" for a fresh attempt). Logs a status_change event per lead so the
+//    audit trail explains the move.
+async function bulkSetStatus() {
+  const sel = document.getElementById('bulk-status-select');
+  const newStatus = sel.value;
+  if (!newStatus) { toast('Pick a status to move them to', 'error'); return; }
+
+  const checked = Array.from(document.querySelectorAll('.lead-check:checked'));
+  if (!checked.length) { toast('Select leads first 🙏', 'error'); return; }
+
+  const ids   = checked.map(c => parseInt(c.dataset.leadId));
+  const names = checked.map(c => c.dataset.leadName || '').filter(Boolean);
+  const preview = names.slice(0, 4).join(', ')
+                + (names.length > 4 ? ` +${names.length - 4} more` : '');
+  if (!confirm(`Move ${ids.length} lead${ids.length === 1 ? '' : 's'} → "${newStatus}"?\n\n${preview}\n\nThis logs a status change on each lead.`)) return;
+
+  const btn = document.getElementById('bulkMoveBtn');
+  const orig = btn.innerHTML; btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Moving…';
+  try {
+    const r = await fetch('/api/leads/bulk-status', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({lead_ids: ids, status: newStatus}),
+    });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Bulk move failed', 'error'); return; }
+
+    if (d.updated) {
+      const tail = d.skipped ? ` · ${d.skipped} already there` : '';
+      toast(`✓ Moved ${d.updated} → "${newStatus}"${tail}`, 'success', 3500);
+      setTimeout(() => location.reload(), 900);
+    } else {
+      toast(`All ${d.total} were already in "${newStatus}"`, 'info', 3500);
+    }
+  } catch {
+    toast('Bulk move failed 😅', 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+    sel.value = '';
+  }
+}
+
+// ── Report ───────────────────────────────────────────────────────────────────
+async function openReport() {
+  document.getElementById('reportModal').classList.add('open');
+  document.getElementById('report-body').innerHTML =
+    '<div class="draft-placeholder"><span class="spin" style="width:22px;height:22px;border-width:3px"></span><span>Computing…</span></div>';
+  let d;
+  try { d = await (await fetch('/api/report')).json(); }
+  catch { document.getElementById('report-body').innerHTML = '<p style="color:var(--red);font-size:12px">Failed to load report</p>'; return; }
+  renderReport(d);
+}
+function closeReport() { document.getElementById('reportModal').classList.remove('open'); }
+
+function renderReport(d) {
+  const bs = d.by_status || {};
+  const stat = (label, val, sub) => `
+    <div style="flex:1;min-width:150px;background:var(--purple-ll);border-radius:10px;padding:14px 16px">
+      <div style="font-size:26px;font-weight:800;color:var(--purple);font-family:'Poppins',sans-serif">${val}</div>
+      <div style="font-size:11px;color:var(--charcoal);font-weight:600;margin-top:2px">${label}</div>
+      ${sub ? `<div style="font-size:10px;color:var(--grey);margin-top:2px">${sub}</div>` : ''}
+    </div>`;
+  const row = (s, color) => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--grey-l)"><span>${s}</span><strong style="color:${color}">${bs[s] || 0}</strong></div>`;
+  document.getElementById('report-body').innerHTML = `
+    <p style="font-size:13px;color:var(--charcoal);line-height:1.6;margin-bottom:14px">
+      <strong>${d.emails_sent}</strong> emails sent · <strong>${d.leads_contacted}</strong> investor leads contacted · <strong>${d.leads_engaged}</strong> engaged so far.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      ${stat('Emails delivered', d.delivered, d.bounced ? `${d.bounced} bounced` : 'no bounces')}
+      ${stat('Leads contacted', d.leads_contacted, `of ${d.total_leads} total`)}
+      ${stat('Replied / engaged', d.leads_engaged, d.replies ? `${d.replies} replies` : '')}
+    </div>
+    <h3 style="font-size:13px;color:var(--purple);margin:20px 0 6px">Pipeline by status</h3>
+    ${row('New', '#2563eb')}${row('Reached Out', '#7c3aed')}${row('Reached Out Again', '#c2410c')}${row('Engaged', '#16a34a')}${row("Didn't Respond", '#a16207')}${row('Not Interested', '#dc2626')}
+    ${(d.per_day && d.per_day.length) ? `<h3 style="font-size:13px;color:var(--purple);margin:20px 0 6px">Sends (last 14 days)</h3>` +
+      d.per_day.map(p => `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--charcoal);padding:2px 0"><span>${p.date}</span><strong>${p.count}</strong></div>`).join('') : ''}
+    <p style="font-size:10px;color:var(--grey);margin-top:16px">Delivered = sent − bounced. Run <strong>🔄 Sync Status</strong> to refresh replies & bounces from your inbox.</p>`;
+}
+
+// ── Sync Status (replies → Engaged, 5-day → No Response, bounce detection) ────
+async function syncStatus() {
+  const btn = document.getElementById('syncBtn');
+  const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Syncing…';
+  try {
+    const r = await fetch('/api/sync-status', {method:'POST'});
+    const d = await r.json();
+    if (!r.ok) {
+      toast(d.error === 'gmail_not_connected' ? 'Gmail not configured — add the app password' : (d.error || 'Sync failed'), 'error');
+      return;
+    }
+    const changed = (d.engaged ? d.engaged.length : 0) + (d.no_response ? d.no_response.length : 0);
+    toast(changed ? `🔄 ${d.summary}` : '🔄 Synced — no status changes', changed ? 'success' : 'info', 5000);
+    if (changed) setTimeout(() => location.reload(), 1500);
+  } catch { toast('Sync failed 😅', 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+
+// ── Check Bounce: scan inbox for delivery failures, move bounced leads back to
+//    New so they can be fixed + re-dispatched. The red "↩ bounced" tag in the
+//    row persists even after the revert so a known-bad address stays visible.
+async function checkBounce() {
+  const btn = document.getElementById('bounceBtn');
+  const orig = btn.innerHTML; btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Scanning inbox…';
+  try {
+    const r = await fetch('/api/check-bounce', {method:'POST'});
+    const d = await r.json();
+    if (!r.ok) {
+      toast(d.error === 'gmail_not_connected'
+            ? 'Gmail not configured — add the app password'
+            : (d.error || 'Bounce check failed'), 'error');
+      return;
+    }
+    // No new bounces → green-info toast, nothing else to do.
+    if (!d.count) {
+      toast(d.summary || 'No new bounces 🎉', 'info', 4500);
+      return;
+    }
+    // Some bounced — show a focused result modal with names + the action taken,
+    // then reload so the red ↩ bounced tags appear on the affected rows.
+    const rows = d.bounced.map(b => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--grey-l);font-size:13px">
+        <span style="color:#be123c;font-size:14px">↩</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:var(--purple)">${escHtml(b.name)}</div>
+          <div style="font-size:11px;color:var(--charcoal)">${escHtml(b.email || '—')}</div>
+        </div>
+        <div style="font-size:11px;color:${b.reverted ? '#15803d' : 'var(--grey)'};text-align:right;white-space:nowrap">
+          ${b.reverted ? '✓ moved to <strong>New</strong>' : `kept as <strong>${escHtml(b.was_status || 'unchanged')}</strong>`}
+        </div>
+      </div>`).join('');
+    const html = `
+      <div style="margin-bottom:10px;font-size:13px;color:var(--charcoal)">
+        Found <strong>${d.count}</strong> new bounce${d.count === 1 ? '' : 's'} in your inbox.
+        ${d.reverted ? `<strong>${d.reverted}</strong> ${d.reverted === 1 ? 'lead was' : 'leads were'} moved back to <strong>New</strong> so you can fix the address and re-dispatch.` : ''}
+      </div>
+      <div style="max-height:50vh;overflow-y:auto;border:1px solid var(--grey-l);border-radius:8px;padding:4px 12px;background:var(--white)">
+        ${rows}
+      </div>`;
+    _showResultModal('↩ Bounced emails', html, 'Reload list', () => location.reload());
+  } catch (e) {
+    toast('Bounce check failed 😅', 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+
+// ── Classify Rejections: read notes on every Not Interested lead and tag
+//    each with a structured rejection reason via Claude. The per-row dropdown
+//    next to the status select lets you fix any wrong call manually.
+async function classifyRejections() {
+  const btn = document.getElementById('classifyBtn');
+  const orig = btn.innerHTML; btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Classifying…';
+  try {
+    const r = await fetch('/api/classify-rejections', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({})
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      toast(d.error || d.message || 'Classification failed', 'error');
+      return;
+    }
+    if (!d.total) {
+      // Nothing to do — either no NI leads, no notes, or all already tagged.
+      toast(d.message || 'Nothing to classify', 'info', 4500);
+      return;
+    }
+    toast(`🏷 Classifying ${d.total} rejection note${d.total === 1 ? '' : 's'}…`, 'info', 4000);
+    // Poll until the background job finishes, then reload so the new tags
+    // render in the row dropdowns.
+    const poll = setInterval(async () => {
+      let s;
+      try { s = await (await fetch('/api/classify-rejections/status')).json(); }
+      catch { return; }
+      btn.innerHTML = `<span class="spin"></span> ${s.done}/${s.total}…`;
+      if (!s.running) {
+        clearInterval(poll);
+        btn.disabled = false; btn.innerHTML = orig;
+        toast(`✓ Tagged ${s.classified} lead${s.classified === 1 ? '' : 's'}`,
+              'success', 4000);
+        setTimeout(() => location.reload(), 1200);
+      }
+    }, 1000);
+    return;   // skip the finally block so the spinner keeps ticking until poll finishes
+  } catch (e) {
+    toast('Classification failed 😅', 'error');
+  }
+  btn.disabled = false; btn.innerHTML = orig;
+}
+
+// Per-row dropdown change — save the manual override (or clear) and update the
+// "tagged" visual state without a reload.
+async function updateRejectionReason(id, sel) {
+  const reason = sel.value;
+  sel.classList.toggle('tagged', !!reason);
+  try {
+    const r = await fetch(`/api/lead/${id}/rejection-reason`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({rejection_reason: reason}),
+    });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      toast(d.error || 'Save failed', 'error');
+      return;
+    }
+    toast(reason ? `Tagged as "${reason}"` : 'Tag cleared', 'success', 2500);
+  } catch { toast('Save failed 😅', 'error'); }
+}
+
+// Lightweight ad-hoc result modal — built once, reused. Used by checkBounce; can
+// be reused by other one-shot result dialogs without adding more <div> tags.
+function _showResultModal(title, bodyHtml, primaryLabel, onPrimary) {
+  let m = document.getElementById('genericResultModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'genericResultModal'; m.className = 'overlay';
+    m.innerHTML = `
+      <div class="modal" style="width:540px;max-height:80vh;display:flex;flex-direction:column">
+        <div class="modal-head">
+          <h2 id="grmTitle"></h2>
+          <button class="modal-close" onclick="document.getElementById('genericResultModal').classList.remove('open')">×</button>
+        </div>
+        <div class="modal-body" style="overflow-y:auto;flex:1" id="grmBody"></div>
+        <div class="modal-foot">
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost" onclick="document.getElementById('genericResultModal').classList.remove('open')">Close</button>
+          <button class="btn btn-amber" id="grmPrimary"></button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('grmTitle').textContent = title;
+  document.getElementById('grmBody').innerHTML = bodyHtml;
+  const p = document.getElementById('grmPrimary');
+  p.textContent = primaryLabel;
+  p.onclick = onPrimary;
+  m.classList.add('open');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  REVIEW & APPROVE  (Stage 1) — review each personalised draft one-by-one and
+//  approve. NOTHING is sent here; dispatch is Stage 2.
+// ════════════════════════════════════════════════════════════════════════════
+let _review = null;
+
+// How many drafts to generate concurrently during the prep phase. Each draft is
+// a Gemini news lookup + a Claude call (~14.5s, all network I/O — no local
+// load), so we can safely run several at once. With 8 concurrent: 50 leads ≈
+// 90s of upfront wait, then review is instant on every click. Quality is
+// IDENTICAL to drafting one-at-a-time — same per-lead code path, just parallel.
+const PREFETCH_CONCURRENCY = 8;
+
+function reviewPump() {
+  if (!_review) return;
+  let inflight = _review.items.filter(i => i.loading).length;
+  if (inflight >= PREFETCH_CONCURRENCY) return;
+  for (let i = 0; i < _review.items.length; i++) {
+    if (inflight >= PREFETCH_CONCURRENCY) break;
+    const it = _review.items[i];
+    // Draft anything not yet done, not in flight, and not already errored
+    // (errors are surfaced in review; user can retry individually there).
+    if (!it.drafted && !it.loading && !it.error) {
+      reviewGenerate(i);
+      inflight++;
+    }
+  }
+}
+
+function openReview() {
+  const checked = Array.from(document.querySelectorAll('.lead-check:checked'));
+  if (!checked.length) { toast('Select at least one lead 🙏', 'error'); return; }
+  const items = checked.map(c => ({
+    id: parseInt(c.dataset.leadId),
+    name: c.dataset.leadName || '',
+    company: c.dataset.company || '',
+    contact: c.dataset.contact || '',
+    email: c.dataset.email || '',
+    status: c.dataset.status || 'New',
+    drafted: false, loading: false, error: '',
+    subject: '', body: '', personalized: null, confidence: 0, basis: '',
+    news_hook: '', template_name: '', stage: '',
+    decision: null,   // 'approved' | 'skipped' | null
+  }));
+  // phase = 'preparing' → loader screen while all drafts generate in parallel
+  //         'reviewing' → per-lead approve/skip UI (all drafts already ready)
+  //         'finished'  → summary after review is done
+  _review = { items, idx: 0, phase: 'preparing', cancelled: false,
+              prepStart: Date.now(), finished: false };
+  document.getElementById('reviewModal').classList.add('open');
+  reviewPrepareAll();
+}
+
+function closeReview() {
+  // Mark cancelled so any in-flight prep drafts that finish later don't try to
+  // render into a closed modal. (The fetches themselves can't be aborted but
+  // their results are harmless — they'll just be ignored.)
+  if (_review) _review.cancelled = true;
+  document.getElementById('reviewModal').classList.remove('open');
+  _review = null;
+}
+
+// ── Prep phase: draft every selected lead in parallel, show a loader, only
+//    swap to the review UI when the entire batch is ready. ──────────────────
+function reviewPrepareAll() {
+  reviewRenderPrep();   // initial paint — 0 of N ready
+  reviewPump();         // kick off the first PREFETCH_CONCURRENCY drafts
+
+  // Tick the loader every 500ms: progress bar, ETA, and the "all ready" check.
+  const tick = setInterval(() => {
+    if (!_review || _review.cancelled) { clearInterval(tick); return; }
+    if (_review.phase !== 'preparing') { clearInterval(tick); return; }
+    reviewRenderPrep();
+    // "Done" = every item is either drafted or errored (errors will be shown
+    // in review with a per-lead Retry, so we don't block the batch on them).
+    const allDone = _review.items.every(i => i.drafted || i.error);
+    if (allDone) {
+      clearInterval(tick);
+      _review.phase = 'reviewing';
+      reviewShow(0);
+    }
+  }, 500);
+}
+
+function reviewRenderPrep() {
+  const total = _review.items.length;
+  const ready = _review.items.filter(i => i.drafted || i.error).length;
+  const inflight = _review.items.filter(i => i.loading).length;
+  const failed = _review.items.filter(i => i.error).length;
+  const pct = Math.round(100 * ready / total);
+
+  document.getElementById('review-progress-label').textContent =
+    `Preparing ${ready} of ${total}…`;
+  document.getElementById('review-progress-bar').style.width = pct + '%';
+  // ETA: average seconds per completed draft × items remaining ÷ lanes in use.
+  let etaTxt = '';
+  if (ready > 0 && ready < total) {
+    const avg = (Date.now() - _review.prepStart) / 1000 / ready;
+    const remaining = total - ready;
+    const lanes = Math.max(1, Math.min(PREFETCH_CONCURRENCY, remaining));
+    const eta = Math.round(avg * remaining / lanes);
+    etaTxt = `~${eta}s remaining`;
+  }
+  document.getElementById('review-tally').textContent = etaTxt;
+
+  document.getElementById('review-body').innerHTML = `
+    <div style="text-align:center;padding:36px 20px 28px">
+      <div style="margin:0 auto 18px;display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;background:#fef3c7">
+        <span class="spin" style="width:30px;height:30px;border-width:4px;border-color:#fde68a;border-top-color:var(--amber)"></span>
+      </div>
+      <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;color:var(--purple)">
+        Personalising ${total} email${total === 1 ? '' : 's'}…
+      </div>
+      <div style="font-size:13px;color:var(--charcoal);margin-top:6px;line-height:1.5">
+        Generating grounded, voice-matched drafts in parallel.<br>
+        <span style="color:var(--grey)">You'll review the whole batch in one go once they're ready — no spinners between leads.</span>
+      </div>
+      <div style="margin-top:22px;display:inline-flex;gap:18px;font-size:12px;color:var(--charcoal)">
+        <div><strong style="color:#15803d">${ready - failed}</strong> ready</div>
+        <div><strong style="color:var(--amber)">${inflight}</strong> in progress</div>
+        <div><strong style="color:var(--grey)">${total - ready - inflight}</strong> queued</div>
+        ${failed ? `<div><strong style="color:var(--red)">${failed}</strong> failed</div>` : ''}
+      </div>
+    </div>`;
+  document.getElementById('review-foot').innerHTML = `
+    <div style="flex:1;font-size:11px;color:var(--grey)">Drafts run in parallel · ${PREFETCH_CONCURRENCY} at a time</div>
+    <button class="btn btn-ghost" onclick="closeReview()">Cancel</button>`;
+}
+
+function _reviewTally() {
+  return {
+    approved: _review.items.filter(i => i.decision === 'approved').length,
+    skipped:  _review.items.filter(i => i.decision === 'skipped').length,
+  };
+}
+
+function _reviewUpdateProgress() {
+  const total = _review.items.length;
+  const reviewed = _review.items.filter(i => i.decision).length;
+  document.getElementById('review-progress-bar').style.width = Math.round(100 * reviewed / total) + '%';
+  const t = _reviewTally();
+  document.getElementById('review-tally').textContent = `✓ ${t.approved} approved · ⏭ ${t.skipped} skipped`;
+}
+
+function reviewShow(idx) {
+  // Called only after the prep phase has every draft (or error) ready, so this
+  // path is now purely synchronous — no spinners, no waiting between leads.
+  _review.idx = idx;
+  _review.finished = false;
+  const it = _review.items[idx];
+  const total = _review.items.length;
+  document.getElementById('review-progress-label').textContent = `Lead ${idx + 1} of ${total}`;
+  _reviewUpdateProgress();
+
+  document.getElementById('review-body').innerHTML = `
+    <div style="border:1px solid var(--grey-l);border-radius:10px;padding:12px 14px;margin-bottom:14px;background:var(--white)">
+      <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:15px;color:var(--purple)">${escHtml(it.name)}${it.decision === 'approved' ? ' <span style="font-size:11px;color:#15803d">✓ approved</span>' : it.decision === 'skipped' ? ' <span style="font-size:11px;color:#a16207">⏭ skipped</span>' : ''}</div>
+      <div style="font-size:12px;color:var(--charcoal);margin-top:2px">
+        ${it.company ? `<strong>Company:</strong> ${escHtml(it.company)} · ` : ''}<strong>Status:</strong> ${escHtml(it.status)}
+      </div>
+      <div style="font-size:12px;color:var(--charcoal);margin-top:2px">
+        <strong>To:</strong> ${escHtml(it.email || '—')}${it.contact ? ` <span style="color:var(--grey)">(${escHtml(it.contact)})</span>` : ''}
+      </div>
+      ${!it.email ? `<div style="font-size:11px;color:var(--red);margin-top:4px">⚠ No email on file — add one before sending.</div>` : ''}
+    </div>
+    <div id="review-draft-area"></div>`;
+  reviewRenderDraft(idx);
+  reviewRenderFoot();
+}
+
+async function reviewGenerate(idx) {
+  // Called by the prep pump (no UI paint needed — the prep loader ticks on its
+  // own) and by reviewRetry inside the review phase (where we DO need to paint
+  // the current lead when the draft lands).
+  const it = _review.items[idx];
+  if (it.loading || it.drafted) return;
+  it.loading = true; it.error = '';
+  try {
+    const r = await fetch(`/api/lead/${it.id}/draft-email`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({})
+    });
+    const d = await r.json();
+    if (!r.ok) { it.error = d.error || 'Failed to draft'; }
+    else {
+      it.subject = d.subject || ''; it.body = d.body || '';
+      it.personalized = d.personalized; it.confidence = d.confidence; it.basis = d.basis;
+      it.news_hook = d.news_hook || ''; it.template_name = d.template_name || ''; it.stage = d.stage || '';
+      it.template_id = d.template_id || null;
+      it.drafted = true;
+    }
+  } catch { it.error = 'Network error'; }
+  it.loading = false;
+  // Review-phase retry: repaint the visible lead so a successful retry replaces
+  // the error block with the draft (and a failed retry shows the error again).
+  if (_review && _review.phase === 'reviewing' && idx === _review.idx) {
+    reviewRenderDraft(idx); reviewRenderFoot();
+  }
+  // Modal closed mid-prep → _review is null and pump no-ops; result is discarded.
+  reviewPump();
+}
+
+function reviewRenderDraft(idx) {
+  const it = _review.items[idx];
+  const area = document.getElementById('review-draft-area');
+  if (!area) return;
+  if (it.error) {
+    area.innerHTML = `<div style="color:var(--red);font-size:12px;padding:10px">⚠ ${escHtml(it.error)} &nbsp;<button class="btn btn-ghost btn-sm" onclick="reviewRetry(${idx})">Retry</button></div>`;
+    return;
+  }
+  let badge, bg, border, color;
+  if (it.personalized) { badge = `✨ Personalised · ${it.confidence}%`; bg = '#dcfce7'; border = '#86efac'; color = '#15803d'; }
+  else { badge = '⚪ Generic (locked template)'; bg = '#f1f5f9'; border = '#cbd5e1'; color = '#475569'; }
+  area.innerHTML = `
+    <div style="border:1px solid ${border};background:${bg};border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:${color};line-height:1.5">
+      <strong>${badge}</strong>${it.template_name ? ` <span style="color:var(--charcoal)">· ${escHtml(it.template_name)}</span>` : ''}
+      ${it.basis ? `<div style="color:var(--charcoal);margin-top:2px"><strong>Basis:</strong> ${escHtml(it.basis)}</div>` : ''}
+      ${it.news_hook ? `<div style="color:var(--charcoal);margin-top:2px"><strong>📰 Hook:</strong> ${escHtml(it.news_hook)}</div>` : ''}
+    </div>
+    <div style="margin-bottom:10px">
+      <label class="draft-section-label">Subject</label>
+      <input class="draft-field-input" id="review-subject" value="${escAttr(it.subject)}" oninput="_review.items[${idx}].subject=this.value" />
+    </div>
+    <div>
+      <label class="draft-section-label">Message</label>
+      <textarea class="draft-body-ta" id="review-body-ta" rows="12" oninput="_review.items[${idx}].body=this.value">${escHtml(it.body)}</textarea>
+    </div>
+    <p style="font-size:10px;color:var(--grey);margin-top:6px">✏️ Edit freely. Nothing sends in this step — approve first, dispatch comes after.</p>`;
+}
+
+function reviewRetry(idx) {
+  _review.items[idx].drafted = false; _review.items[idx].error = '';
+  // Immediate spinner so the click feels responsive; the real draft replaces
+  // this when reviewGenerate finishes (~14.5s later).
+  const area = document.getElementById('review-draft-area');
+  if (area) {
+    area.innerHTML = `<div class="draft-placeholder"><span class="spin" style="width:22px;height:22px;border-width:3px"></span><span>Retrying…</span></div>`;
+  }
+  reviewGenerate(idx);
+}
+
+function reviewRenderFoot() {
+  const foot = document.getElementById('review-foot');
+  const idx = _review.idx, total = _review.items.length;
+  const it = _review.items[idx];
+  const isLast = idx === total - 1;
+  foot.innerHTML = `
+    <button class="btn btn-ghost" onclick="reviewSkip()">⏭ Skip</button>
+    <div style="flex:1"></div>
+    ${idx > 0 ? `<button class="btn btn-outline" onclick="reviewBack()">← Back</button>` : ''}
+    <button class="btn btn-amber" onclick="reviewApprove()" ${it.drafted ? '' : 'disabled'}>${isLast ? '✓ Approve &amp; Finish' : '✓ Approve &amp; Next →'}</button>`;
+}
+
+function reviewApprove() {
+  const it = _review.items[_review.idx];
+  if (!it.drafted) { toast('Still drafting — one sec', 'info'); return; }
+  const s = document.getElementById('review-subject'); if (s) it.subject = s.value;
+  const b = document.getElementById('review-body-ta'); if (b) it.body = b.value;
+  it.decision = 'approved';
+  reviewAdvance();
+}
+
+function reviewSkip() {
+  _review.items[_review.idx].decision = 'skipped';
+  reviewAdvance();
+}
+
+function reviewBack() {
+  if (_review.idx > 0) reviewShow(_review.idx - 1);
+}
+
+function reviewAdvance() {
+  _reviewUpdateProgress();
+  // Go to the next not-yet-decided lead; if none, finish.
+  let next = _review.idx + 1;
+  while (next < _review.items.length && _review.items[next].decision) next++;
+  if (next < _review.items.length) reviewShow(next);
+  else reviewFinish();
+}
+
+function reviewFinish() {
+  _review.finished = true;
+  const t = _reviewTally();
+  document.getElementById('review-progress-label').textContent = 'Review complete';
+  document.getElementById('review-progress-bar').style.width = '100%';
+  document.getElementById('review-tally').textContent = `✓ ${t.approved} approved · ⏭ ${t.skipped} skipped`;
+  const approved = _review.items.filter(i => i.decision === 'approved');
+  document.getElementById('review-body').innerHTML = `
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:34px">📬</div>
+      <div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;color:var(--purple);margin-top:6px">Review complete</div>
+      <div style="font-size:13px;color:var(--charcoal);margin-top:4px">${t.approved} approved · ${t.skipped} skipped</div>
+    </div>
+    <div style="border-top:1px solid var(--grey-l);padding-top:10px">
+      ${approved.map(it => `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--grey-l);font-size:12px">
+          <span style="color:#15803d">✓</span>
+          <span style="font-weight:700;flex:1">${escHtml(it.name)}</span>
+          <span style="color:var(--grey)">${escHtml(it.email || 'no email')}</span>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px" onclick="reviewShow(${_review.items.indexOf(it)})">edit</button>
+        </div>`).join('') || '<p style="color:var(--grey);font-size:12px;text-align:center;padding:8px">No leads approved.</p>'}
+    </div>`;
+  document.getElementById('review-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="reviewShow(0)">← Review again</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-amber" onclick="dispatchApproved()" ${approved.length ? '' : 'disabled'}>🚀 Send ${approved.length} email${approved.length === 1 ? '' : 's'}</button>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  STAGE 2 — DISPATCH  (server-side, throttled, locked, with progress + stop)
+// ════════════════════════════════════════════════════════════════════════════
+let _dispatchPoll = null;
+
+async function dispatchApproved() {
+  const approved = _review ? _review.items.filter(i => i.decision === 'approved' && i.email) : [];
+  if (!approved.length) { toast('Nothing approved with an email to send', 'error'); return; }
+  // Pre-flight: validate Gmail before anything leaves.
+  let st;
+  try { st = await (await fetch('/api/gmail/status')).json(); } catch { st = {connected:false}; }
+  if (!st.connected) { showGmailConnectDialog(); return; }
+  startDispatch(approved);
+}
+
+async function showGmailConnectDialog() {
+  let st; try { st = await (await fetch('/api/gmail/status')).json(); } catch { st = {has_credentials_json:false}; }
+  const hasCreds = st.has_credentials_json;
+  document.getElementById('gmail-redirect-uri').textContent = st.redirect_uri || '';
+  document.getElementById('gmail-creds-upload').style.display = hasCreds ? 'none' : 'block';
+  document.getElementById('gmail-connect-go').style.display   = hasCreds ? 'inline-flex' : 'none';
+  document.getElementById('gmail-connect-body').innerHTML = hasCreds
+    ? `Gmail isn't connected yet — authorize your account to send these emails. A Google window will open.`
+    : `One-time setup: upload your Google OAuth credentials, then authorize.`;
+  document.getElementById('gmailConnectDialog').classList.add('open');
+}
+
+async function uploadGmailCreds() {
+  const fi = document.getElementById('gmail-creds-file');
+  if (!fi.files.length) { toast('Choose your credentials.json first 🙏', 'error'); return; }
+  const btn = document.getElementById('gmail-creds-upload-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Uploading…';
+  const fd = new FormData(); fd.append('file', fi.files[0]);
+  try {
+    const r = await fetch('/api/gmail/credentials', {method:'POST', body: fd});
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Upload failed', 'error'); return; }
+    toast('✅ Credentials saved — now authorize', 'info', 4000);
+    await showGmailConnectDialog();   // re-render → now shows "Connect Gmail"
+  } catch { toast('Upload failed 😅', 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = '⬆ Upload credentials.json'; }
+}
+function hideGmailConnectDialog() {
+  document.getElementById('gmailConnectDialog').classList.remove('open');
+}
+function connectGmailThenSend() {
+  const popup = window.open('/api/gmail/auth', 'gmailAuth', 'width=520,height=660');
+  const btn = document.getElementById('gmail-connect-go');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Waiting for Google…';
+  const iv = setInterval(async () => {
+    let s; try { s = await (await fetch('/api/gmail/status')).json(); } catch { return; }
+    if (s.connected) {
+      clearInterval(iv);
+      try { popup && popup.close(); } catch (e) {}
+      btn.disabled = false; btn.innerHTML = '🔗 Connect Gmail';
+      hideGmailConnectDialog();
+      _gmailConnected = true;
+      const approved = _review.items.filter(i => i.decision === 'approved' && i.email);
+      startDispatch(approved);
+    }
+  }, 1500);
+}
+
+function _dispatchBeforeUnload(e) { e.preventDefault(); e.returnValue = ''; return ''; }
+
+function startDispatch(approved) {
+  const items = approved.map(it => ({
+    lead_id: it.id, name: it.name, to_email: it.email,
+    subject: it.subject, body: it.body, template_id: it.template_id || null,
+  }));
+  showDispatchLock(items.length);                       // lock the whole UI
+  window.addEventListener('beforeunload', _dispatchBeforeUnload);
+  fetch('/api/dispatch/start', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({items})
+  }).then(r => r.json().then(d => ({ok: r.ok, d}))).then(({ok, d}) => {
+    if (!ok) {
+      if (d.error === 'gmail_not_connected') {
+        hideDispatchLock(); showGmailConnectDialog(); return;
+      }
+      hideDispatchLock(); toast(d.message || 'Could not start send', 'error'); return;
+    }
+    pollDispatch();
+  }).catch(() => { hideDispatchLock(); toast('Could not start send 😅', 'error'); });
+}
+
+function showDispatchLock(total) {
+  const el = document.getElementById('dispatchLock');
+  document.getElementById('dispatch-title').textContent = `Sending ${total} email${total===1?'':'s'}…`;
+  document.getElementById('dispatch-sub').textContent = 'Please don\'t close this tab. Emails are spaced out to protect deliverability.';
+  document.getElementById('dispatch-bar-fill').style.width = '0%';
+  document.getElementById('dispatch-count').textContent = `0 / ${total}`;
+  document.getElementById('dispatch-current').textContent = '';
+  document.getElementById('dispatch-stop-btn').style.display = 'inline-flex';
+  document.getElementById('dispatch-stop-btn').disabled = false;
+  document.getElementById('dispatch-stop-btn').textContent = '🛑 Stop after current send';
+  document.getElementById('dispatch-done-btn').style.display = 'none';
+  el.classList.add('show');
+}
+function hideDispatchLock() {
+  document.getElementById('dispatchLock').classList.remove('show');
+  window.removeEventListener('beforeunload', _dispatchBeforeUnload);
+}
+
+async function stopDispatch() {
+  const b = document.getElementById('dispatch-stop-btn');
+  b.disabled = true; b.textContent = '🛑 Stopping after current…';
+  try { await fetch('/api/dispatch/stop', {method:'POST'}); } catch {}
+}
+
+function _fmtEtaShort(s) {
+  if (s == null || s <= 0) return '';
+  return s < 60 ? `~${s}s left` : `~${Math.ceil(s/60)}m left`;
+}
+
+function pollDispatch() {
+  if (_dispatchPoll) clearInterval(_dispatchPoll);
+  _dispatchPoll = setInterval(async () => {
+    let s; try { s = await (await fetch('/api/dispatch/status')).json(); } catch { return; }
+    const total = s.total || 0;
+    const pct = total ? Math.round(100 * s.done / total) : 0;
+    document.getElementById('dispatch-bar-fill').style.width = pct + '%';
+    document.getElementById('dispatch-count').textContent =
+      `${s.done} / ${total}` + (s.skipped ? ` · ${s.skipped} skipped` : '') +
+      (s.eta_seconds ? ` · ${_fmtEtaShort(s.eta_seconds)}` : '');
+    document.getElementById('dispatch-current').textContent =
+      s.current ? `⟶ sending to ${s.current}` : (s.running ? 'waiting between sends…' : '');
+
+    if (!s.running) {
+      clearInterval(_dispatchPoll); _dispatchPoll = null;
+      window.removeEventListener('beforeunload', _dispatchBeforeUnload);
+      finishDispatch(s);
+    }
+  }, 1500);
+}
+
+function finishDispatch(s) {
+  document.getElementById('dispatch-title').textContent =
+    `Done — ✅ ${s.sent} sent · ${s.failed} failed · ${s.skipped} skipped`;
+  document.getElementById('dispatch-sub').textContent =
+    s.failed ? 'Failed sends kept their old status — you can retry them.' : 'All approved emails went out. Status set to "Reached Out".';
+  document.getElementById('dispatch-current').textContent = '';
+  document.getElementById('dispatch-bar-fill').style.width = '100%';
+  document.getElementById('dispatch-stop-btn').style.display = 'none';
+  const done = document.getElementById('dispatch-done-btn');
+  done.style.display = 'inline-flex';
+  done.onclick = () => location.reload();   // reflect status/notes changes
+}
+
+function closeBulkModal() {
+  document.getElementById('bulkModal').classList.remove('open');
+}
+
+// ── LinkedIn Compose modal ────────────────────────────────────────────────────
+let _liLeadId = null;
+let _liData   = null;          // {connect_note, dm, linkedin_url, ...}
+let _liType   = 'connect';     // 'connect' | 'dm'
+
+async function openLinkedInCompose(btn) {
+  _liLeadId = btn.dataset.leadId;
+  const leadName = btn.dataset.leadName || '';
+  const leadType = btn.dataset.leadType || '';
+  const linkedin = (btn.dataset.linkedin || '').trim();
+  _liData = null;
+  _liType = 'connect';
+
+  // Reset panels
+  document.getElementById('li-form').style.display = 'none';
+  document.getElementById('li-no-url').style.display = 'none';
+  document.getElementById('li-personalization-note').style.display = 'none';
+  document.getElementById('li-generating').style.display = 'none';
+  const copyBtn = document.getElementById('li-copy-btn');
+  copyBtn.disabled = true;
+
+  document.getElementById('li-investor-info').innerHTML =
+    `Messaging: <strong>${escHtml(leadName)}</strong>` +
+    (leadType ? ` <span style="opacity:0.7;font-weight:400">· ${escHtml(leadType)}</span>` : '');
+
+  document.getElementById('linkedinModal').classList.add('open');
+  void linkedin;   // stored URL no longer gates composing — we open a name search
+
+  document.getElementById('li-generating').style.display = 'block';
+  try {
+    const r = await fetch(`/api/lead/${_liLeadId}/linkedin`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}'
+    });
+    const d = await r.json();
+    document.getElementById('li-generating').style.display = 'none';
+    if (!r.ok) { toast(d.error || 'Failed to compose message', 'error'); return; }
+    _liData = d;
+    renderLiNote(d);
+    document.getElementById('li-form').style.display = 'block';
+    switchLiType('connect');
+    copyBtn.disabled = false;
+    // "Look for" hint — identifying facts so you can pick the right person out
+    // of a same-name list (LinkedIn can't search on these, but you can read them).
+    const who = (d.key_contact || d.investor_name || '').trim();
+    const bits = [];
+    if (d.headline) bits.push('<strong>' + escHtml(d.headline) + '</strong>');
+    if (d.investor_type_label) bits.push(escHtml(d.investor_type_label));
+    if (d.portfolio_co) bits.push('backed <strong>' + escHtml(d.portfolio_co) + '</strong>');
+    const lookfor = document.getElementById('li-lookfor');
+    if (bits.length) {
+      lookfor.innerHTML = '🔎 <strong>Look for:</strong> ' + bits.join(' · ');
+      lookfor.style.display = 'block';
+    } else {
+      lookfor.style.display = 'none';
+    }
+    // Google fallback — indexes news/articles, so it CAN tie a person to the
+    // startup they backed (LinkedIn's own search cannot).
+    const gq = [`site:linkedin.com/in "${who}"`, d.portfolio_co ? `"${d.portfolio_co}"` : '',
+                d.portfolio_co ? '' : 'angel investor India'].filter(Boolean).join(' ');
+    document.getElementById('li-google-link').href =
+      'https://www.google.com/search?q=' + encodeURIComponent(gq);
+    toast(d.personalized ? '✨ Personalised — pick a message & copy!'
+                         : '💼 Ready — pick a message & copy!', 'info', 3500);
+  } catch {
+    document.getElementById('li-generating').style.display = 'none';
+    toast('Something went wrong composing 😅', 'error');
+  }
+}
+
+function renderLiNote(d) {
+  const el = document.getElementById('li-personalization-note');
+  let badge, bg, border, color;
+  if (d.personalized) { badge = '✨ Personalised to this investor'; bg = '#dcfce7'; border = '#86efac'; color = '#15803d'; }
+  else { badge = '⚪ Base copy — nothing specific to personalise on'; bg = '#f1f5f9'; border = '#cbd5e1'; color = '#475569'; }
+  el.innerHTML = `
+    <div style="border:1px solid ${border};background:${bg};border-radius:8px;padding:9px 12px;margin-bottom:2px;font-size:11px;color:${color};line-height:1.5">
+      <div style="font-weight:700">${badge}</div>
+      ${d.basis ? `<div style="color:var(--charcoal);margin-top:2px">${escHtml(d.basis)}</div>` : ''}
+    </div>`;
+  el.style.display = 'block';
+}
+
+function switchLiType(type) {
+  if (!_liData) return;
+  _liType = type;
+  document.querySelectorAll('.li-type-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.type === type));
+  document.getElementById('li-body').value = (type === 'dm') ? (_liData.dm || '') : (_liData.connect_note || '');
+  updateLiCounter();
+}
+
+function updateLiCounter() {
+  const el = document.getElementById('li-char-count');
+  const n  = document.getElementById('li-body').value.length;
+  if (_liType === 'connect') {
+    const over = n > LI_CONNECT_MAX;
+    el.className = over ? 'over' : '';
+    el.textContent = `${n} / ${LI_CONNECT_MAX} characters${over ? ' — trim to fit a connection note' : ''}`;
+  } else {
+    el.className = '';
+    el.textContent = `${n} characters`;
+  }
+}
+
+async function copyAndOpenLinkedIn() {
+  if (!_liData) return;
+  const text = document.getElementById('li-body').value;
+  if (_liType === 'connect' && text.length > LI_CONNECT_MAX) {
+    toast(`Connection note is ${text.length} chars — LinkedIn caps it at ${LI_CONNECT_MAX}. Trim it or switch to Direct message ✂️`, 'error', 5000);
+    return;
+  }
+
+  // 1) Open LinkedIn (must be inside the click gesture). Prefer the person's
+  //    real /in/ profile so you land straight on them (no picking from a list).
+  //    Fallback: a PRECISE search — name + portfolio company — so the right
+  //    person surfaces top instead of a page of same-name profiles.
+  const who = (_liData.key_contact || _liData.investor_name || '').trim();
+  const disambig = (_liData.search_context || '').trim();
+  const query = disambig ? `${who} ${disambig}` : who;
+  const profileUrl = (_liData.linkedin_url || '').trim();
+  const direct = /linkedin\.com\/in\//i.test(profileUrl);
+  const openUrl = direct ? profileUrl
+    : (who ? 'https://www.linkedin.com/search/results/people/?keywords=' + encodeURIComponent(query)
+           : 'https://www.linkedin.com/feed/');
+  const win = window.open(openUrl, '_blank', 'noopener');
+  // 2) Copy the message to the clipboard so a single ⌘V pastes it.
+  let copied = false;
+  try { await navigator.clipboard.writeText(text); copied = true; }
+  catch { /* clipboard blocked — fall back to selecting the textarea */
+    const ta = document.getElementById('li-body'); ta.focus(); ta.select();
+  }
+
+  // 3) Log the send + advance status (they paste & hit send themselves on LinkedIn).
+  try {
+    const r = await fetch(`/api/lead/${_liLeadId}/linkedin/mark`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({type: _liType})
+    });
+    const d = await r.json();
+    const newStatus = (d && d.status) || 'Reached Out';
+    const label = _liType === 'dm' ? 'message' : 'connection request';
+    const row = document.getElementById(`row-${_liLeadId}`);
+    if (row) {
+      const sel = row.querySelector('.status-select');
+      if (sel) { sel.value = newStatus; sel.className = 'status-select ' + (STATUS_CLASS[newStatus] || 's-ReachedOut'); }
+      const ta = row.querySelector('.notes-ta');
+      if (ta) {
+        const today = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+        const note = `LinkedIn ${label} sent on ${today}`;
+        ta.value = ta.value.trim() ? ta.value.trim() + '\n' + note : note;
+      }
+    }
+    const where = direct ? `opened ${who}'s profile` : `opened LinkedIn search for ${who}`;
+    const act   = direct ? 'Message/Connect → paste (⌘V) & send' : 'click them → paste (⌘V) & send';
+    toast(`${copied ? '📋 Copied' : '⚠️ Copy blocked — select & copy manually'} · ${where} · status → ${newStatus}. ${act} 🚀`, copied ? 'success' : 'error', 6500);
+  } catch {
+    toast(copied ? '📋 Copied & opened LinkedIn — paste & send 🚀' : 'Opened LinkedIn — copy the text manually', 'info', 5000);
+  }
+  closeLinkedInModal();
+  if (!win) toast('Popup blocked — open LinkedIn manually for ' + who, 'error', 6000);
+}
+
+// ── Email channel (automated send) ───────────────────────────────────────────
+let _emLeadId = null, _emData = null;
+
+async function openEmailSend(btn) {
+  _emLeadId = btn.dataset.leadId; _emData = null;
+  document.getElementById('em-form').style.display = 'none';
+  document.getElementById('em-noemail').style.display = 'none';
+  document.getElementById('em-generating').style.display = 'block';
+  document.getElementById('em-send-btn').disabled = true;
+  document.getElementById('em-investor-info').innerHTML =
+    `Emailing: <strong>${escHtml(btn.dataset.leadName || '')}</strong>`;
+  document.getElementById('emailModal').classList.add('open');
+
+  try {
+    const r = await fetch(`/api/lead/${_emLeadId}/email/compose`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'
+    });
+    const d = await r.json();
+    document.getElementById('em-generating').style.display = 'none';
+    if (!r.ok) { toast(d.error || 'Could not compose', 'error'); return; }
+    _emData = d;
+    document.getElementById('em-investor-info').innerHTML =
+      `Emailing: <strong>${escHtml(d.key_contact || d.investor_name)}</strong>` +
+      (d.key_contact ? ` <span style="opacity:.7;font-weight:400">· ${escHtml(d.investor_name)}</span>` : '');
+    document.getElementById('em-to').value = d.to || '';
+    document.getElementById('em-subject').value = d.subject || '';
+    document.getElementById('em-body').value = d.body || '';
+    document.getElementById('em-attach-note').textContent =
+      (d.attachment ? `📎 ${d.attachment} will be attached. ` : '') +
+      'Status stays on New — move it yourself once LinkedIn + email are both done.';
+    const n = document.getElementById('em-note');
+    n.innerHTML = d.personalized
+      ? `<div style="border:1px solid #86efac;background:#dcfce7;border-radius:8px;padding:8px 11px;font-size:11px;color:#15803d"><strong>✨ Personalised</strong><div style="color:var(--charcoal)">${escHtml(d.basis||'')}</div></div>`
+      : `<div style="border:1px solid #cbd5e1;background:#f1f5f9;border-radius:8px;padding:8px 11px;font-size:11px;color:#475569"><strong>⚪ Base copy</strong><div style="color:var(--charcoal)">${escHtml(d.basis||'')}</div></div>`;
+    document.getElementById('em-form').style.display = 'block';
+    if (!d.to) document.getElementById('em-noemail').style.display = 'block';
+    if (!d.gmail_ready) toast('⚠️ Gmail not configured in .env — sending will fail', 'error', 5000);
+    document.getElementById('em-send-btn').disabled = false;
+  } catch {
+    document.getElementById('em-generating').style.display = 'none';
+    toast('Something went wrong composing 😅', 'error');
+  }
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('open');
+  _emLeadId = null; _emData = null;
+}
+
+let _emSending = false;   // guards against a double-click firing two sends
+
+async function sendLeadEmail() {
+  if (!_emData || _emSending) return;
+  const to = document.getElementById('em-to').value.trim();
+  const subject = document.getElementById('em-subject').value.trim();
+  const body = document.getElementById('em-body').value;
+  if (!to) { toast('Add a recipient email first 🙏', 'error'); return; }
+  const btn = document.getElementById('em-send-btn');
+  const leadId = _emLeadId;                       // capture before the modal closes
+  _emSending = true; btn.disabled = true; btn.textContent = '📤 Queueing…';
+  try {
+    const r = await fetch(`/api/lead/${leadId}/email/send`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({to, subject, body, template_id: _emData.template_id})
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      toast(d.error || 'Send failed', 'error', 6000);
+      _emSending=false; btn.disabled=false; btn.textContent='🚀 Send email now'; return;
+    }
+    // The upload runs server-side in the background — free the UI right away so
+    // you can move to the next lead instead of watching a 30s spinner.
+    const row = document.getElementById(`row-${leadId}`);
+    const ta = row && row.querySelector('.notes-ta');
+    if (ta) {
+      const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+      const note = `Email sent on ${today} to ${to}`;
+      ta.value = ta.value.trim() ? ta.value.trim()+'\n'+note : note;
+    }
+    toast(`📤 Sending to ${to} in the background — carry on with the next lead`, 'info', 4000);
+    closeEmailModal();
+    pollEmailSend(leadId, to);
+  } catch {
+    toast('Send failed 😬', 'error');
+    _emSending=false; btn.disabled=false; btn.textContent='🚀 Send email now';
+  } finally { _emSending = false; }
+}
+
+// Confirm the background send actually landed, so a silent SMTP failure can't
+// masquerade as a success.
+function pollEmailSend(leadId, to) {
+  let tries = 0;
+  const iv = setInterval(async () => {
+    tries++;
+    try {
+      const s = await (await fetch(`/api/lead/${leadId}/email/status`)).json();
+      if (s.state === 'sent') {
+        clearInterval(iv);
+        toast(`✅ Delivered to ${to} with the deck attached`, 'success', 5000);
+      } else if (s.state === 'failed') {
+        clearInterval(iv);
+        toast(`❌ Email to ${to} FAILED: ${s.error || 'unknown error'}`, 'error', 12000);
+      }
+    } catch {}
+    if (tries > 40) clearInterval(iv);       // ~2 min ceiling
+  }, 3000);
+}
+
+async function saveLinkedInProfile() {
+  const input = document.getElementById('li-save-url');
+  const url = (input.value || '').trim();
+  if (!/linkedin\.com\/in\//i.test(url)) {
+    toast('Paste a linkedin.com/in/… profile URL 🙏', 'error'); return;
+  }
+  try {
+    const r = await fetch(`/api/lead/${_liLeadId}/linkedin/profile`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Could not save', 'error'); return; }
+    if (_liData) _liData.linkedin_url = d.linkedin;   // next open goes direct
+    input.value = '';
+    // reflect it on the row without a reload
+    const row = document.getElementById(`row-${_liLeadId}`);
+    const li  = row && row.querySelector("input[data-field='linkedin']");
+    if (li && !li.value.trim()) li.value = d.linkedin;
+    toast('📌 Profile saved — Copy & Open will go straight to them from now on', 'success', 5000);
+  } catch { toast('Something went wrong saving 😅', 'error'); }
+}
+
+function closeLinkedInModal() {
+  document.getElementById('linkedinModal').classList.remove('open');
+  _liLeadId = null; _liData = null;
+}
+
+// ── Get More Leads — count picker ────────────────────────────────────────────
+let _getLeadsCount = 10;
+
+function getMoreLeads() {
+  // Open the count-picker modal instead of firing immediately.
+  setLeadCount(10);
+  document.getElementById('getLeadsModal').classList.add('open');
+}
+
+function closeGetLeadsModal() {
+  document.getElementById('getLeadsModal').classList.remove('open');
+}
+
+document.getElementById('getLeadsModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('getLeadsModal')) closeGetLeadsModal();
+});
+
+function setLeadCount(n) {
+  _getLeadsCount = n;
+  document.getElementById('glCustomCount').value = n;
+  document.querySelectorAll('.gl-count-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.gl-count-btn').forEach(b => {
+    if (parseInt(b.textContent) === n) b.classList.add('active');
+  });
+}
+
+function syncCountInput(val) {
+  const n = Math.min(50, Math.max(1, parseInt(val) || 1));
+  _getLeadsCount = n;
+  document.querySelectorAll('.gl-count-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.gl-count-btn').forEach(b => {
+    if (parseInt(b.textContent) === n) b.classList.add('active');
+  });
+}
+
+async function startGetLeads() {
+  closeGetLeadsModal();
+  const count = _getLeadsCount || 10;
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Starting…';
+
+  // Show the progress overlay immediately so the user sees something right away.
+  const overlay = document.getElementById('enrichOverlay');
+  overlay.classList.add('show');
+  document.querySelector('#enrichOverlay .enrich-card h3').textContent = 'Finding & validating leads';
+  document.getElementById('enrichSourceLabel').textContent = '🔎 Sourcing from news, funding data & thesis queries…';
+  document.getElementById('enrichProgressText').textContent = `Targeting ${count} leads`;
+  document.getElementById('enrichCurrentLead').innerHTML = '&nbsp;';
+  document.getElementById('enrichBarFill').style.width = '5%';
+
+  try {
+    const r = await fetch('/api/refresh', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({limit: count})
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      overlay.classList.remove('show');
+      toast(d.message || 'Error', 'error'); btn.disabled = false; restoreRefreshBtn(); return;
+    }
+    if ((d.total || 0) === 0) {
+      overlay.classList.remove('show');
+      toast(d.message || 'All caught up! 🍱'); btn.disabled = false; restoreRefreshBtn(); return;
+    }
+    pollRefreshProgress();
+  } catch {
+    overlay.classList.remove('show');
+    toast('Something went wrong 😅', 'error'); btn.disabled = false; restoreRefreshBtn();
+  }
+}
+
+function restoreRefreshBtn() {
+  document.getElementById('refreshBtn').innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Get More Leads';
+}
+
+function _fmtEta(secs) {
+  if (secs == null || secs <= 0) return '';
+  if (secs < 60) return `~${secs}s left`;
+  return `~${Math.ceil(secs / 60)}m left`;
+}
+
+// "A" → "A"; "A, B" → "A and B"; "A, B, C" → "A, B and C";
+// long lists get truncated: "A, B, C and 4 more".
+function _joinNames(names) {
+  if (!names || !names.length) return '';
+  const shown = names.slice(0, 4);
+  let s;
+  if (shown.length === 1)      s = shown[0];
+  else                         s = shown.slice(0, -1).join(', ') + ' and ' + shown[shown.length - 1];
+  if (names.length > 4)        s = names.slice(0, 4).join(', ') + ` and ${names.length - 4} more`;
+  return s;
+}
+
+// Re-show the "Added X, Y and Z" toast after the post-fetch page reload.
+window.addEventListener('DOMContentLoaded', () => {
+  // If this page loaded inside the OAuth popup after a successful Gmail connect,
+  // close the popup — the opener is polling /api/gmail/status and will continue.
+  try {
+    if (window.opener && /[?&]gmail=connected/.test(location.search)) {
+      window.close();
+      return;
+    }
+  } catch (e) {}
+  try {
+    const stashed = sessionStorage.getItem('getLeadsToast');
+    if (stashed) {
+      sessionStorage.removeItem('getLeadsToast');
+      const { msg, type } = JSON.parse(stashed);
+      setTimeout(() => toast(msg, type || 'success', 6000), 400);
+    }
+  } catch (e) {}
+});
+
+function pollRefreshProgress() {
+  const btn = document.getElementById('refreshBtn');
+  const interval = setInterval(async () => {
+    try {
+      const r = await fetch('/api/refresh/status');
+      const s = await r.json();
+      const label = document.getElementById('enrichSourceLabel');
+      const bar   = document.getElementById('enrichBarFill');
+      const ptext = document.getElementById('enrichProgressText');
+      const clead = document.getElementById('enrichCurrentLead');
+
+      if (s.phase === 'discovering') {
+        label.textContent = '🔎 Discovering candidates…';
+        ptext.textContent = `${s.discovered || 0} signals found from news · thesis · funding databases`;
+        bar.style.width = '10%';
+        btn.innerHTML = '<span class="spin"></span> discovering…';
+        clead.innerHTML = '&nbsp;';
+      } else if (s.phase === 'qualifying') {
+        const eta = _fmtEta(s.eta_seconds);
+        const ni = s.already_not_interested ? ` · ${s.already_not_interested} skipped (Not Interested)` : '';
+        const mq = s.marquee ? ` · ${s.marquee} marquee skipped` : '';
+        label.textContent = '🧮 Qualifying reachable D2C/consumer angels…';
+        ptext.textContent = `${s.classify_done}/${s.classify_total} classified · ${s.shortlisted} shortlisted${mq}${ni}${eta ? ' · ' + eta : ''}`;
+        bar.style.width = (s.classify_total ? 15 + Math.round(45 * s.classify_done / s.classify_total) : 20) + '%';
+        btn.innerHTML = `<span class="spin"></span> qualifying ${s.classify_done}/${s.classify_total}…`;
+        clead.innerHTML = '&nbsp;';
+      } else if (s.phase === 'enriching') {
+        const eta = _fmtEta(s.eta_seconds);
+        label.textContent = `🔍 Enriching + verifying ${s.total} leads (${s.workers || 4} workers)…`;
+        ptext.textContent = `${s.done}/${s.total} checked · ${s.added} passed verification${eta ? ' · ' + eta : ''}`;
+        bar.style.width = (s.total ? 60 + Math.round(30 * s.done / s.total) : 62) + '%';
+        btn.innerHTML = `<span class="spin"></span> enriching ${s.done}/${s.total}…`;
+        if (s.current) clead.textContent = '⟶ ' + s.current;
+      } else if (s.phase === 'composing') {
+        label.textContent = '✍️ Pre-writing personalised LinkedIn messages…';
+        ptext.textContent = `${s.compose_done || 0}/${s.compose_total || 0} messages ready — Message opens instantly for these leads`;
+        bar.style.width = (s.compose_total ? 90 + Math.round(10 * (s.compose_done || 0) / s.compose_total) : 92) + '%';
+        btn.innerHTML = `<span class="spin"></span> writing ${s.compose_done || 0}/${s.compose_total || 0}…`;
+        if (s.current) clead.textContent = '⟶ ' + s.current;
+      }
+
+      if (!s.running) {
+        clearInterval(interval);
+        btn.disabled = false; restoreRefreshBtn();
+        label.textContent = '✅ Done!';
+        bar.style.width = '100%';
+        ptext.textContent = `${s.added} leads added · ${s.skipped} skipped`;
+        clead.innerHTML = '&nbsp;';
+        setTimeout(() => {
+          document.getElementById('enrichOverlay').classList.remove('show');
+          document.querySelector('#enrichOverlay .enrich-card h3').textContent = 'Finding verified contacts';
+          // Named success toast — "Added X, Y and Z".
+          const names = (s.added_names || []);
+          let msg;
+          if (!s.added) {
+            const bits = [];
+            if (s.marquee) bits.push(`${s.marquee} marquee skipped`);
+            if (s.already_not_interested) bits.push(`${s.already_not_interested} Not Interested`);
+            const extra = bits.length ? ` (${bits.join(', ')})` : '';
+            msg = `No new angels added — ${s.discovered} signals found; kept only reachable D2C/consumer/food angels with a LinkedIn profile${extra}, rest already contacted or in DB.`;
+          } else {
+            msg = `🍱 Added ${names.length} new lead${names.length === 1 ? '' : 's'}: ${_joinNames(names)}`;
+          }
+          // The page reloads to show the new rows, which would wipe an in-page
+          // toast instantly. So stash the message and re-show it AFTER reload.
+          if (s.added > 0) {
+            try { sessionStorage.setItem('getLeadsToast', JSON.stringify({msg, type: 'success'})); } catch (e) {}
+            setTimeout(() => location.reload(), 800);
+          } else {
+            toast(msg, 'info');
+          }
+        }, 1000);
+      }
+    } catch { clearInterval(interval); btn.disabled = false; restoreRefreshBtn(); }
+  }, 1800);
+}
+
+function openModal()  { document.getElementById('addModal').classList.add('open'); }
+function closeModal() { document.getElementById('addModal').classList.remove('open'); }
+
+document.getElementById('addModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('addModal')) closeModal();
+});
+
+async function submitLead() {
+  const data = {
+    investor_name: document.getElementById('f_investor_name').value.trim(),
+    investor_type: document.getElementById('f_investor_type').value,
+    key_contact:   document.getElementById('f_key_contact').value.trim(),
+    email:         document.getElementById('f_email').value.trim(),
+    linkedin:      document.getElementById('f_linkedin').value.trim(),
+  };
+  if (!data.investor_name) {
+    toast('Investor name is required 🙏', 'error'); return;
+  }
+  const r = await fetch('/api/lead', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+  });
+  if (r.ok) {
+    toast('Lead added! 🎉'); closeModal();
+    setTimeout(() => location.reload(), 700);
+  } else { toast('Failed to add 😬', 'error'); }
+}
+
+</script>
+</body>
+</html>

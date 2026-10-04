@@ -1,0 +1,83 @@
+# auth-login.yaml — canonical "get to authenticated Landing" page object.
+# REWRITTEN 2026-06-09 for the testID standalone build (Hermes bundle embedded —
+# NO Metro, clearState is safe and gives a clean state every run).
+#
+# Drives entirely by id: selectors. This retires ALL pre-testID hacks:
+#   - no substring ".*X.*" regex / "In progress " prefix fights
+#   - no point-taps for control selection (one neutral tap remains ONLY to
+#     dismiss the keyboard — it selects nothing)
+#   - no Metro-reconnect block
+#
+# Path: GetStarted -> phone -> OTP <TEST_OTP> -> Welcome -> location gate -> Landing.
+# Maestro `id` is a FULL-MATCH regex, so exact ids are exact; templated ids use ".*".
+appId: ${APP_ID}
+---
+- clearState
+- launchApp
+- runFlow: dismiss-permissions.yaml
+
+# --- GetStarted ---
+- extendedWaitUntil:
+    visible: { id: "getstarted-cta" }
+    timeout: 90000
+- tapOn: { id: "getstarted-cta" }
+
+# --- Login: phone ---
+- extendedWaitUntil:
+    visible: { id: "login-phone-input" }
+    timeout: 20000
+- tapOn: { id: "login-phone-input" }
+- waitForAnimationToEnd: { timeout: 2000 }   # let the field focus/keyboard settle (Android)
+- inputText: "${BHOOKLE_PHONE}"
+# Probe: localize phone-entry failures HERE. On Android (CI) inputText was not
+# landing in the field (empty field → Get OTP blocked → otp-input never appears).
+# Asserting the digits here pins the failure to entry, not downstream OTP.
+- assertVisible: { text: "${BHOOKLE_PHONE}" }
+# Keyboard dismiss is iOS-ONLY: on iOS the keyboard covers Get OTP and hideKeyboard
+# is unsupported for this custom input → neutral title-area tap. On Android Maestro
+# taps through the keyboard, and a stray point-tap risks blurring the phone field.
+- runFlow:
+    when: { platform: iOS }
+    commands:
+      - tapOn: { point: "50%,18%" }
+- tapOn: { id: "login-get-otp-btn" }
+
+# --- OTP (otp-input auto-submits onFilled) ---
+- extendedWaitUntil:
+    visible: { id: "otp-input" }
+    timeout: 45000
+- tapOn: { id: "otp-input" }
+- inputText: "${BHOOKLE_OTP}"
+# New accounts surface a register step; the locked test account skips it.
+- runFlow:
+    when: { visible: { id: "otp-register-btn" } }
+    commands:
+      - tapOn: { id: "otp-register-btn" }
+
+# --- WelcomeScreen ---
+- extendedWaitUntil:
+    visible: { id: "welcome-proceed-btn" }
+    timeout: 45000
+- tapOn: { id: "welcome-proceed-btn" }
+- waitForAnimationToEnd: { timeout: 4000 }
+
+# --- Location gate (AddressCollection) ---
+# "CHOOSE ADDRESS" (address-choose-btn) opens a bottom sheet of saved addresses.
+# DIVERGENCE (2026-06-09): those rows are NOT in the iOS a11y tree — no testID AND
+# no text node (only the sheet container surfaces). the app dev's saved-address-row-* ids
+# are on a DIFFERENT component (AddressListBottomSheet/AddressListScreen), not this
+# AddressCollection sheet → FLAG TO APP DEV. Until fixed, point-tap row 0 (un-instrumented
+# control workaround, like the keyboard-dismiss tap).
+- runFlow:
+    when: { visible: { id: "address-choose-btn" } }
+    commands:
+      - tapOn: { id: "address-choose-btn" }
+      - waitForAnimationToEnd: { timeout: 3000 }
+      - tapOn: { point: "50%,56%" }
+      - waitForAnimationToEnd: { timeout: 4000 }
+
+# --- Landing (dismiss force-update modal if the build is below required SIT ver) ---
+- tapOn: { id: "landing-app-update-skip-btn", optional: true }
+- extendedWaitUntil:
+    visible: { id: "landing-screen" }
+    timeout: 45000

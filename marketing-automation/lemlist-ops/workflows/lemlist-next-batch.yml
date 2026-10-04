@@ -1,0 +1,93 @@
+# Bhookle Lemlist — Auto-create Next Batch (Batch N+1)
+# Triggered when the daily report detects Batch N has completed.
+# Creates a DRAFT campaign — does NOT auto-launch. User reviews & approves.
+
+name: Bhookle Lemlist Next Batch
+
+permissions:
+  contents: write
+
+on:
+  # Fired by lemlist-daily-report.yml when a campaign reaches completion.
+  repository_dispatch:
+    types: [lemlist_next_batch]
+  # Allow manual trigger for testing or off-schedule batch creation.
+  workflow_dispatch:
+    inputs:
+      template_campaign:
+        description: 'Campaign ID to duplicate (default: Batch1)'
+        required: false
+        default: 'cam_sbsPrGji9Qa4E4cmJ'
+      dry_run:
+        description: 'Dry run (search + dedupe only, no campaign created)'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: lemlist-next-batch
+  cancel-in-progress: false
+
+jobs:
+  next-batch:
+    name: Search People DB, dedupe, create Batch N+1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install --quiet requests python-dotenv
+
+      - name: Run next-batch creator
+        env:
+          LEMLIST_API_KEY: ${{ secrets.LEMLIST_API_KEY }}
+        run: |
+          cd _skills/lemlist-ops/scripts
+          DRY=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then DRY="--dry-run"; fi
+          TPL="${{ github.event.inputs.template_campaign }}"
+          if [ -z "$TPL" ]; then TPL="cam_sbsPrGji9Qa4E4cmJ"; fi
+          python3 create_next_batch.py --template-campaign "$TPL" $DRY
+
+      - name: Build notification body
+        run: |
+          python3 _skills/lemlist-ops/scripts/format_next_batch_email.py
+          head -c 200 /tmp/next-batch-email.html
+
+      - name: Email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "🆕 Bhookle Lemlist — Next batch is ready for review"
+          to: ${{ secrets.LEMLIST_REPORT_RECIPIENT }}
+          from: Bhookle Lemlist Bot <${{ secrets.GMAIL_USER }}>
+          html_body: file:///tmp/next-batch-email.html
+
+      - name: Email me on workflow failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "⚠️ Bhookle workflow failed: ${{ github.workflow }}"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            Workflow: ${{ github.workflow }}
+            Run ID: ${{ github.run_id }}
+            URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Manual intervention needed.

@@ -1,0 +1,136 @@
+# Bhookle AdsManager — Campaign Report
+# Runs every Monday at 4:00 PM IST + every Friday at 10:00 AM IST (with 3 retries each).
+# Mirrors the retry pattern proven by email-outreach (4 cron triggers + idempotency).
+# Email send uses Gmail SMTP (no Resend) — same approach as email-outreach.
+
+name: Bhookle AdsManager Weekly
+
+permissions:
+  contents: write   # Required to commit the generated PDF + JSON back to the repo
+
+on:
+  # Primary: external scheduler (cron-job.org) — Mon 16:00 IST + Fri 10:00 IST.
+  # Bypasses GH Actions cron throttling. Idempotent: if today's PDF already
+  # exists, subsequent runs short-circuit.
+  repository_dispatch:
+    types: [ads_manager_weekly]
+  workflow_dispatch:                          # allow manual trigger from GitHub UI
+  # Backup: GH Actions cron — ONE trigger per day, no retries.
+  # 2026-06-09 cost-cut: dropped 6 retry schedules. cron-job.org dispatch is the
+  # primary path; if a run fails, user gets an emailed alert and re-runs manually.
+  schedule:
+    - cron: '30 10 * * 1'                     # Mon 10:30 UTC = 16:00 IST
+    - cron: '30 4  * * 5'                     # Fri 04:30 UTC = 10:00 IST
+
+jobs:
+  weekly-report:
+    name: Generate + email weekly ads report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      # ── Idempotency guard ────────────────────────────────────────────────
+      # If today's PDF already exists in the repo, this run is a duplicate
+      # cron trigger — skip everything else.
+      - name: Check if today's report already generated
+        id: dedupe
+        run: |
+          today=$(TZ=Asia/Kolkata date +%Y%m%d)
+          pdf="AdManager/Output/Bhookle-AdsReport-${today}.pdf"
+          echo "today=$today" >> $GITHUB_OUTPUT
+          if [ -f "$pdf" ]; then
+            echo "Today's report ($pdf) already exists — skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "No report for today yet — proceeding."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Python
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        if: steps.dedupe.outputs.skip == 'false'
+        run: pip install requests python-dotenv reportlab
+
+      # ── Run analysis (with one retry on transient API failure) ───────────
+      - name: Run AdsManager analysis (attempt 1)
+        if: steps.dedupe.outputs.skip == 'false'
+        id: analyse1
+        continue-on-error: true
+        env:
+          META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID }}
+        run: |
+          python3 _skills/ads-manager/scripts/run_analysis.py
+
+      - name: Run AdsManager analysis (attempt 2 — retry on transient failure)
+        if: steps.dedupe.outputs.skip == 'false' && steps.analyse1.outcome == 'failure'
+        env:
+          META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID }}
+        run: |
+          echo "First analysis attempt failed — retrying after 30s…"
+          sleep 30
+          python3 _skills/ads-manager/scripts/run_analysis.py
+
+      # ── Email PDF (with one retry on transient SMTP failure) ─────────────
+      - name: Email PDF to recipient (attempt 1)
+        if: steps.dedupe.outputs.skip == 'false'
+        id: email1
+        continue-on-error: true
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADS_REPORT_RECIPIENT: owner@example.com
+        run: |
+          python3 _skills/ads-manager/scripts/send_email.py
+
+      - name: Email PDF to recipient (attempt 2 — retry on transient SMTP failure)
+        if: steps.dedupe.outputs.skip == 'false' && steps.email1.outcome == 'failure'
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ADS_REPORT_RECIPIENT: owner@example.com
+        run: |
+          echo "First email attempt failed — retrying after 30s…"
+          sleep 30
+          python3 _skills/ads-manager/scripts/send_email.py
+
+      # ── Commit the new report back to the repo ──────────────────────────
+      - name: Commit report
+        if: steps.dedupe.outputs.skip == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add AdManager/Output/*.pdf AdManager/Output/*.json || true
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(ads-manager): weekly report ${{ steps.dedupe.outputs.today }}"
+            git pull --rebase origin main
+            git push
+          else
+            echo "No new report files to commit."
+          fi
+
+      - name: Email me on workflow failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "⚠️ Bhookle workflow failed: ${{ github.workflow }}"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            Workflow: ${{ github.workflow }}
+            Run ID: ${{ github.run_id }}
+            URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Manual intervention needed.

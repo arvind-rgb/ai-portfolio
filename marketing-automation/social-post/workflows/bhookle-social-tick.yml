@@ -1,0 +1,193 @@
+name: Bhookle Social — Tick Dispatcher
+
+# Single cron, single job. Replaces the legacy per-post workflow which suffered from
+# GitHub Actions cron queueing delays (3+ hours) due to 41 stacked triggers.
+# This worker fires every 15 min and posts whatever is due — predictable & idempotent.
+
+on:
+  # Single trigger: external scheduler (cron-job.org) hits the GitHub
+  # repository_dispatch API every 15 min. Bypasses GH Actions' flaky cron.
+  # The redundant GH schedule: trigger was REMOVED — having two triggers fire
+  # at :00/:15/:30/:45 created race conditions where both runs checked out
+  # the same stale state before either could push the planner status update.
+  repository_dispatch:
+    types: [social_tick]
+  workflow_dispatch:
+    inputs:
+      send_test_email:
+        description: 'Send a test email to verify SMTP wiring (no posts will fire)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write            # needed to push planner status updates back
+
+concurrency:
+  group: social-tick         # never run two ticks in parallel
+  cancel-in-progress: false  # let an in-flight tick finish before starting the next
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install --quiet requests openpyxl pytz python-dotenv Pillow
+
+      - name: Run tick dispatcher
+        id: tick
+        env:
+          IG_USER_ID:        ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN:   ${{ secrets.IG_ACCESS_TOKEN }}
+          LI_ACCESS_TOKEN:   ${{ secrets.LI_ACCESS_TOKEN }}
+          LI_AUTHOR_URN:     ${{ secrets.LI_AUTHOR_URN }}
+          LI_COMPANY_URN:    ${{ secrets.LI_COMPANY_URN }}
+          LINKEDIN_CLIENT_ID:     ${{ secrets.LINKEDIN_CLIENT_ID }}
+          LINKEDIN_CLIENT_SECRET: ${{ secrets.LINKEDIN_CLIENT_SECRET }}
+          # For JIT asset download from Cloudinary (assets/ is gitignored)
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+        run: |
+          python3 _skills/social-post/scripts/social_tick.py \
+            --planner content-planner/bhookle-content-calendar-2026-08.xlsx \
+            | tee tick-output.log
+          # Capture whether any posts fired (for downstream conditional steps)
+          if grep -q "Tick summary:" tick-output.log; then
+            echo "fired=true" >> $GITHUB_OUTPUT
+            grep "Tick summary:" tick-output.log >> $GITHUB_STEP_SUMMARY
+          else
+            echo "fired=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit planner + posted-log updates
+        if: steps.tick.outputs.fired == 'true'
+        run: |
+          set -e   # fail on error so failures bubble up to the email step
+          git config user.email 'bot@example.com'
+          git config user.name 'Bhookle Social Bot'
+          git add content-planner/*.xlsx assets/_posted-log.csv 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No planner changes to commit"
+            exit 0
+          fi
+          git commit -m "auto: tick dispatch — planner status updated"
+          # Retry push up to 3 times with pull-rebase between attempts
+          # (handles concurrent commits from other workflows)
+          for attempt in 1 2 3; do
+            echo "Push attempt $attempt..."
+            git pull --rebase --autostash origin main || {
+              echo "Pull failed on attempt $attempt"; sleep 3; continue;
+            }
+            if git push origin main; then
+              echo "✓ Push succeeded on attempt $attempt"
+              exit 0
+            else
+              echo "Push failed on attempt $attempt"; sleep 3
+            fi
+          done
+          echo "❌ Push failed after 3 attempts — FAILING the workflow loudly"
+          echo "   (Posted-log was still updated — next tick will skip duplicates)"
+          exit 1
+
+      - name: Email notification (only when posts fired)
+        if: steps.tick.outputs.fired == 'true' && success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "🤖 Bhookle Social Tick — posts dispatched"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Social Bot <${{ secrets.GMAIL_USER }}>
+          body: file://tick-output.log
+
+      - name: 🚨 Failure email (push/commit failed)
+        if: failure() && steps.tick.outputs.fired == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "🚨 URGENT: Bhookle Social Tick — commit/push FAILED"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Social Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            The tick worker posted successfully but FAILED to commit the planner
+            status update after 3 retry attempts. This is the duplicate-post bug
+            class.
+
+            The posted-log.csv update was attempted in the same commit. If it
+            committed, future ticks will skip via idempotency check. If even the
+            posted-log push failed, a duplicate post may occur on the next tick.
+
+            ACTION: check the workflow run and manually mark the post as Posted
+            in the planner, then push. Then click into the run for diagnostics:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Email dispatch (runs during 10:00–12:00 IST window)
+        env:
+          RESEND_API_KEY:      ${{ secrets.RESEND_API_KEY }}
+          GMAIL_USER:          ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD:  ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_ADMIN_RECIPIENT: owner@example.com
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        run: |
+          # IST = UTC+5:30. Only dispatch in the 10:00–12:00 IST window (04:30–06:30 UTC).
+          UTC_H=$(date -u +%H)
+          UTC_M=$(date -u +%M)
+          UTC_MINS=$((UTC_H * 60 + UTC_M))
+          # 04:30 UTC = 270 min, 06:30 UTC = 390 min
+          if [ "$UTC_MINS" -ge 270 ] && [ "$UTC_MINS" -lt 390 ]; then
+            echo "Within dispatch window — running email batch..."
+            pip install --quiet google-genai
+            for slug in email-marketing/campaigns/*/; do
+              slug_name=$(basename "$slug")
+              python3 _skills/email-outreach/scripts/upload_images.py "$slug_name" || true
+            done
+            python3 _skills/email-outreach/scripts/dispatch_batch.py
+            git config user.email 'bot@example.com'
+            git config user.name 'Bhookle Email Bot'
+            git add email-marketing/campaigns/*/sent-log.csv \
+                    email-marketing/campaigns/*/image-urls.json || true
+            git diff --staged --quiet || (git commit -m "chore: email dispatch log $GITHUB_RUN_ID" && git pull --rebase --autostash origin main || true && git push || true)
+          else
+            echo "Outside dispatch window (UTC ${UTC_H}:${UTC_M}) — skipping."
+          fi
+
+      - name: Test email (manual dispatch with send_test_email=true only)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.send_test_email == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "✅ Bhookle Social Tick — SMTP test (no posts fired)"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Social Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            This is a stub test email from the Bhookle Social Tick workflow.
+
+            If you see this, the SMTP wiring is good — real post emails will arrive
+            the same way the moment a scheduled post fires (next: LI-002 on Wed 27 May
+            at 10 AM IST).
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Commit: ${{ github.sha }}
+            Triggered by: ${{ github.actor }}

@@ -1,0 +1,144 @@
+# Bhookle Lemlist — Daily Report + Completion Detection
+# Runs daily at 19:00 IST (after sends complete at 17:30 IST).
+# Mirrors the proven email-stats.yml / ads-manager-weekly.yml pattern.
+
+name: Bhookle Lemlist Daily Report
+
+permissions:
+  contents: write     # required to commit daily snapshot JSON back to repo
+
+on:
+  # Primary trigger: cron-job.org → repository_dispatch (more reliable than GH cron).
+  # User adds a new cron at cron-job.org pointing to this repo's dispatch API with type=lemlist_daily.
+  repository_dispatch:
+    types: [lemlist_daily]
+  workflow_dispatch:                                  # manual trigger from GH UI
+  # Backup: GH Actions native cron, ONE trigger only.
+  # 2026-06-09 cost-cut: dropped 2 retry schedules. cron-job.org dispatch is the
+  # primary path; if it fails, user gets an emailed alert and intervenes manually.
+  schedule:
+    - cron: '30 13 * * *'                             # 13:30 UTC = 19:00 IST
+
+concurrency:
+  group: lemlist-daily-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: Fetch stats, format digest, email
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      # ── Idempotency guard ──────────────────────────────────────────────────
+      # If today's daily snapshot already exists for any campaign, skip the entire job.
+      # This protects against duplicate cron triggers (we have 3 GH crons + cron-job.org).
+      - name: Check if today's report already sent
+        id: dedupe
+        run: |
+          today=$(TZ=Asia/Kolkata date +%Y-%m-%d)
+          # If ANY campaign already has today's snapshot, this is a duplicate run.
+          if compgen -G "email-marketing/lemlist/*/daily-${today}.json" > /dev/null; then
+            echo "Today's snapshot already exists — skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Python
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        if: steps.dedupe.outputs.skip == 'false'
+        run: pip install --quiet requests python-dotenv
+
+      # ── Fetch stats for all running campaigns. Exit code 3 means completion detected. ──
+      - name: Fetch daily stats
+        if: steps.dedupe.outputs.skip == 'false'
+        id: fetch
+        continue-on-error: true
+        env:
+          LEMLIST_API_KEY: ${{ secrets.LEMLIST_API_KEY }}
+        run: |
+          cd _skills/lemlist-ops/scripts
+          python3 fetch_daily_stats.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Determine email mode (daily vs completion)
+        if: steps.dedupe.outputs.skip == 'false'
+        id: mode
+        run: |
+          if [ "${{ steps.fetch.outputs.exit_code }}" = "3" ]; then
+            echo "mode=completion" >> $GITHUB_OUTPUT
+          else
+            echo "mode=daily" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Format digest email
+        if: steps.dedupe.outputs.skip == 'false'
+        env:
+          LEMLIST_API_KEY: ${{ secrets.LEMLIST_API_KEY }}
+        run: |
+          cd _skills/lemlist-ops/scripts
+          python3 format_digest.py --mode ${{ steps.mode.outputs.mode }}
+
+      - name: Read subject line
+        if: steps.dedupe.outputs.skip == 'false'
+        id: subj
+        run: |
+          echo "subject=$(cat /tmp/lemlist-digest-subject.txt)" >> $GITHUB_OUTPUT
+
+      - name: Email the digest (Gmail SMTP)
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: ${{ steps.subj.outputs.subject }}
+          to: ${{ secrets.LEMLIST_REPORT_RECIPIENT }}
+          from: Bhookle Lemlist Bot <${{ secrets.GMAIL_USER }}>
+          html_body: file:///tmp/lemlist-digest.html
+          body: file:///tmp/lemlist-digest.txt
+
+      # ── If a campaign just completed, fire the next-batch workflow ─────────
+      - name: Trigger next-batch workflow on completion
+        if: steps.dedupe.outputs.skip == 'false' && steps.mode.outputs.mode == 'completion'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          event-type: lemlist_next_batch
+
+      # ── Commit daily snapshot back to repo (audit trail) ───────────────────
+      - name: Commit snapshot
+        if: steps.dedupe.outputs.skip == 'false'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add email-marketing/lemlist/ || true
+          git diff --staged --quiet || git commit -m "chore: lemlist daily snapshot ${{ github.run_id }}"
+          git push || true
+
+      - name: Email me on workflow failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "⚠️ Bhookle workflow failed: ${{ github.workflow }}"
+          to: ${{ secrets.GMAIL_USER }}
+          from: Bhookle Bot <${{ secrets.GMAIL_USER }}>
+          body: |
+            Workflow: ${{ github.workflow }}
+            Run ID: ${{ github.run_id }}
+            URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Manual intervention needed.

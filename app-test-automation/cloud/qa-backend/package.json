@@ -1,0 +1,27 @@
+{
+  "name": "bhookle-qa-backend",
+  "version": "0.1.0",
+  "description": "Hosted backend for the Bhookle QA test-catalog dashboard. Backs onto qa.* schema in SIT Postgres.",
+  "main": "app.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "init-schema": "node scripts/init-qa-schema.js",
+    "migrate": "node scripts/migrate-from-json.js",
+    "deploy": "firebase deploy --only functions:bhookleQaBackend"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "fast-xml-parser": "^5.8.0",
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^4.9.0",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.19.1"
+  }
+}

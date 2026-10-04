@@ -1,0 +1,22 @@
+# ensure-landing.yaml — reach an authenticated Landing WITHOUT a full clearState+OTP
+# on every TC. This is the SHARED-SESSION fix for Android driver flakiness: the root
+# cause of the "Unknown error" cluster was doing clearState + full re-auth on every
+# single TC (12 wipe/relaunch cycles per shard). Instead:
+#   - launchApp (NO clearState) → Redux-Persist restores the session → logged-in → Landing.
+#   - Only if the app is actually logged OUT (e.g., a prior logged-out TC cleared state)
+#     do we self-heal with a full auth-login.
+# Net: ~1 clearState+auth per shard instead of per-TC → far fewer relaunch cycles → stable
+# on Android, and ~10x faster. Logged-out TCs (Boot/GetStarted/Login/OTP/Welcome) keep
+# their own clearState; the next authed TC self-heals here.
+appId: ${APP_ID}
+---
+- launchApp
+- waitForAnimationToEnd: { timeout: 3000 }
+- tapOn: { id: "landing-app-update-skip-btn", optional: true }
+- runFlow:
+    when:
+      notVisible: { id: "landing-screen" }
+    commands:
+      - runFlow: auth-login.yaml
+- tapOn: { id: "landing-app-update-skip-btn", optional: true }
+- assertVisible: { id: "landing-screen" }

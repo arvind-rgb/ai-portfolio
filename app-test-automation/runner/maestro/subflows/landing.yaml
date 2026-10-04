@@ -1,0 +1,9 @@
+# landing.yaml — Landing screen page object (assumes already authenticated).
+# Asserts the three fulfilment entry points render.
+appId: ${APP_ID}
+---
+- tapOn: { id: "landing-app-update-skip-btn", optional: true }
+- assertVisible: { id: "landing-screen" }
+- assertVisible: { id: "landing-get-today-card" }
+- assertVisible: { id: "landing-get-later-card" }
+- assertVisible: { id: "landing-subscribe-btn" }

@@ -1,0 +1,20 @@
+# open-first-chef.yaml — from Landing, navigate to a chef's menu (ChefFoodList).
+# Landing "Get It Today" card -> GetNow screen -> first chef card -> chef menu.
+# Uses regex id + index 0 so it works regardless of which chef is first.
+appId: ${APP_ID}
+---
+- tapOn: { id: "landing-get-today-card" }
+- extendedWaitUntil:
+    visible: { id: "get-now-screen" }
+    timeout: 30000
+# Wait for the (async/network) chef list to render before tapping — fixes the
+# "chef-card-.* not found" failures on downstream chef/cart sub-screens (#24).
+- extendedWaitUntil:
+    visible: { id: "chef-card-.*" }
+    timeout: 20000
+- tapOn:
+    id: "chef-card-.*"
+    index: 0
+- extendedWaitUntil:
+    visible: { id: "cheffoodlist-screen" }
+    timeout: 30000
